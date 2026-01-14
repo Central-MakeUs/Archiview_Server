@@ -50,8 +50,7 @@ jobs:
           docker build -f deploy/Dockerfile -t archiview/archiview:latest .
           docker push archiview/archiview:latest
 
-
-      # 8️⃣ EC2 배포
+      # 8️⃣ EC2 배포 (host 네트워크 모드 사용)
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -61,24 +60,27 @@ jobs:
           script: |
             # 1. 앱 디렉토리 준비
             mkdir -p /home/ubuntu/app
-      
-            # 2. application.yml 생성 (GitHub Secret → EC2)
+            
+            # 2. application.yml 생성
             cat << 'EOF' > /home/ubuntu/app/application.yml
             ${{ secrets.APPLICATION_YAML }}
             EOF
-      
+            
             # 3. 최신 이미지 pull
             docker pull archiview/archiview:latest
-      
+            
             # 4. 기존 컨테이너 제거
             docker stop archiview || true
             docker rm archiview || true
-      
-            # 5. application.yml 마운트해서 실행
+            
+            # 5. host 네트워크 모드로 실행
             docker run -d \
               --name archiview \
-              -p 8080:8080 \
+              --network host \
               -v /home/ubuntu/app/application.yml:/app/application.yml \
               -e SPRING_CONFIG_LOCATION=file:/app/application.yml \
               archiview/archiview:latest
-
+            
+            # 6. 로그 확인 (처음 20줄)
+            sleep 5
+            docker logs archiview --tail 20
