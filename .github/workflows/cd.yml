@@ -52,6 +52,7 @@ jobs:
             docker run -d \
               --name archiview \
               --network host \
+              -e SPRING_PROFILES_ACTIVE=prod \
               -e DB_URL="${{ secrets.DB_URL }}" \
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
@@ -60,10 +61,6 @@ jobs:
               -e APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
               -e APPLE_CLIENT_SECRET="${{ secrets.APPLE_CLIENT_SECRET }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e JPA_DDL_AUTO=validate \
-              -e JPA_SHOW_SQL=false \
-              -e LOG_LEVEL=INFO \
-              -e SECURITY_LOG_LEVEL=WARN \
               ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
 
             # 컨테이너 로그 확인
