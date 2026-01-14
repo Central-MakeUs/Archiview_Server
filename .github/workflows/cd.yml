@@ -47,8 +47,9 @@ jobs:
       # 7️⃣ Docker Build & Push
       - name: Build & Push Docker Image
         run: |
-          docker build -t archiview/archiview:latest .
+          docker build -f deploy/Dockerfile -t archiview/archiview:latest .
           docker push archiview/archiview:latest
+
 
       # 8️⃣ EC2 배포
       - name: Deploy to EC2
