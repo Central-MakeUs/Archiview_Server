@@ -65,4 +65,4 @@ jobs:
             docker run -d \
               --name archiview \
               -p 8080:8080 \
-              51taek/archiview:latest
+              archiview/archiview:latest
