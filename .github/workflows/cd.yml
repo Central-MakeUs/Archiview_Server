@@ -47,8 +47,8 @@ jobs:
       # 7️⃣ Docker Build & Push
       - name: Build & Push Docker Image
         run: |
-          docker build -t 51taek/archiview:latest .
-          docker push 51taek/archiview:latest
+          docker build -t archiview/archiview:latest .
+          docker push archiview/archiview:latest
 
       # 8️⃣ EC2 배포
       - name: Deploy to EC2
@@ -58,7 +58,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            docker pull 51taek/archiview:latest
+            docker pull archiview/archiview:latest
             docker stop archiview || true
             docker rm archiview || true
             docker run -d \
