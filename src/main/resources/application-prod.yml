@@ -1,0 +1,45 @@
+spring:
+  # Database
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  # OAuth2
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - profile
+              - email
+            redirect-uri: "https://archiview.space/login/oauth2/code/google"
+
+          apple:
+            client-id: ${APPLE_CLIENT_ID}
+            client-secret: ${APPLE_CLIENT_SECRET}
+            client-authentication-method: client_secret_post
+            authorization-grant-type: authorization_code
+            redirect-uri: "https://archiview.space/login/oauth2/code/apple"
+            scope:
+              - name
+              - email
+
+# JWT
+jwt:
+  secret: ${JWT_SECRET}
+
+# Logging
+logging:
+  level:
+    zero.conflict.archiview: INFO
+    org.springframework.security: WARN
