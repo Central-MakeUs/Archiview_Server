@@ -1,4 +1,4 @@
-name: CD - Deploy to Production
+name: CD
 
 on:
   push:
@@ -10,47 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ 코드 체크아웃
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 2️⃣ JDK 설정
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      # 3️⃣ Gradle 캐시
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/archiview:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/archiview:buildcache,mode=max
 
-      - name: Grant execute permission
-        run: chmod +x gradlew
-
-      # 4️⃣ 운영 application.yml
-      - name: Create production application.yml
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_PROD_YML }}" > src/main/resources/application.yml
-
-      # 5️⃣ Build
-      - name: Build
-        run: ./gradlew clean build -x test
-
-      # 6️⃣ Docker Login
-      - name: Docker login
-        run: |
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login \
-          -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
-
-      # 7️⃣ Docker Build & Push
-      - name: Build & Push Docker Image
-        run: |
-          docker build -f deploy/Dockerfile -t archiview/archiview:latest .
-          docker push archiview/archiview:latest
-
-      # 8️⃣ EC2 배포 (host 네트워크 모드 사용)
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -58,29 +38,37 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
-            # 1. 앱 디렉토리 준비
-            mkdir -p /home/ubuntu/app
-            
-            # 2. application.yml 생성
-            cat << 'EOF' > /home/ubuntu/app/application.yml
-            ${{ secrets.APPLICATION_YAML }}
-            EOF
-            
-            # 3. 최신 이미지 pull
-            docker pull archiview/archiview:latest
-            
-            # 4. 기존 컨테이너 제거
+            # Docker 로그인
+            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            # 최신 이미지 pull
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
+
+            # 기존 컨테이너 중지 및 삭제
             docker stop archiview || true
             docker rm archiview || true
-            
-            # 5. host 네트워크 모드로 실행
+
+            # 새 컨테이너 실행
             docker run -d \
               --name archiview \
               --network host \
-              -v /home/ubuntu/app/application.yml:/app/application.yml \
-              -e SPRING_CONFIG_LOCATION=file:/app/application.yml \
-              archiview/archiview:latest
-            
-            # 6. 로그 확인 (처음 20줄)
+              -e DB_URL="${{ secrets.DB_URL }}" \
+              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+              -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              -e APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
+              -e APPLE_CLIENT_SECRET="${{ secrets.APPLE_CLIENT_SECRET }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JPA_DDL_AUTO=validate \
+              -e JPA_SHOW_SQL=false \
+              -e LOG_LEVEL=INFO \
+              -e SECURITY_LOG_LEVEL=WARN \
+              ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
+
+            # 컨테이너 로그 확인
             sleep 5
-            docker logs archiview --tail 20
+            docker logs archiview --tail 30
+
+            # 사용하지 않는 이미지 정리
+            docker image prune -f
