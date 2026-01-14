@@ -26,6 +26,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: deploy/Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/archiview:buildcache
