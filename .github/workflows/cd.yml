@@ -59,10 +59,26 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_PRIVATE_KEY }}
           script: |
+            # 1. 앱 디렉토리 준비
+            mkdir -p /home/ubuntu/app
+      
+            # 2. application.yml 생성 (GitHub Secret → EC2)
+            cat << 'EOF' > /home/ubuntu/app/application.yml
+            ${{ secrets.APPLICATION_YAML }}
+            EOF
+      
+            # 3. 최신 이미지 pull
             docker pull archiview/archiview:latest
+      
+            # 4. 기존 컨테이너 제거
             docker stop archiview || true
             docker rm archiview || true
+      
+            # 5. application.yml 마운트해서 실행
             docker run -d \
               --name archiview \
               -p 8080:8080 \
+              -v /home/ubuntu/app/application.yml:/app/application.yml \
+              -e SPRING_CONFIG_LOCATION=file:/app/application.yml \
               archiview/archiview:latest
+
