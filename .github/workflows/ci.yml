@@ -15,25 +15,22 @@ jobs:
         uses: actions/checkout@v4
 
       # 2️⃣ JDK 설정
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
 
-      # 3️⃣ Gradle 캐시
+      # 3️⃣ Gradle 캐싱 및 설정 (gradle-build-action 포함)
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
+      # 4️⃣ 실행 권한 부여
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      # 4️⃣ 테스트용 application.yml
-      - name: Create test application.yml
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_TEST_YML }}" > src/main/resources/application.yml
-
       # 5️⃣ Build & Test
+      # -x test를 빼서 테스트를 수행하고, 빌드까지 확인합니다.
+      # 이미 레포에 있는 설정 파일을 사용하므로 복잡한 echo 명령어가 필요 없습니다.
       - name: Build & Test
-        run: ./gradlew clean test build
+        run: ./gradlew clean build
