@@ -13,7 +13,7 @@ import zero.conflict.archiview.global.domain.BaseTimeEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-public class PostPlaces extends BaseTimeEntity {
+public class PostPlace extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,8 +24,8 @@ public class PostPlaces extends BaseTimeEntity {
 
     private String description;
 
-    public static PostPlaces createOf(Long postId, Long placeId, String description) {
-        return PostPlaces.builder()
+    public static PostPlace createOf(Long postId, Long placeId, String description) {
+        return PostPlace.builder()
                 .postId(postId)
                 .placeId(placeId)
                 .description(description)

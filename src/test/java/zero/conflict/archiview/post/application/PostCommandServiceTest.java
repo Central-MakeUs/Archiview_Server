@@ -73,8 +73,8 @@ class PostCommandServiceTest {
         given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
         given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
-        PostPlaces postPlace = PostPlaces.createOf(savedPost.getId(), newPlace.getId(), placeInfoRequest.getDescription());
-        given(postPlacesRepository.save(any(PostPlaces.class))).willReturn(postPlace);
+        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(), placeInfoRequest.getDescription());
+        given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
         // when
         PostCommandDto.Response response = postCommandService.createPost(request, editorId);
@@ -88,7 +88,7 @@ class PostCommandServiceTest {
         verify(postRepository).save(any(Post.class));
         verify(placeRepository).findByPosition(any(Position.class));
         verify(placeRepository).save(any(Place.class));
-        verify(postPlacesRepository).save(any(PostPlaces.class));
+        verify(postPlacesRepository).save(any(PostPlace.class));
     }
 
     @Test
@@ -125,8 +125,8 @@ class PostCommandServiceTest {
         );
         given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
-        PostPlaces postPlace = PostPlaces.createOf(savedPost.getId(), existingPlace.getId(), placeInfoRequest.getDescription());
-        given(postPlacesRepository.save(any(PostPlaces.class))).willReturn(postPlace);
+        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(), placeInfoRequest.getDescription());
+        given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
         // when
         PostCommandDto.Response response = postCommandService.createPost(request, editorId);
@@ -138,7 +138,7 @@ class PostCommandServiceTest {
         verify(postRepository).save(any(Post.class));
         verify(placeRepository).findByPosition(any(Position.class));
         verify(placeRepository, never()).save(any(Place.class)); // 새로운 Place는 저장되지 않아야 함
-        verify(postPlacesRepository).save(any(PostPlaces.class));
+        verify(postPlacesRepository).save(any(PostPlace.class));
     }
 
     @Test
@@ -179,7 +179,7 @@ class PostCommandServiceTest {
         given(postRepository.save(any(Post.class))).willReturn(savedPost);
         given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
         given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
-        given(postPlacesRepository.save(any(PostPlaces.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         // when
         PostCommandDto.Response response = postCommandService.createPost(request, editorId);
@@ -190,6 +190,6 @@ class PostCommandServiceTest {
         verify(postRepository).save(any(Post.class));
         verify(placeRepository, times(2)).findByPosition(any(Position.class));
         verify(placeRepository, times(2)).save(any(Place.class));
-        verify(postPlacesRepository, times(2)).save(any(PostPlaces.class));
+        verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
     }
 }

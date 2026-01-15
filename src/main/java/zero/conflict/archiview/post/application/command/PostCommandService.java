@@ -47,7 +47,7 @@ public class PostCommandService {
                         return placeRepository.save(newPlace);
                     });
 
-            PostPlaces postPlace = PostPlaces.createOf(postId, savedPlace.getId(), placeInfo.getDescription());
+            PostPlace postPlace = PostPlace.createOf(postId, savedPlace.getId(), placeInfo.getDescription());
             postPlacesRepository.save(postPlace);
 
             responses.add(mapPlaceToResponse(savedPlace));

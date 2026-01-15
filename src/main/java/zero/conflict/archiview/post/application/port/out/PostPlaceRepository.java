@@ -1,8 +1,8 @@
 package zero.conflict.archiview.post.application.port.out;
 
-import zero.conflict.archiview.post.domain.PostPlaces;
+import zero.conflict.archiview.post.domain.PostPlace;
 
 public interface PostPlaceRepository {
 
-    PostPlaces save(PostPlaces postPlaces);
+    PostPlace save(PostPlace postPlace);
 }
