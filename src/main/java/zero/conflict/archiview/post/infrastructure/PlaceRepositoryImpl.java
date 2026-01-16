@@ -16,11 +16,11 @@ public class PlaceRepositoryImpl implements PlaceRepository {
 
     @Override
     public Place save(Place place) {
-        return null;
+        return placeJpaRepository.save(place);
     }
 
     @Override
     public Optional<Place> findByPosition(Position position) {
-        return Optional.empty();
+        return placeJpaRepository.findByLatitudeAndLongitude(position.getLatitude(), position.getLongitude());
     }
 }
