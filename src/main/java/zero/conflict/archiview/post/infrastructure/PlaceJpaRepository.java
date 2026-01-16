@@ -7,5 +7,5 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 public interface PlaceJpaRepository extends JpaRepository<Place, Long> {
-    Optional<Place> findByLatitudeAndLongitude(BigDecimal latitude, BigDecimal longitude);
+    Optional<Place> findByPosition_LatitudeAndPosition_Longitude(BigDecimal latitude, BigDecimal longitude);
 }

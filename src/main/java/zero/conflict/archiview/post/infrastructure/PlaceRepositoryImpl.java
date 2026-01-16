@@ -21,6 +21,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
 
     @Override
     public Optional<Place> findByPosition(Position position) {
-        return placeJpaRepository.findByLatitudeAndLongitude(position.getLatitude(), position.getLongitude());
+        return placeJpaRepository.findByPosition_LatitudeAndPosition_Longitude(
+                position.getLatitude(), position.getLongitude());
     }
 }
