@@ -7,6 +7,8 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 @DisplayName("Place 도메인 테스트")
 class PlaceTest {
@@ -95,33 +97,62 @@ class PlaceTest {
     }
 
     @Test
-    @DisplayName("null 값으로 Place를 생성할 수 없다")
-    void createPlace_withNull_throwsException() {
+    @DisplayName("장소 이름이 null이면 에러코드를 반환한다")
+    void updatePlace_withNullName_throwsDomainException() {
         // given
-        Address address = Address.of("주소", "상세", "12345");
-        Position position = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
+        Place place = Place.createOf(
+            "원래 장소",
+            Address.of("원래 주소", "상세1", "11111"),
+            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+        );
+        Address newAddress = Address.of("수정된 주소", "상세2", "22222");
 
         // when & then
-        assertThatThrownBy(() -> Place.createOf(null, address, position))
-            .isInstanceOf(IllegalArgumentException.class);
-
-        assertThatThrownBy(() -> Place.createOf("장소명", null, position))
-            .isInstanceOf(IllegalArgumentException.class);
-
-        assertThatThrownBy(() -> Place.createOf("장소명", address, null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> place.update(null, newAddress))
+            .isInstanceOf(DomainException.class)
+            .satisfies(ex -> {
+                DomainException domainException = (DomainException) ex;
+                assertThat(domainException.getErrorCode()).isEqualTo(PostErrorCode.INVALID_PLACE_NAME);
+            });
     }
 
     @Test
-    @DisplayName("빈 문자열로 Place를 생성할 수 없다")
-    void createPlace_withEmptyString_throwsException() {
+    @DisplayName("장소 이름이 빈 문자열이면 에러코드를 반환한다")
+    void updatePlace_withEmptyName_throwsDomainException() {
         // given
-        Address address = Address.of("주소", "상세", "12345");
-        Position position = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
+        Place place = Place.createOf(
+            "원래 장소",
+            Address.of("원래 주소", "상세1", "11111"),
+            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+        );
+        Address newAddress = Address.of("수정된 주소", "상세2", "22222");
 
         // when & then
-        assertThatThrownBy(() -> Place.createOf("", address, position))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> place.update("", newAddress))
+            .isInstanceOf(DomainException.class)
+            .satisfies(ex -> {
+                DomainException domainException = (DomainException) ex;
+                assertThat(domainException.getErrorCode()).isEqualTo(PostErrorCode.INVALID_PLACE_NAME);
+            });
+    }
+
+    @Test
+    @DisplayName("주소가 null이면 에러코드를 반환한다")
+    void updatePlace_withNullAddress_throwsDomainException() {
+        // given
+        Place place = Place.createOf(
+            "원래 장소",
+            Address.of("원래 주소", "상세1", "11111"),
+            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+        );
+
+        // when & then
+        assertThatThrownBy(() -> place.update("수정된 장소", null))
+            .isInstanceOf(DomainException.class)
+            .satisfies(ex -> {
+                DomainException domainException = (DomainException) ex;
+                assertThat(domainException.getErrorCode()).isEqualTo(PostErrorCode.INVALID_PLACE_ADDRESS);
+            });
     }
 
     @Test
