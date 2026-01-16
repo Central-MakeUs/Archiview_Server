@@ -1,5 +1,9 @@
 package zero.conflict.archiview.post.application.command.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +19,12 @@ public class PostCommandDto {
     @AllArgsConstructor
     @Builder
     public static class Request {
+        @NotBlank(message = "URL은 필수입니다.")
         private String url;
+        @NotBlank(message = "해시태그는 필수입니다.")
         private String hashTag;
+        @Valid
+        @NotEmpty(message = "장소 정보는 최소 1개 이상 포함되어야 합니다.")
         private List<PlaceInfoRequest> placeInfoRequestList;
 
         @Getter
@@ -25,11 +33,17 @@ public class PostCommandDto {
         @Builder
         public static class PlaceInfoRequest {
             private String name;
+            @NotBlank(message = "장소 설명은 필수입니다.")
             private String description;
+            @NotBlank(message = "도로명 주소는 필수입니다.")
             private String roadAddress;
+            @NotBlank
             private String detailAddress;
+            @NotBlank
             private String zipCode;
+            @NotNull(message = "위도는 필수입니다.") // BigDecimal 타입에는 @NotNull을 사용해야 합니다.
             private BigDecimal latitude;
+            @NotNull(message = "경도는 필수입니다.")
             private BigDecimal longitude;
         }
     }

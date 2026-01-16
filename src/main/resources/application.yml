@@ -32,3 +32,13 @@ spring:
 jwt:
   access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600000}
   refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:604800000}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

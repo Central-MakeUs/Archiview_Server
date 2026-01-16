@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
+import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 @Entity
 @NoArgsConstructor
@@ -22,14 +24,15 @@ public class Place extends BaseTimeEntity {
 
     private String name;
 
-    private Address Address;
+    private Address address;
 
     private Position position;
 
     public static Place createOf(String name, Address address, Position position) {
+
         return Place.builder()
                 .name(name)
-                .Address(address)
+                .address(address)
                 .position(position)
                 .build();
     }
@@ -39,7 +42,7 @@ public class Place extends BaseTimeEntity {
         validateAddress(address);
 
         this.name = name;
-        this.Address = address;
+        this.address = address;
     }
 
     public boolean isSameLocation(Place other) {
@@ -48,13 +51,13 @@ public class Place extends BaseTimeEntity {
 
     private void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
-            throw new IllegalArgumentException("장소명은 필수입니다.");
+            throw new DomainException(PostErrorCode.INVALID_PLACE_NAME);
         }
     }
 
     private void validateAddress(Address address) {
         if (address == null) {
-            throw new IllegalArgumentException("주소는 필수입니다.");
+            throw new DomainException(PostErrorCode.INVALID_PLACE_ADDRESS);
         }
     }
 

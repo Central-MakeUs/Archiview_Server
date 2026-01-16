@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-  push:
-    branches-ignore:
-      - main
 
 jobs:
   build:
@@ -17,26 +14,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2️⃣ JDK 설정
-      - name: Set up JDK 17
+      # 2️⃣ JDK 설정 (여기서 설치한 21 버전을 시스템에 등록)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      # 3️⃣ Gradle 캐시
+      # 3️⃣ Gradle 설정 (중요: java-version을 명시해서 23을 무시하게 함)
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          java-version: '21' # CI 서버의 기본 자바(23) 대신 설치한 21을 쓰도록 강제
 
+      # 4️⃣ 실행 권한 부여
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      # 4️⃣ 테스트용 application.yml
-      - name: Create test application.yml
-        run: |
-          mkdir -p src/main/resources
-          echo "${{ secrets.APPLICATION_TEST_YML }}" > src/main/resources/application.yml
-
       # 5️⃣ Build & Test
       - name: Build & Test
-        run: ./gradlew clean test build
+        run: ./gradlew clean build

@@ -2,6 +2,8 @@ package zero.conflict.archiview.post.domain;
 
 import jakarta.persistence.Embeddable;
 import lombok.*;
+import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 import java.math.BigDecimal;
 
@@ -16,22 +18,22 @@ public class Position {
     private BigDecimal longitude; // 경도
 
     public static Position of(BigDecimal latitude, BigDecimal longitude) {
-        validateLatitude(latitude);
-        validateLongitude(longitude);
+        validateLatitudeWithinRange(latitude);
+        validateLongitudeWithinRange(longitude);
         return new Position(latitude, longitude);
     }
 
-    private static void validateLatitude(BigDecimal latitude) {
+    private static void validateLatitudeWithinRange(BigDecimal latitude) {
         if (latitude.compareTo(BigDecimal.valueOf(-90)) < 0 ||
             latitude.compareTo(BigDecimal.valueOf(90)) > 0) {
-            throw new IllegalArgumentException("위도는 -90 ~ 90 사이여야 합니다.");
+            throw new DomainException(PostErrorCode.INVALID_POSITION_LATITUDE);
         }
     }
 
-    private static void validateLongitude(BigDecimal longitude) {
+    private static void validateLongitudeWithinRange(BigDecimal longitude) {
         if (longitude.compareTo(BigDecimal.valueOf(-180)) < 0 ||
             longitude.compareTo(BigDecimal.valueOf(180)) > 0) {
-            throw new IllegalArgumentException("경도는 -180 ~ 180 사이여야 합니다.");
+            throw new DomainException(PostErrorCode.INVALID_POSITION_LONGITUDE);
         }
     }
 }
