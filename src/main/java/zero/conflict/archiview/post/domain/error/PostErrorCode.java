@@ -9,11 +9,14 @@ import zero.conflict.archiview.global.error.DomainErrorCode;
 @AllArgsConstructor
 public enum PostErrorCode implements DomainErrorCode {
 
-    INVALID_PLACE_NAME("POST_INVALID_PLACE_NAME", "error.post.invalid_place_name", HttpStatus.BAD_REQUEST),
-    INVALID_PLACE_ADDRESS("POST_INVALID_PLACE_ADDRESS", "error.post.invalid_place_address", HttpStatus.BAD_REQUEST)
+    INVALID_PLACE_NAME(HttpStatus.BAD_REQUEST, "POST_INVALID_PLACE_NAME", "error.post.invalid_place_name"),
+    INVALID_PLACE_ADDRESS(HttpStatus.BAD_REQUEST, "POST_INVALID_PLACE_ADDRESS", "error.post.invalid_place_address"),
+    INVALID_POSITION_LATITUDE(HttpStatus.BAD_REQUEST, "POST_INVALID_POSITION_LATITUDE", "error.post.invalid_position_latitude"),
+    INVALID_POSITION_LONGITUDE(HttpStatus.BAD_REQUEST, "POST_INVALID_POSITION_LONGITUDE", "error.post.invalid_position_longitude"),
     ;
 
+    private final HttpStatus httpStatus;
     private final String code;
     private final String message;
-    private final HttpStatus httpStatus;
+
 }
