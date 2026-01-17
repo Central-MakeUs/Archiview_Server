@@ -22,13 +22,16 @@ public class PostPlace extends BaseTimeEntity {
 
     private Long placeId;
 
+    private Long editorId;
+
     private String description;
 
-    public static PostPlace createOf(Long postId, Long placeId, String description) {
+    public static PostPlace createOf(Long postId, Long placeId, String description, Long editorId) {
         return PostPlace.builder()
                 .postId(postId)
                 .placeId(placeId)
                 .description(description)
+                .editorId(editorId)
                 .build();
     }
 

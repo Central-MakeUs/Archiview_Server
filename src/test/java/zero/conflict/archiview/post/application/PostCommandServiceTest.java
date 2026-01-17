@@ -73,7 +73,7 @@ class PostCommandServiceTest {
         given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
         given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
-        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(), placeInfoRequest.getDescription());
+        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(), placeInfoRequest.getDescription(), editorId);
         given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
         // when
@@ -125,7 +125,7 @@ class PostCommandServiceTest {
         );
         given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
-        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(), placeInfoRequest.getDescription());
+        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(), placeInfoRequest.getDescription(), editorId);
         given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
         // when

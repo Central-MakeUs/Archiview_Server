@@ -26,14 +26,15 @@ public class PostCommandService {
         Post savedPost = postRepository.save(post);
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses =
-            createPlacesAndPostPlaces(request.getPlaceInfoRequestList(), savedPost.getId());
+            createPlacesAndPostPlaces(request.getPlaceInfoRequestList(), savedPost.getId(), editorId);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
-            Long postId) {
+            Long postId,
+            Long editorId) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
@@ -47,7 +48,7 @@ public class PostCommandService {
                         return placeRepository.save(newPlace);
                     });
 
-            PostPlace postPlace = PostPlace.createOf(postId, savedPlace.getId(), placeInfo.getDescription());
+            PostPlace postPlace = PostPlace.createOf(postId, savedPlace.getId(), placeInfo.getDescription(), editorId);
             postPlacesRepository.save(postPlace);
 
             responses.add(mapPlaceToResponse(savedPlace));
