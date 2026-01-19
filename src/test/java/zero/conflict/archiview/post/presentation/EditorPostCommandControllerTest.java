@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class PostCommandControllerTest extends ControllerTestSupport {
+class EditorPostCommandControllerTest extends ControllerTestSupport {
 
     @MockBean
     private PostCommandService postCommandService;

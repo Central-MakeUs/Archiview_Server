@@ -26,170 +26,175 @@ import static org.mockito.Mockito.*;
 @DisplayName("PostCommandService 테스트")
 class PostCommandServiceTest {
 
-    @InjectMocks
-    private PostCommandService postCommandService;
+        @InjectMocks
+        private PostCommandService postCommandService;
 
-    @Mock
-    private PostRepository postRepository;
+        @Mock
+        private PostRepository postRepository;
 
-    @Mock
-    private PlaceRepository placeRepository;
+        @Mock
+        private PlaceRepository placeRepository;
 
-    @Mock
-    private PostPlaceRepository postPlacesRepository;
+        @Mock
+        private PostPlaceRepository postPlacesRepository;
 
-    @Test
-    @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
-    void createPost_withNewPlace_success() {
-        // given
-        Long editorId = 1L;
-        String url = "https://example.com/post1";
-        String hashTag = "여행";
+        @Test
+        @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
+        void createPost_withNewPlace_success() {
+                // given
+                Long editorId = 1L;
+                String url = "https://example.com/post1";
+                String hashTag = "여행";
 
-        PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
-            .name("테스트 장소")
-            .roadAddress("서울시 강남구")
-            .detailAddress("101호")
-            .zipCode("12345")
-            .description("멋진 장소")
-            .latitude(new BigDecimal("37.5665"))
-            .longitude(new BigDecimal("126.9780"))
-            .build();
+                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
+                                .builder()
+                                .name("테스트 장소")
+                                .roadAddress("서울시 강남구")
+                                .detailAddress("101호")
+                                .zipCode("12345")
+                                .description("멋진 장소")
+                                .latitude(new BigDecimal("37.5665"))
+                                .longitude(new BigDecimal("126.9780"))
+                                .build();
 
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
-            .url(url)
-            .hashTag(hashTag)
-            .placeInfoRequestList(List.of(placeInfoRequest))
-            .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url(url)
+                                .hashTag(hashTag)
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
 
-        Post savedPost = Post.createOf(editorId, url, hashTag);
-        given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                Post savedPost = Post.createOf(editorId, url, hashTag);
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
-        Place newPlace = Place.createOf(
-            placeInfoRequest.getName(),
-            Address.of(placeInfoRequest.getRoadAddress(), placeInfoRequest.getDetailAddress(), placeInfoRequest.getZipCode()),
-            Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude())
-        );
-        given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
-        given(placeRepository.save(any(Place.class))).willReturn(newPlace);
+                Place newPlace = Place.createOf(
+                                placeInfoRequest.getName(),
+                                Address.of(placeInfoRequest.getRoadAddress(), placeInfoRequest.getDetailAddress(),
+                                                placeInfoRequest.getZipCode()),
+                                Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()));
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
+                given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
-        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(), placeInfoRequest.getDescription(), editorId);
-        given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
+                PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(),
+                                placeInfoRequest.getDescription(),
+                                null, null, editorId);
+                given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
-        // when
-        PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                // when
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
-        // then
-        assertThat(response.getUrl()).isEqualTo(url);
-        assertThat(response.getHashTag()).isEqualTo(hashTag);
-        assertThat(response.getPlaceInfoResponseList()).hasSize(1);
-        assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("테스트 장소");
+                // then
+                assertThat(response.getUrl()).isEqualTo(url);
+                assertThat(response.getHashTag()).isEqualTo(hashTag);
+                assertThat(response.getPlaceInfoResponseList()).hasSize(1);
+                assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("테스트 장소");
 
-        verify(postRepository).save(any(Post.class));
-        verify(placeRepository).findByPosition(any(Position.class));
-        verify(placeRepository).save(any(Place.class));
-        verify(postPlacesRepository).save(any(PostPlace.class));
-    }
+                verify(postRepository).save(any(Post.class));
+                verify(placeRepository).findByPosition(any(Position.class));
+                verify(placeRepository).save(any(Place.class));
+                verify(postPlacesRepository).save(any(PostPlace.class));
+        }
 
-    @Test
-    @DisplayName("Post 생성 시 중복된 위치의 Place는 재사용해야 한다")
-    void createPost_withExistingPlace_reusePlace() {
-        // given
-        Long editorId = 1L;
-        String url = "https://example.com/post2";
-        String hashTag = "맛집";
+        @Test
+        @DisplayName("Post 생성 시 중복된 위치의 Place는 재사용해야 한다")
+        void createPost_withExistingPlace_reusePlace() {
+                // given
+                Long editorId = 1L;
+                String url = "https://example.com/post2";
+                String hashTag = "맛집";
 
-        PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
-            .name("기존 장소")
-            .roadAddress("서울시 종로구")
-            .detailAddress("201호")
-            .zipCode("54321")
-            .description("이미 존재하는 장소")
-            .latitude(new BigDecimal("37.5700"))
-            .longitude(new BigDecimal("126.9800"))
-            .build();
+                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
+                                .builder()
+                                .name("기존 장소")
+                                .roadAddress("서울시 종로구")
+                                .detailAddress("201호")
+                                .zipCode("54321")
+                                .description("이미 존재하는 장소")
+                                .latitude(new BigDecimal("37.5700"))
+                                .longitude(new BigDecimal("126.9800"))
+                                .build();
 
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
-            .url(url)
-            .hashTag(hashTag)
-            .placeInfoRequestList(List.of(placeInfoRequest))
-            .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url(url)
+                                .hashTag(hashTag)
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
 
-        Post savedPost = Post.createOf(editorId, url, hashTag);
-        given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                Post savedPost = Post.createOf(editorId, url, hashTag);
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
-        Place existingPlace = Place.createOf(
-            "기존 장소",
-            Address.of("서울시 종로구", "201호", "54321"),
-            Position.of(new BigDecimal("37.5700"), new BigDecimal("126.9800"))
-        );
-        given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                Place existingPlace = Place.createOf(
+                                "기존 장소",
+                                Address.of("서울시 종로구", "201호", "54321"),
+                                Position.of(new BigDecimal("37.5700"), new BigDecimal("126.9800")));
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
-        PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(), placeInfoRequest.getDescription(), editorId);
-        given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
+                PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(),
+                                placeInfoRequest.getDescription(), null, null, editorId);
+                given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
-        // when
-        PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                // when
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
-        // then
-        assertThat(response.getPlaceInfoResponseList()).hasSize(1);
-        assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("기존 장소");
+                // then
+                assertThat(response.getPlaceInfoResponseList()).hasSize(1);
+                assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("기존 장소");
 
-        verify(postRepository).save(any(Post.class));
-        verify(placeRepository).findByPosition(any(Position.class));
-        verify(placeRepository, never()).save(any(Place.class)); // 새로운 Place는 저장되지 않아야 함
-        verify(postPlacesRepository).save(any(PostPlace.class));
-    }
+                verify(postRepository).save(any(Post.class));
+                verify(placeRepository).findByPosition(any(Position.class));
+                verify(placeRepository, never()).save(any(Place.class)); // 새로운 Place는 저장되지 않아야 함
+                verify(postPlacesRepository).save(any(PostPlace.class));
+        }
 
-    @Test
-    @DisplayName("여러 Place를 포함한 Post 생성 테스트")
-    void createPost_withMultiplePlaces_success() {
-        // given
-        Long editorId = 1L;
-        String url = "https://example.com/post3";
-        String hashTag = "여행";
+        @Test
+        @DisplayName("여러 Place를 포함한 Post 생성 테스트")
+        void createPost_withMultiplePlaces_success() {
+                // given
+                Long editorId = 1L;
+                String url = "https://example.com/post3";
+                String hashTag = "여행";
 
-        PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
-            .name("장소1")
-            .roadAddress("주소1")
-            .detailAddress("상세주소1")
-            .zipCode("11111")
-            .description("설명1")
-            .latitude(new BigDecimal("37.5665"))
-            .longitude(new BigDecimal("126.9780"))
-            .build();
+                PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .name("장소1")
+                                .roadAddress("주소1")
+                                .detailAddress("상세주소1")
+                                .zipCode("11111")
+                                .description("설명1")
+                                .latitude(new BigDecimal("37.5665"))
+                                .longitude(new BigDecimal("126.9780"))
+                                .build();
 
-        PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
-            .name("장소2")
-            .roadAddress("주소2")
-            .detailAddress("상세주소2")
-            .zipCode("22222")
-            .description("설명2")
-            .latitude(new BigDecimal("37.5700"))
-            .longitude(new BigDecimal("126.9800"))
-            .build();
+                PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .name("장소2")
+                                .roadAddress("주소2")
+                                .detailAddress("상세주소2")
+                                .zipCode("22222")
+                                .description("설명2")
+                                .latitude(new BigDecimal("37.5700"))
+                                .longitude(new BigDecimal("126.9800"))
+                                .build();
 
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
-            .url(url)
-            .hashTag(hashTag)
-            .placeInfoRequestList(List.of(place1, place2))
-            .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url(url)
+                                .hashTag(hashTag)
+                                .placeInfoRequestList(List.of(place1, place2))
+                                .build();
 
-        Post savedPost = Post.createOf(editorId, url, hashTag);
-        given(postRepository.save(any(Post.class))).willReturn(savedPost);
-        given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
-        given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
-        given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
+                Post savedPost = Post.createOf(editorId, url, hashTag);
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
+                given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(postPlacesRepository.save(any(PostPlace.class)))
+                                .willAnswer(invocation -> invocation.getArgument(0));
 
-        // when
-        PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                // when
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
-        // then
-        assertThat(response.getPlaceInfoResponseList()).hasSize(2);
+                // then
+                assertThat(response.getPlaceInfoResponseList()).hasSize(2);
 
-        verify(postRepository).save(any(Post.class));
-        verify(placeRepository, times(2)).findByPosition(any(Position.class));
-        verify(placeRepository, times(2)).save(any(Place.class));
-        verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
-    }
+                verify(postRepository).save(any(Post.class));
+                verify(placeRepository, times(2)).findByPosition(any(Position.class));
+                verify(placeRepository, times(2)).save(any(Place.class));
+                verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+        }
 }
