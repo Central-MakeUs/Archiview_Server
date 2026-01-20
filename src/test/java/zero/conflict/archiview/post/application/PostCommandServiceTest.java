@@ -76,7 +76,7 @@ class PostCommandServiceTest {
 
                 PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(),
                                 placeInfoRequest.getDescription(),
-                                null, null, editorId);
+                                null, editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -129,7 +129,7 @@ class PostCommandServiceTest {
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(),
-                                placeInfoRequest.getDescription(), null, null, editorId);
+                                placeInfoRequest.getDescription(), null, editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
