@@ -12,6 +12,8 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.presentation.dto.MobileLoginRequest;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
+import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.domain.User;
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
@@ -26,6 +28,7 @@ public class AuthController {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final MobileAuthService mobileAuthService;
+    private final UserRepository userRepository;
 
     /**
      * 현재 인증된 사용자 정보 조회
@@ -64,14 +67,15 @@ public class AuthController {
         }
 
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        User user = userRepository.findById(userId)
+                .orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body(
+                    Map.of("error", "사용자를 찾을 수 없습니다.")
+            );
+        }
         String newAccessToken = jwtTokenProvider.createAccessToken(
-                new CustomOAuth2User(null, new HashMap<>()) {
-                    @Override
-                    public Long getUserId() {
-                        return userId;
-                    }
-                }
-        );
+                new CustomOAuth2User(user, new HashMap<>()));
 
         return ResponseEntity.ok(Map.of(
                 "accessToken", newAccessToken,
