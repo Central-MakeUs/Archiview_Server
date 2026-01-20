@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archiview Login Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f2f5;
+        }
+
+        .login-box {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .btn {
+            display: block;
+            width: 200px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn-apple {
+            background-color: #000;
+        }
+
+        .btn-google {
+            background-color: #4285F4;
+        }
+
+        .btn-kakao {
+            background-color: #FEE500;
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h1>Archiview Login Test</h1>
+        <p>테스트할 소셜 로그인을 선택하세요.</p>
+
+        <!-- 애플 로그인 버튼 -->
+        <a href="/oauth2/authorization/apple" class="btn btn-apple">Apple로 로그인</a>
+
+        <!-- 구글 로그인 버튼 -->
+        <a href="/oauth2/authorization/google" class="btn btn-google">Google로 로그인</a>
+
+        <!-- 카카오 로그인 버튼 -->
+        <a href="/oauth2/authorization/kakao" class="btn btn-kakao">Kakao로 로그인</a>
+
+        <hr>
+        <div id="user-info" style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+            로그인 후 <a href="/api/auth/me">여기서 정보 확인</a>
+        </div>
+    </div>
+</body>
+
+</html>
