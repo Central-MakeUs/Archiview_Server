@@ -27,9 +27,22 @@ spring:
             token-uri: https://appleid.apple.com/auth/token
             jwk-set-uri: https://appleid.apple.com/auth/keys
             user-name-attribute: sub
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
 jwt:
   secret: test-secret-key-for-testing-purposes-only-must-be-long-enough
   access-token-validity: 3600000
   refresh-token-validity: 604800000
 
+auth:
+  mobile:
+    apple:
+      issuer: https://appleid.apple.com
+      audience: test-apple-audience
+    kakao:
+      issuer: https://kauth.kakao.com
+      audience: test-kakao-audience

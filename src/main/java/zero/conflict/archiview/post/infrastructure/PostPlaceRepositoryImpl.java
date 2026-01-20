@@ -9,10 +9,10 @@ import zero.conflict.archiview.post.domain.PostPlace;
 @RequiredArgsConstructor
 public class PostPlaceRepositoryImpl implements PostPlaceRepository {
 
-    private final PlaceJpaRepository placeJpaRepository;
+    private final PostPlaceJpaRepository postPlaceJpaRepository;
 
     @Override
     public PostPlace save(PostPlace postPlace) {
-        return null;
+        return postPlaceJpaRepository.save(postPlace);
     }
 }

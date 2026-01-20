@@ -45,6 +45,9 @@ public class PostCommandDto {
             private BigDecimal latitude;
             @NotNull(message = "경도는 필수입니다.")
             private BigDecimal longitude;
+
+            private String imageUrl;
+            private List<Long> categoryIds;
         }
     }
 
@@ -58,7 +61,8 @@ public class PostCommandDto {
         private String hashTag;
         private List<PlaceInfoResponse> placeInfoResponseList;
 
-        public static Response of(Long postId, String url, String hashTag, List<PlaceInfoResponse> placeInfoResponseList) {
+        public static Response of(Long postId, String url, String hashTag,
+                List<PlaceInfoResponse> placeInfoResponseList) {
             return Response.builder()
                     .postId(postId)
                     .url(url)
@@ -81,9 +85,9 @@ public class PostCommandDto {
             private BigDecimal longitude;
 
             public static PlaceInfoResponse of(Long placeId, String name,
-                                               String roadAddress, String detailAddress,
-                                               String zipCode, BigDecimal latitude,
-                                               BigDecimal longitude) {
+                    String roadAddress, String detailAddress,
+                    String zipCode, BigDecimal latitude,
+                    BigDecimal longitude) {
                 return PlaceInfoResponse.builder()
                         .placeId(placeId)
                         .name(name)

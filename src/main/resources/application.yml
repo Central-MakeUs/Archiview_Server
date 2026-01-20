@@ -27,11 +27,25 @@ spring:
             token-uri: https://appleid.apple.com/auth/token
             jwk-set-uri: https://appleid.apple.com/auth/keys
             user-name-attribute: sub
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
 # JWT
 jwt:
   access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600000}
   refresh-token-validity: ${JWT_REFRESH_TOKEN_VALIDITY:604800000}
+
+auth:
+  mobile:
+    apple:
+      issuer: https://appleid.apple.com
+      audience: ${APPLE_APP_BUNDLE_ID:}
+    kakao:
+      issuer: https://kauth.kakao.com
+      audience: ${KAKAO_MOBILE_CLIENT_ID:}
 
 springdoc:
   swagger-ui:

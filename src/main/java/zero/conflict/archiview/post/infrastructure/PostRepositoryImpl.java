@@ -13,6 +13,6 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public Post save(Post post) {
-        return null;
+        return postJpaRepository.save(post);
     }
 }

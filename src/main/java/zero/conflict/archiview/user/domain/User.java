@@ -37,7 +37,7 @@ public class User extends BaseTimeEntity {
     private Role role;
 
     public enum OAuthProvider {
-        GOOGLE, APPLE
+        GOOGLE, APPLE, KAKAO
     }
 
     public enum Role {

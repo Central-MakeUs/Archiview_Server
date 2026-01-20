@@ -4,10 +4,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
+import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
-import zero.conflict.archiview.post.domain.*;
+import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.domain.Address;
+import zero.conflict.archiview.post.domain.Category;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Position;
+import zero.conflict.archiview.post.domain.Post;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,21 +27,23 @@ public class PostCommandService {
     private final PostRepository postRepository;
     private final PlaceRepository placeRepository;
     private final PostPlaceRepository postPlacesRepository;
+    private final CategoryRepository categoryRepository;
 
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.Request request, Long editorId) {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
-        List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses =
-            createPlacesAndPostPlaces(request.getPlaceInfoRequestList(), savedPost.getId());
+        List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
+                request.getPlaceInfoRequestList(), savedPost.getId(), editorId);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
-            Long postId) {
+            Long postId,
+            Long editorId) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
@@ -47,7 +57,23 @@ public class PostCommandService {
                         return placeRepository.save(newPlace);
                     });
 
-            PostPlace postPlace = PostPlace.createOf(postId, savedPlace.getId(), placeInfo.getDescription());
+            PostPlace postPlace = PostPlace.createOf(
+                    postId,
+                    savedPlace.getId(),
+                    placeInfo.getDescription(),
+                    placeInfo.getImageUrl(),
+                    editorId);
+
+            if (placeInfo.getCategoryIds() != null) {
+                for (Long categoryId : placeInfo.getCategoryIds()) {
+                    if (categoryId == null) {
+                        throw new DomainException(PostErrorCode.INVALID_CATEGORY_ID);
+                    }
+                    Category category = categoryRepository.findById(categoryId)
+                            .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
+                    postPlace.addCategory(category);
+                }
+            }
             postPlacesRepository.save(postPlace);
 
             responses.add(mapPlaceToResponse(savedPlace));
@@ -56,42 +82,36 @@ public class PostCommandService {
         return responses;
     }
 
-
     private Place createPlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
         return Place.createOf(
-            placeInfo.getName(),
-            Address.of(
-                placeInfo.getRoadAddress(),
-                placeInfo.getDetailAddress(),
-                placeInfo.getZipCode()
-            ),
-            Position.of(
-                placeInfo.getLatitude(),
-                placeInfo.getLongitude()
-            )
-        );
+                placeInfo.getName(),
+                Address.of(
+                        placeInfo.getRoadAddress(),
+                        placeInfo.getDetailAddress(),
+                        placeInfo.getZipCode()),
+                Position.of(
+                        placeInfo.getLatitude(),
+                        placeInfo.getLongitude()));
     }
 
     private static PostCommandDto.Response mapPostToResponse(
             Post savedPost,
             List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses) {
         return PostCommandDto.Response.of(
-            savedPost.getId(),
-            savedPost.getUrl(),
-            savedPost.getHashTag(),
-            placeInfoResponses
-        );
+                savedPost.getId(),
+                savedPost.getUrl(),
+                savedPost.getHashTag(),
+                placeInfoResponses);
     }
 
     private static PostCommandDto.Response.PlaceInfoResponse mapPlaceToResponse(Place place) {
         return PostCommandDto.Response.PlaceInfoResponse.of(
-            place.getId(),
-            place.getName(),
-            place.getAddress().getRoadAddress(),
-            place.getAddress().getDetailAddress(),
-            place.getAddress().getZipCode(),
-            place.getPosition().getLatitude(),
-            place.getPosition().getLongitude()
-        );
+                place.getId(),
+                place.getName(),
+                place.getAddress().getRoadAddress(),
+                place.getAddress().getDetailAddress(),
+                place.getAddress().getZipCode(),
+                place.getPosition().getLatitude(),
+                place.getPosition().getLongitude());
     }
 }

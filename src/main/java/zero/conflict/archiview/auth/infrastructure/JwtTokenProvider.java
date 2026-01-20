@@ -18,7 +18,7 @@ public class JwtTokenProvider {
     @Value("${jwt.secret:archiview-secret-key-for-jwt-token-generation-minimum-256-bits-required}")
     private String secretKey;
 
-    @Value("${jwt.access-token-validity:3600000}") // 1시간
+    @Value("${jwt.access-token-validity:43200000}") // 12시간
     private long accessTokenValidity;
 
     @Value("${jwt.refresh-token-validity:604800000}") // 7일

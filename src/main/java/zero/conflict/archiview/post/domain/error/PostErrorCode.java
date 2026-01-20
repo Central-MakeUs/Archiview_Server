@@ -13,6 +13,7 @@ public enum PostErrorCode implements DomainErrorCode {
     INVALID_PLACE_ADDRESS(HttpStatus.BAD_REQUEST, "POST_INVALID_PLACE_ADDRESS", "error.post.invalid_place_address"),
     INVALID_POSITION_LATITUDE(HttpStatus.BAD_REQUEST, "POST_INVALID_POSITION_LATITUDE", "error.post.invalid_position_latitude"),
     INVALID_POSITION_LONGITUDE(HttpStatus.BAD_REQUEST, "POST_INVALID_POSITION_LONGITUDE", "error.post.invalid_position_longitude"),
+    INVALID_CATEGORY_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_CATEGORY_ID", "error.post.invalid_category_id"),
     ;
 
     private final HttpStatus httpStatus;
