@@ -52,8 +52,7 @@ public class MobileAuthService {
                                 .provider(provider)
                                 .providerId(info.subject())
                                 .role(role)
-                                .build()
-                ));
+                                .build()));
 
         String accessToken = jwtTokenProvider.createAccessToken(
                 new zero.conflict.archiview.auth.domain.CustomOAuth2User(user, new HashMap<>()));
@@ -71,9 +70,13 @@ public class MobileAuthService {
 
     private User.Role resolveRole(String roleParam) {
         if (roleParam == null || roleParam.isBlank()) {
-            return User.Role.ARCHIVIER;
+            return User.Role.GUEST;
         }
-        return User.Role.valueOf(roleParam.toUpperCase());
+        try {
+            return User.Role.valueOf(roleParam.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return User.Role.GUEST;
+        }
     }
 
     public record IdTokenInfo(String subject, String email, String name) {

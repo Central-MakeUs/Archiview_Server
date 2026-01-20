@@ -28,11 +28,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, oAuth2User.getAttributes());
 
-        // ✅ role 파라미터 추출
-        String roleParam = userRequest.getAdditionalParameters().getOrDefault("role", "archivier").toString();
-        User.Role role = User.Role.valueOf(roleParam.toUpperCase());
-
-        User user = getOrCreateUser(oAuth2UserInfo, role);
+        // ✅ 최초 로그인 시 기본 역할은 GUEST로 설정
+        User user = getOrCreateUser(oAuth2UserInfo, User.Role.GUEST);
 
         return new CustomOAuth2User(user, oAuth2User.getAttributes());
     }
@@ -52,8 +49,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 .profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
                                 .provider(provider)
                                 .providerId(oAuth2UserInfo.getProviderId())
-                                .role(role) // ✅ 역할 적용
-                                .build()
-                ));
+                                .role(role) // ✅ GUEST로 시작
+                                .build()));
     }
 }
