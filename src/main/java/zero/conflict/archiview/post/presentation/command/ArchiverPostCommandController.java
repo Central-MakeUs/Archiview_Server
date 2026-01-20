@@ -1,0 +1,32 @@
+package zero.conflict.archiview.post.presentation.command;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.user.presentation.dto.ArchiverProfileDto;
+
+@Tag(name = "Archiver Post Command", description = "아카이버 전용 관리 API (CUD)")
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/archivers/me")
+public class ArchiverPostCommandController {
+
+    @Operation(summary = "내 프로필 수정 (아카이버)", description = "로그인한 아카이버 자신의 프로필 정보를 수정합니다.")
+    @PutMapping("/profile")
+    public ResponseEntity<Void> updateMyProfile(
+            @RequestBody @Valid ArchiverProfileDto.UpdateRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+
+        // TODO: Service 연동
+        return ResponseEntity.ok().build();
+    }
+}
