@@ -71,8 +71,12 @@ jobs:
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
               -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
+              -e KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}" \
+              -e KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}" \
               -e APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
               -e APPLE_CLIENT_SECRET="${{ secrets.APPLE_CLIENT_SECRET }}" \
+              -e APPLE_APP_BUNDLE_ID="${{ secrets.APPLE_APP_BUNDLE_ID }}" \
+              -e KAKAO_MOBILE_CLIENT_ID="${{ secrets.KAKAO_MOBILE_CLIENT_ID }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
 
