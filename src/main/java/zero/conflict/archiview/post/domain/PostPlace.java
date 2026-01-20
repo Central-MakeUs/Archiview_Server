@@ -62,20 +62,28 @@ public class PostPlace extends BaseTimeEntity {
         this.postPlaceCategories.add(postPlaceCategory);
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
+    public void increaseViewCount(Long actorId) {
+        if (!this.editorId.equals(actorId)) {
+            this.viewCount++;
+        }
     }
 
-    public void increaseSaveCount() {
-        this.saveCount++;
+    public void increaseSaveCount(Long actorId) {
+        if (!this.editorId.equals(actorId)) {
+            this.saveCount++;
+        }
     }
 
-    public void increaseInstagramInflowCount() {
-        this.instagramInflowCount++;
+    public void increaseInstagramInflowCount(Long actorId) {
+        if (!this.editorId.equals(actorId)) {
+            this.instagramInflowCount++;
+        }
     }
 
-    public void increaseDirectionCount() {
-        this.directionCount++;
+    public void increaseDirectionCount(Long actorId) {
+        if (!this.editorId.equals(actorId)) {
+            this.directionCount++;
+        }
     }
 
 }

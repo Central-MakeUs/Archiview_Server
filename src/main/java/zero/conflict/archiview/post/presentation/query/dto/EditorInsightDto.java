@@ -1,4 +1,4 @@
-package zero.conflict.archiview.user.presentation.dto;
+package zero.conflict.archiview.post.presentation.query.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,8 +40,8 @@ public class EditorInsightDto {
 
         public static SummaryResponse empty(Period period) {
             return SummaryResponse.builder()
-                .period(period)
-                .build();
+                    .period(period)
+                    .build();
         }
     }
 
@@ -56,10 +56,10 @@ public class EditorInsightDto {
 
         public static PlaceCardListResponse empty(Period period, PlaceSort sort) {
             return PlaceCardListResponse.builder()
-                .period(period)
-                .sort(sort)
-                .places(Collections.emptyList())
-                .build();
+                    .period(period)
+                    .sort(sort)
+                    .places(Collections.emptyList())
+                    .build();
         }
     }
 
@@ -91,9 +91,9 @@ public class EditorInsightDto {
 
         public static PlaceDetailResponse empty(Long placeId, Period period) {
             return PlaceDetailResponse.builder()
-                .placeId(placeId)
-                .period(period)
-                .build();
+                    .placeId(placeId)
+                    .period(period)
+                    .build();
         }
     }
 

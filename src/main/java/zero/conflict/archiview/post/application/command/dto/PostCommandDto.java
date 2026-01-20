@@ -25,6 +25,7 @@ public class PostCommandDto {
         private String hashTag;
         @Valid
         @NotEmpty(message = "장소 정보는 최소 1개 이상 포함되어야 합니다.")
+        @jakarta.validation.constraints.Size(max = 7, message = "장소 정보는 최대 7개까지 등록 가능합니다.")
         private List<PlaceInfoRequest> placeInfoRequestList;
 
         @Getter
