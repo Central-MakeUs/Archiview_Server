@@ -13,7 +13,6 @@ import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.domain.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -43,7 +42,7 @@ class PostCommandServiceTest {
         void createPost_withNewPlace_success() {
                 // given
                 Long editorId = 1L;
-                String url = "https://example.com/post1";
+                String url = "https://www.instagram.com/post1";
                 String hashTag = "여행";
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
@@ -53,8 +52,8 @@ class PostCommandServiceTest {
                                 .detailAddress("101호")
                                 .zipCode("12345")
                                 .description("멋진 장소")
-                                .latitude(new BigDecimal("37.5665"))
-                                .longitude(new BigDecimal("126.9780"))
+                                .latitude(Double.valueOf("37.5665"))
+                                .longitude(Double.valueOf("126.9780"))
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -99,7 +98,7 @@ class PostCommandServiceTest {
         void createPost_withExistingPlace_reusePlace() {
                 // given
                 Long editorId = 1L;
-                String url = "https://example.com/post2";
+                String url = "https://www.instagram.com/post2";
                 String hashTag = "맛집";
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
@@ -109,8 +108,8 @@ class PostCommandServiceTest {
                                 .detailAddress("201호")
                                 .zipCode("54321")
                                 .description("이미 존재하는 장소")
-                                .latitude(new BigDecimal("37.5700"))
-                                .longitude(new BigDecimal("126.9800"))
+                                .latitude(Double.valueOf("37.5700"))
+                                .longitude(Double.valueOf("126.9800"))
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -125,7 +124,7 @@ class PostCommandServiceTest {
                 Place existingPlace = Place.createOf(
                                 "기존 장소",
                                 Address.of("서울시 종로구", "201호", "54321"),
-                                Position.of(new BigDecimal("37.5700"), new BigDecimal("126.9800")));
+                                Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")));
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(),
@@ -150,7 +149,7 @@ class PostCommandServiceTest {
         void createPost_withMultiplePlaces_success() {
                 // given
                 Long editorId = 1L;
-                String url = "https://example.com/post3";
+                String url = "https://www.instagram.com/post3";
                 String hashTag = "여행";
 
                 PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
@@ -159,8 +158,8 @@ class PostCommandServiceTest {
                                 .detailAddress("상세주소1")
                                 .zipCode("11111")
                                 .description("설명1")
-                                .latitude(new BigDecimal("37.5665"))
-                                .longitude(new BigDecimal("126.9780"))
+                                .latitude(Double.valueOf("37.5665"))
+                                .longitude(Double.valueOf("126.9780"))
                                 .build();
 
                 PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
@@ -169,8 +168,8 @@ class PostCommandServiceTest {
                                 .detailAddress("상세주소2")
                                 .zipCode("22222")
                                 .description("설명2")
-                                .latitude(new BigDecimal("37.5700"))
-                                .longitude(new BigDecimal("126.9800"))
+                                .latitude(Double.valueOf("37.5700"))
+                                .longitude(Double.valueOf("126.9800"))
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()

@@ -9,7 +9,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class PostCommandDto {
@@ -42,10 +41,10 @@ public class PostCommandDto {
             private String detailAddress;
             @NotBlank
             private String zipCode;
-            @NotNull(message = "위도는 필수입니다.") // BigDecimal 타입에는 @NotNull을 사용해야 합니다.
-            private BigDecimal latitude;
+            @NotNull(message = "위도는 필수입니다.")
+            private Double latitude;
             @NotNull(message = "경도는 필수입니다.")
-            private BigDecimal longitude;
+            private Double longitude;
 
             private String imageUrl;
             private List<Long> categoryIds;
@@ -82,13 +81,13 @@ public class PostCommandDto {
             private String roadAddress;
             private String detailAddress;
             private String zipCode;
-            private BigDecimal latitude;
-            private BigDecimal longitude;
+            private Double latitude;
+            private Double longitude;
 
             public static PlaceInfoResponse of(Long placeId, String name,
                     String roadAddress, String detailAddress,
-                    String zipCode, BigDecimal latitude,
-                    BigDecimal longitude) {
+                    String zipCode, Double latitude,
+                    Double longitude) {
                 return PlaceInfoResponse.builder()
                         .placeId(placeId)
                         .name(name)

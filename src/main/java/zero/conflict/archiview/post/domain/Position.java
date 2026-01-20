@@ -5,7 +5,6 @@ import lombok.*;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
-import java.math.BigDecimal;
 
 @Embeddable
 @Getter
@@ -14,25 +13,23 @@ import java.math.BigDecimal;
 @EqualsAndHashCode
 public class Position {
 
-    private BigDecimal latitude;  // 위도
-    private BigDecimal longitude; // 경도
+    private Double latitude;  // 위도
+    private Double longitude; // 경도
 
-    public static Position of(BigDecimal latitude, BigDecimal longitude) {
+    public static Position of(Double latitude, Double longitude) {
         validateLatitudeWithinRange(latitude);
         validateLongitudeWithinRange(longitude);
         return new Position(latitude, longitude);
     }
 
-    private static void validateLatitudeWithinRange(BigDecimal latitude) {
-        if (latitude.compareTo(BigDecimal.valueOf(-90)) < 0 ||
-            latitude.compareTo(BigDecimal.valueOf(90)) > 0) {
+    private static void validateLatitudeWithinRange(Double latitude) {
+        if (latitude == null || latitude < -90 || latitude > 90) {
             throw new DomainException(PostErrorCode.INVALID_POSITION_LATITUDE);
         }
     }
 
-    private static void validateLongitudeWithinRange(BigDecimal longitude) {
-        if (longitude.compareTo(BigDecimal.valueOf(-180)) < 0 ||
-            longitude.compareTo(BigDecimal.valueOf(180)) > 0) {
+    private static void validateLongitudeWithinRange(Double longitude) {
+        if (longitude == null || longitude < -180 || longitude > 180) {
             throw new DomainException(PostErrorCode.INVALID_POSITION_LONGITUDE);
         }
     }

@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public class EditorMapDto {
@@ -26,9 +25,9 @@ public class EditorMapDto {
         @Schema(description = "장소명")
         private String name;
         @Schema(description = "위도")
-        private BigDecimal latitude;
+        private Double latitude;
         @Schema(description = "경도")
-        private BigDecimal longitude;
+        private Double longitude;
         @Schema(description = "장소 카테고리 목록")
         private List<String> categories;
     }

@@ -10,7 +10,6 @@ import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.command.PostCommandService;
 import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -39,12 +38,12 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .roadAddress("서울시 중구 세종대로 110")
                         .detailAddress("1층")
                         .zipCode("04524")
-                        .latitude(new BigDecimal("37.5665"))
-                        .longitude(new BigDecimal("126.9780"))
+                        .latitude(Double.valueOf("37.5665"))
+                        .longitude(Double.valueOf("126.9780"))
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
-                .url("https://example.com/post")
+                .url("https://www.instagram.com/post")
                 .hashTag("#테스트 #여행")
                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                 .build();
@@ -56,13 +55,13 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .roadAddress("서울시 중구 세종대로 110")
                         .detailAddress("1층")
                         .zipCode("04524")
-                        .latitude(new BigDecimal("37.5665"))
-                        .longitude(new BigDecimal("126.9780"))
+                        .latitude(Double.valueOf("37.5665"))
+                        .longitude(Double.valueOf("126.9780"))
                         .build();
 
         PostCommandDto.Response mockResponse = PostCommandDto.Response.builder()
                 .postId(1L)
-                .url("https://example.com/post")
+                .url("https://www.instagram.com/post")
                 .hashTag("#테스트 #여행")
                 .placeInfoResponseList(Collections.singletonList(placeInfoResponse))
                 .build();
@@ -71,12 +70,13 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .willReturn(mockResponse);
 
         // when & then
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/editors/posts")
+                        .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.postId").value(1L))
-                .andExpect(jsonPath("$.url").value("https://example.com/post"))
+                .andExpect(jsonPath("$.url").value("https://www.instagram.com/post"))
                 .andExpect(jsonPath("$.hashTag").value("#테스트 #여행"))
                 .andDo(print());
     }
@@ -92,8 +92,8 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .roadAddress("서울시 중구")
                         .detailAddress("상세주소")
                         .zipCode("12345")
-                        .latitude(new BigDecimal("37.5665"))
-                        .longitude(new BigDecimal("126.9780"))
+                        .latitude(Double.valueOf("37.5665"))
+                        .longitude(Double.valueOf("126.9780"))
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -103,7 +103,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .build();
 
         // when & then
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/editors/posts")
                         .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -122,18 +122,18 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .roadAddress("서울시 중구")
                         .detailAddress("상세주소")
                         .zipCode("12345")
-                        .latitude(new BigDecimal("37.5665"))
-                        .longitude(new BigDecimal("126.9780"))
+                        .latitude(Double.valueOf("37.5665"))
+                        .longitude(Double.valueOf("126.9780"))
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
-                .url("https://example.com/post")
+                .url("https://www.instagram.com/post")
                 .hashTag("") // 해시태그 누락
                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                 .build();
 
         // when & then
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/editors/posts")
                         .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -146,13 +146,13 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     void createPost_Fail_NoPlaceInfo() throws Exception {
         // given
         PostCommandDto.Request request = PostCommandDto.Request.builder()
-                .url("https://example.com/post")
+                .url("https://www.instagram.com/post")
                 .hashTag("#테스트")
                 .placeInfoRequestList(Collections.emptyList()) // 장소 정보 누락
                 .build();
 
         // when & then
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/editors/posts")
                         .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -171,18 +171,18 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .roadAddress("서울시 중구")
                         .detailAddress("상세주소")
                         .zipCode("12345")
-                        .latitude(new BigDecimal("37.5665"))
-                        .longitude(new BigDecimal("126.9780"))
+                        .latitude(Double.valueOf("37.5665"))
+                        .longitude(Double.valueOf("126.9780"))
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
-                .url("https://example.com/post")
+                .url("https://www.instagram.com/post")
                 .hashTag("#테스트")
                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                 .build();
 
         // when & then
-        mockMvc.perform(post("/posts")
+        mockMvc.perform(post("/api/v1/editors/posts")
                         .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))

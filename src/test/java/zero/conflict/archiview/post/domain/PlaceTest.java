@@ -3,7 +3,6 @@ package zero.conflict.archiview.post.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,7 +18,7 @@ class PlaceTest {
         // given
         String name = "테스트 장소";
         Address address = Address.of("서울시 강남구", "101호", "12345");
-        Position position = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
+        Position position = Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"));
 
         // when
         Place place = Place.createOf(name, address, position);
@@ -34,7 +33,7 @@ class PlaceTest {
     @DisplayName("같은 Position을 가진 Place는 동일한 위치로 간주된다")
     void samePosition_equals() {
         // given
-        Position position = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
+        Position position = Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"));
 
         Place place1 = Place.createOf(
             "장소1",
@@ -56,8 +55,8 @@ class PlaceTest {
     @DisplayName("다른 Position을 가진 Place는 다른 위치로 간주된다")
     void differentPosition_notEquals() {
         // given
-        Position position1 = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
-        Position position2 = Position.of(new BigDecimal("37.5700"), new BigDecimal("126.9800"));
+        Position position1 = Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"));
+        Position position2 = Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800"));
 
         Place place1 = Place.createOf(
             "장소1",
@@ -82,7 +81,7 @@ class PlaceTest {
         Place place = Place.createOf(
             "원래 장소",
             Address.of("원래 주소", "상세1", "11111"),
-            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+            Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"))
         );
 
         String newName = "수정된 장소";
@@ -103,7 +102,7 @@ class PlaceTest {
         Place place = Place.createOf(
             "원래 장소",
             Address.of("원래 주소", "상세1", "11111"),
-            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+            Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"))
         );
         Address newAddress = Address.of("수정된 주소", "상세2", "22222");
 
@@ -123,7 +122,7 @@ class PlaceTest {
         Place place = Place.createOf(
             "원래 장소",
             Address.of("원래 주소", "상세1", "11111"),
-            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+            Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"))
         );
         Address newAddress = Address.of("수정된 주소", "상세2", "22222");
 
@@ -143,7 +142,7 @@ class PlaceTest {
         Place place = Place.createOf(
             "원래 장소",
             Address.of("원래 주소", "상세1", "11111"),
-            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+            Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"))
         );
 
         // when & then
@@ -159,7 +158,7 @@ class PlaceTest {
     @DisplayName("Position이 같으면 같은 장소로 판단한다")
     void isSameLocation_withSamePosition_returnsTrue() {
         // given
-        Position position = Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"));
+        Position position = Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"));
 
         Place place1 = Place.createOf(
             "장소1",
@@ -184,13 +183,13 @@ class PlaceTest {
         Place place1 = Place.createOf(
             "장소1",
             Address.of("주소1", "상세1", "11111"),
-            Position.of(new BigDecimal("37.5665"), new BigDecimal("126.9780"))
+            Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"))
         );
 
         Place place2 = Place.createOf(
             "장소2",
             Address.of("주소2", "상세2", "22222"),
-            Position.of(new BigDecimal("37.5700"), new BigDecimal("126.9800"))
+            Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800"))
         );
 
         // when & then

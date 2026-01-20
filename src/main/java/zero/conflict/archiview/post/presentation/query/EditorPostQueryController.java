@@ -11,7 +11,6 @@ import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 
@@ -50,8 +49,8 @@ public class EditorPostQueryController {
     @GetMapping("/me/map/places")
     public ResponseEntity<EditorMapDto.Response> getMapPins(
             @RequestParam(defaultValue = "ALL") EditorMapDto.MapFilter filter,
-            @RequestParam(required = false) BigDecimal lat,
-            @RequestParam(required = false) BigDecimal lon,
+            @RequestParam(required = false) Double lat,
+            @RequestParam(required = false) Double lon,
             @RequestParam(required = false) List<String> categories,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         
