@@ -1,4 +1,4 @@
-package zero.conflict.archiview.user.presentation;
+package zero.conflict.archiview.user.presentation.command;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -7,19 +7,17 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.user.application.command.UserCommandService;
+import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 import zero.conflict.archiview.user.presentation.dto.UserDto;
 
-@Tag(name = "User", description = "사용자 관리 API")
+@Tag(name = "User Command", description = "사용자 관리 API (CUD)")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
-public class UserController {
+public class UserCommandController {
 
     private final UserCommandService userCommandService;
 
