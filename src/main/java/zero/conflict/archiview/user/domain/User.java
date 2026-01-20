@@ -41,11 +41,15 @@ public class User extends BaseTimeEntity {
     }
 
     public enum Role {
-        ARCHIVIER, EDITOR
+        GUEST, ARCHIVER, EDITOR
     }
 
     public void updateProfile(String name, String profileImageUrl) {
         this.name = name;
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public void assignRole(Role role) {
+        this.role = role;
     }
 }
