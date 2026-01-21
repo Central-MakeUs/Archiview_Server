@@ -13,7 +13,7 @@ import zero.conflict.archiview.user.application.command.UserCommandService;
 import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 import zero.conflict.archiview.user.presentation.dto.UserDto;
 
-@Tag(name = "User Command", description = "사용자 관리 API (CUD)")
+@Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")

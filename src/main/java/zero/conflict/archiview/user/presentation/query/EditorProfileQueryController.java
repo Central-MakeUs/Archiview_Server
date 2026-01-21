@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 
-@Tag(name = "Editor Profile Query", description = "에디터 프로필 조회 API")
+@Tag(name = "Editor Profile Query", description = "에디터용 프로필 조회 API")
 @RestController
 @RequestMapping("/api/v1/editors")
 public class EditorProfileQueryController {

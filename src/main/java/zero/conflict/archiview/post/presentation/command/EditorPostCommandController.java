@@ -15,7 +15,7 @@ import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
 @RestController
 @RequestMapping("/api/v1/editors")
 @RequiredArgsConstructor
-@Tag(name = "Editor Post Command", description = "에디터 전용 관리 API (CUD)")
+@Tag(name = "Editor Post Command", description = "에디터용 장소 정보 업데이트 API (CUD)")
 public class EditorPostCommandController {
 
     private final PostCommandService postCommandService;

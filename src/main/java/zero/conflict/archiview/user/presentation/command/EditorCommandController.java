@@ -17,7 +17,7 @@ import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/editors")
-@Tag(name = "Editor Profile Command", description = "에디터 프로필 관리 API")
+@Tag(name = "Editor Profile Command", description = "에디터용 프로필 업데이트 관련 API")
 public class EditorCommandController {
 
     @Operation(summary = "에디터 내 프로필 수정", description = "로그인한 사용자의 프로필 정보를 수정합니다.")

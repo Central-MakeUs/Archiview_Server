@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 
-@Tag(name = "Archiver Post Query", description = "아카이버 및 일반 사용자 관련 조회 API")
+@Tag(name = "Archiver Post Query", description = "아카이버용 장소 정보 관련 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers")
