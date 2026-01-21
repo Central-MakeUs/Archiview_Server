@@ -5,6 +5,8 @@ import org.springframework.stereotype.Repository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.PostPlace;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class PostPlaceRepositoryImpl implements PostPlaceRepository {
@@ -14,5 +16,10 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     @Override
     public PostPlace save(PostPlace postPlace) {
         return postPlaceJpaRepository.save(postPlace);
+    }
+
+    @Override
+    public List<PostPlace> findAllByEditorId(Long editorId) {
+        return postPlaceJpaRepository.findAllByEditorId(editorId);
     }
 }

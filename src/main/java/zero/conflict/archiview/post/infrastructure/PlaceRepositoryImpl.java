@@ -6,6 +6,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,5 +24,10 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     public Optional<Place> findByPosition(Position position) {
         return placeJpaRepository.findByPosition_LatitudeAndPosition_Longitude(
                 position.getLatitude(), position.getLongitude());
+    }
+
+    @Override
+    public List<Place> findAllByIds(List<Long> ids) {
+        return placeJpaRepository.findAllById(ids);
     }
 }

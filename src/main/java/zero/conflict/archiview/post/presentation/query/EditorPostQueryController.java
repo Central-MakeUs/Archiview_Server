@@ -3,12 +3,15 @@ package zero.conflict.archiview.post.presentation.query;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
+import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,7 +19,10 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/editors")
 @Tag(name = "Editor Post Query", description = "에디터 전용 및 관련 조회 API")
+@RequiredArgsConstructor
 public class EditorPostQueryController {
+
+    private final PostQueryService postQueryService;
 
     @Operation(summary = "에디터 인사이트 요약 조회", description = "에디터 인사이트 요약 지표를 조회합니다.")
     @GetMapping("/me/insights/summary")
@@ -56,6 +62,13 @@ public class EditorPostQueryController {
         return ResponseEntity.ok(EditorMapDto.Response.builder()
                 .pins(Collections.emptyList())
                 .build());
+    }
+
+    @Operation(summary = "내가 업로드한 장소 목록 조회", description = "에디터가 등록한 장소 목록과 통계를 조회합니다.")
+    @GetMapping("/me/places")
+    public ResponseEntity<EditorUploadedPlaceDto.ListResponse> getUploadedPlaces(
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        return ResponseEntity.ok(postQueryService.getUploadedPlaces(oAuth2User.getUserId()));
     }
 
 }

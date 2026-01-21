@@ -17,7 +17,7 @@ import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 @RequestMapping("/api/v1/editors")
 public class EditorProfileQueryController {
 
-    @Operation(summary = "내 프로필 조회 (에디터)", description = "로그인한 에디터 자신의 프로필 정보를 조회합니다.")
+    @Operation(summary = "에디터 프로필 조회", description = "로그인한 에디터 자신의 프로필 정보를 조회합니다.")
     @GetMapping("/me/profile")
     public ResponseEntity<EditorProfileDto.Response> getMyProfile(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
