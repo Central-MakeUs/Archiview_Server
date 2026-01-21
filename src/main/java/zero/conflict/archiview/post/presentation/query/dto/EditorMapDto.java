@@ -12,7 +12,7 @@ import java.util.List;
 public class EditorMapDto {
 
     public enum MapFilter {
-        ALL, NEARBY, CATEGORY
+        ALL, NEARBY
     }
 
     @Getter

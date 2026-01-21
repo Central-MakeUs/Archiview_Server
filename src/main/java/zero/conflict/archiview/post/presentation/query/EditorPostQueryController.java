@@ -12,8 +12,8 @@ import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
+import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -53,15 +53,13 @@ public class EditorPostQueryController {
     @Operation(summary = "내 지도 장소 핀 조회", description = "에디터가 등록한 장소들을 지도 핀 형태로 조회합니다.")
     @GetMapping("/me/map/places")
     public ResponseEntity<EditorMapDto.Response> getMapPins(
-            @RequestParam(defaultValue = "ALL") EditorMapDto.MapFilter filter,
+            @RequestParam(defaultValue = "ALL") MapFilter filter,
             @RequestParam(required = false) Double lat,
             @RequestParam(required = false) Double lon,
-            @RequestParam(required = false) List<String> categories,
+            @RequestParam(required = false) List<Long> categoryIds,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        
-        return ResponseEntity.ok(EditorMapDto.Response.builder()
-                .pins(Collections.emptyList())
-                .build());
+
+        return ResponseEntity.ok(postQueryService.getMapPins(oAuth2User.getUserId(), filter, lat, lon, categoryIds));
     }
 
     @Operation(summary = "내가 업로드한 장소 목록 조회", description = "에디터가 등록한 장소 목록과 통계를 조회합니다.")
