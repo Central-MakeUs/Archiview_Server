@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 
 @Tag(name = "Archiver Post Query", description = "아카이버 및 일반 사용자 관련 조회 API")
 @RestController
