@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
@@ -20,6 +23,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PostQueryService {
+
+        private static final double MIN_BBOX_SPAN_DEGREES = 0.001;
+        private static final double MAX_BBOX_SPAN_DEGREES = 2.0;
 
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
@@ -96,75 +102,128 @@ public class PostQueryService {
                 return value == null ? 0L : value;
         }
 
-        public EditorMapDto.Response getMapPins(Long editorId, MapFilter filter, Double lat, Double lon,
+        public EditorMapDto.Response getMapPins(
+                        Long editorId,
+                        MapFilter filter,
+                        Double minLat,
+                        Double minLon,
+                        Double maxLat,
+                        Double maxLon,
                         List<Long> categoryIds) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
-
-                if (categoryIds != null && !categoryIds.isEmpty()) {
-                        postPlaces = postPlaces.stream()
-                                        .filter(pp -> pp.getPostPlaceCategories().stream()
-                                                        .anyMatch(ppc -> categoryIds
-                                                                        .contains(ppc.getCategory().getId())))
-                                        .toList();
+                if (postPlaces.isEmpty()) {
+                        return EditorMapDto.Response.builder()
+                                        .pins(List.of())
+                                        .build();
+                }
+                if (filter == MapFilter.NEARBY) {
+                        validateBbox(minLat, minLon, maxLat, maxLon);
                 }
 
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                                .collect(Collectors.groupingBy(PostPlace::getPlaceId));
+
                 Map<Long, Place> placeMap = placeRepository.findAllByIds(
-                                postPlaces.stream().map(PostPlace::getPlaceId).distinct().toList())
+                                postPlacesByPlaceId.keySet().stream().toList())
                                 .stream()
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
-                List<EditorMapDto.PlacePinResponse> pins = postPlaces.stream()
-                                .map(pp -> {
-                                        Place place = placeMap.get(pp.getPlaceId());
-                                        if (place == null)
-                                                return null;
-                                        return EditorMapDto.PlacePinResponse.builder()
-                                                        .placeId(place.getId())
-                                                        .name(place.getName())
-                                                        .latitude(place.getPosition().getLatitude())
-                                                        .longitude(place.getPosition().getLongitude())
-                                                        .categories(pp.getPostPlaceCategories().stream()
-                                                                        .map(ppc -> ppc.getCategory().getName())
-                                                                        .toList())
-                                                        .build();
-                                })
-                                .filter(java.util.Objects::nonNull)
-                                .collect(Collectors.toMap(
-                                                EditorMapDto.PlacePinResponse::getPlaceId,
-                                                Function.identity(),
-                                                (p1, p2) -> p1 // Keep first if duplicates
-                                ))
-                                .values().stream()
+                List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
+                                .filter(entry -> matchCategories(entry.getValue(), categoryIds))
+                                .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
+                                .filter(pin -> pin != null)
+                                .filter(pin -> filterPin(pin, filter, minLat, minLon, maxLat, maxLon))
                                 .toList();
-
-                if (filter == MapFilter.NEARBY && lat != null && lon != null) {
-                        pins = pins.stream()
-                                        .filter(pin -> calculateDistance(lat, lon, pin.getLatitude(),
-                                                        pin.getLongitude()) <= 3000) // Within 3km
-                                        .toList();
-                }
 
                 return EditorMapDto.Response.builder()
                                 .pins(pins)
                                 .build();
         }
 
-        private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-                double theta = lon1 - lon2;
-                double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2))
-                                + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
-                dist = Math.acos(dist);
-                dist = rad2deg(dist);
-                dist = dist * 60 * 1.1515 * 1609.344; // To meters
-                return (dist);
+        private EditorMapDto.PlacePinResponse toPlacePin(
+                        Long placeId,
+                        List<PostPlace> postPlaces,
+                        Map<Long, Place> placeMap) {
+                Place place = placeMap.get(placeId);
+                if (place == null || place.getPosition() == null) {
+                        return null;
+                }
+
+                List<String> categoryNames = postPlaces.stream()
+                                .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
+                                .map(PostPlaceCategory::getCategory)
+                                .filter(category -> category != null && category.getName() != null)
+                                .map(category -> category.getName())
+                                .distinct()
+                                .toList();
+
+                return EditorMapDto.PlacePinResponse.builder()
+                                .placeId(placeId)
+                                .name(place.getName())
+                                .latitude(place.getPosition().getLatitude())
+                                .longitude(place.getPosition().getLongitude())
+                                .categories(categoryNames)
+                                .build();
         }
 
-        private double deg2rad(double deg) {
-                return (deg * Math.PI / 180.0);
+        private boolean filterPin(
+                        EditorMapDto.PlacePinResponse pin,
+                        MapFilter filter,
+                        Double minLat,
+                        Double minLon,
+                        Double maxLat,
+                        Double maxLon) {
+                if (filter == null || filter == MapFilter.ALL) {
+                        return true;
+                }
+                if (filter == MapFilter.NEARBY) {
+                        return isInsideBbox(pin, minLat, minLon, maxLat, maxLon);
+                }
+                return true;
         }
 
-        private double rad2deg(double rad) {
-                return (rad * 180 / Math.PI);
+        private boolean matchCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
+                if (categoryIds == null || categoryIds.isEmpty()) {
+                        return true;
+                }
+                return postPlaces.stream()
+                                .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
+                                .map(PostPlaceCategory::getCategory)
+                                .filter(category -> category != null)
+                                .map(category -> category.getId())
+                                .anyMatch(categoryIds::contains);
+        }
+
+        private boolean isInsideBbox(
+                        EditorMapDto.PlacePinResponse pin,
+                        double minLat,
+                        double minLon,
+                        double maxLat,
+                        double maxLon) {
+                return pin.getLatitude() >= minLat
+                                && pin.getLatitude() <= maxLat
+                                && pin.getLongitude() >= minLon
+                                && pin.getLongitude() <= maxLon;
+        }
+
+        private void validateBbox(Double minLat, Double minLon, Double maxLat, Double maxLon) {
+                if (minLat == null || minLon == null || maxLat == null || maxLon == null) {
+                        throw new DomainException(PostErrorCode.INVALID_BBOX_RANGE);
+                }
+                if (minLat < -90 || maxLat > 90 || minLon < -180 || maxLon > 180) {
+                        throw new DomainException(PostErrorCode.INVALID_BBOX_RANGE);
+                }
+                if (minLat >= maxLat || minLon >= maxLon) {
+                        throw new DomainException(PostErrorCode.INVALID_BBOX_RANGE);
+                }
+                double latSpan = maxLat - minLat;
+                double lonSpan = maxLon - minLon;
+                if (latSpan < MIN_BBOX_SPAN_DEGREES || lonSpan < MIN_BBOX_SPAN_DEGREES) {
+                        throw new DomainException(PostErrorCode.INVALID_BBOX_RANGE);
+                }
+                if (latSpan > MAX_BBOX_SPAN_DEGREES || lonSpan > MAX_BBOX_SPAN_DEGREES) {
+                        throw new DomainException(PostErrorCode.INVALID_BBOX_RANGE);
+                }
         }
 
         private LocalDateTime getLastUpdatedAt(PostPlace postPlace) {

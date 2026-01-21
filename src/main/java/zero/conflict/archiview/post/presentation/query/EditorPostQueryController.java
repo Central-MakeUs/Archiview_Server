@@ -54,12 +54,22 @@ public class EditorPostQueryController {
     @GetMapping("/me/map/places")
     public ResponseEntity<EditorMapDto.Response> getMapPins(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
-            @RequestParam(required = false) Double lat,
-            @RequestParam(required = false) Double lon,
+            @RequestParam(required = false) Double minLat,
+            @RequestParam(required = false) Double minLon,
+            @RequestParam(required = false) Double maxLat,
+            @RequestParam(required = false) Double maxLon,
             @RequestParam(required = false) List<Long> categoryIds,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
-        return ResponseEntity.ok(postQueryService.getMapPins(oAuth2User.getUserId(), filter, lat, lon, categoryIds));
+        return ResponseEntity.ok(
+                postQueryService.getMapPins(
+                        oAuth2User.getUserId(),
+                        filter,
+                        minLat,
+                        minLon,
+                        maxLat,
+                        maxLon,
+                        categoryIds));
     }
 
     @Operation(summary = "내가 업로드한 장소 목록 조회", description = "에디터가 등록한 장소 목록과 통계를 조회합니다.")
