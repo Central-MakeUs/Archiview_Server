@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
 
 @RestController
@@ -22,11 +23,11 @@ public class EditorCommandController {
 
     @Operation(summary = "에디터 내 프로필 수정", description = "로그인한 사용자의 프로필 정보를 수정합니다.")
     @PutMapping("/me/profile")
-    public ResponseEntity<Void> updateMyProfile(
+    public ResponseEntity<ApiResponse<Void>> updateMyProfile(
             @RequestBody @Valid EditorProfileDto.UpdateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
         // TODO: UserCommandService 연동
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

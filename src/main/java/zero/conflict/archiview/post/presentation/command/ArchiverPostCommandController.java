@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.presentation.dto.ArchiverProfileDto;
 
 @Tag(name = "Archiver Post Command", description = "아카이버용 장소 정보 업데이트 API (CUD)")
@@ -22,11 +23,11 @@ public class ArchiverPostCommandController {
 
     @Operation(summary = "내 프로필 수정 (아카이버)", description = "로그인한 아카이버 자신의 프로필 정보를 수정합니다.")
     @PutMapping("/profile")
-    public ResponseEntity<Void> updateMyProfile(
+    public ResponseEntity<ApiResponse<Void>> updateMyProfile(
             @RequestBody @Valid ArchiverProfileDto.UpdateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
         // TODO: Service 연동
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

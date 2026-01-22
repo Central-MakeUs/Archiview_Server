@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.CategoryQueryService;
 import zero.conflict.archiview.post.presentation.dto.CategoryQueryDto;
 
@@ -20,7 +21,7 @@ public class CategoryQueryController {
 
     @Operation(summary = "카테고리 목록 조회", description = "사용 가능한 카테고리 목록을 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<CategoryQueryDto.CategoryListResponse> getCategories() {
-        return ResponseEntity.ok(categoryQueryService.getCategories());
+    public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryListResponse>> getCategories() {
+        return ResponseEntity.ok(ApiResponse.success(categoryQueryService.getCategories()));
     }
 }

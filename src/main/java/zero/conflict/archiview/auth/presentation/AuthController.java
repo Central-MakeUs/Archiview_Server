@@ -12,6 +12,7 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.presentation.dto.MobileLoginRequest;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
+import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.port.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class AuthController {
      */
     @Operation(summary = "현재 사용자 조회", description = "현재 인증된 사용자 정보를 조회합니다.")
     @GetMapping("/me")
-    public ResponseEntity<Map<String, Object>> getCurrentUser(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getCurrentUser(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
 
         Map<String, Object> response = new HashMap<>();
@@ -45,7 +46,7 @@ public class AuthController {
         response.put("provider", user.getUser().getProvider());
         response.put("role", user.getUser().getRole());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
@@ -53,7 +54,7 @@ public class AuthController {
      */
     @Operation(summary = "토큰 재발급", description = "Refresh Token으로 새로운 Access Token을 발급합니다.")
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String, String>> refreshToken(
+    public ResponseEntity<ApiResponse<Map<String, String>>> refreshToken(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "refreshToken을 포함한 요청 바디")
             @RequestBody Map<String, String> request) {
@@ -62,7 +63,7 @@ public class AuthController {
 
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
             return ResponseEntity.status(401).body(
-                    Map.of("error", "유효하지 않은 Refresh Token입니다.")
+                    ApiResponse.fail("INVALID_REFRESH_TOKEN", "유효하지 않은 Refresh Token입니다.")
             );
         }
 
@@ -71,16 +72,16 @@ public class AuthController {
                 .orElse(null);
         if (user == null) {
             return ResponseEntity.status(401).body(
-                    Map.of("error", "사용자를 찾을 수 없습니다.")
+                    ApiResponse.fail("USER_NOT_FOUND", "사용자를 찾을 수 없습니다.")
             );
         }
         String newAccessToken = jwtTokenProvider.createAccessToken(
                 new CustomOAuth2User(user, new HashMap<>()));
 
-        return ResponseEntity.ok(Map.of(
+        return ResponseEntity.ok(ApiResponse.success(Map.of(
                 "accessToken", newAccessToken,
                 "refreshToken", refreshToken
-        ));
+        )));
     }
 
     /**
@@ -88,9 +89,9 @@ public class AuthController {
      */
     @Operation(summary = "모바일 카카오 로그인", description = "카카오 ID Token을 검증해 로그인합니다.")
     @PostMapping("/mobile/kakao")
-    public ResponseEntity<Map<String, Object>> mobileKakaoLogin(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> mobileKakaoLogin(
             @Valid @RequestBody MobileLoginRequest request) {
-        return ResponseEntity.ok(mobileAuthService.loginWithKakao(request));
+        return ResponseEntity.ok(ApiResponse.success(mobileAuthService.loginWithKakao(request)));
     }
 
     /**
@@ -98,9 +99,9 @@ public class AuthController {
      */
     @Operation(summary = "모바일 애플 로그인", description = "애플 ID Token을 검증해 로그인합니다.")
     @PostMapping("/mobile/apple")
-    public ResponseEntity<Map<String, Object>> mobileAppleLogin(
+    public ResponseEntity<ApiResponse<Map<String, Object>>> mobileAppleLogin(
             @Valid @RequestBody MobileLoginRequest request) {
-        return ResponseEntity.ok(mobileAuthService.loginWithApple(request));
+        return ResponseEntity.ok(ApiResponse.success(mobileAuthService.loginWithApple(request)));
     }
 
     /**
@@ -108,11 +109,11 @@ public class AuthController {
      */
     @Operation(summary = "로그아웃", description = "현재 사용자 로그아웃 처리합니다.")
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logout(
+    public ResponseEntity<ApiResponse<Void>> logout(
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
 
         log.info("사용자 로그아웃 - ID: {}", user.getUserId());
 
-        return ResponseEntity.ok(Map.of("message", "로그아웃 성공"));
+        return ResponseEntity.ok(ApiResponse.success(null, "로그아웃 성공"));
     }
 }
