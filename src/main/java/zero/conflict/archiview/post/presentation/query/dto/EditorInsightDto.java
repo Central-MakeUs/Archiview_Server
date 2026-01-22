@@ -50,13 +50,11 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PlaceCardListResponse {
-        private Period period;
         private PlaceSort sort;
         private List<PlaceCardResponse> places;
 
-        public static PlaceCardListResponse empty(Period period, PlaceSort sort) {
+        public static PlaceCardListResponse empty(PlaceSort sort) {
             return PlaceCardListResponse.builder()
-                    .period(period)
                     .sort(sort)
                     .places(Collections.emptyList())
                     .build();

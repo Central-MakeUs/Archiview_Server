@@ -56,7 +56,14 @@ class PostQueryServiceTest {
         given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place));
 
         // when
-        EditorMapDto.Response response = postQueryService.getMapPins(editorId, MapFilter.ALL, null, null, null);
+        EditorMapDto.Response response = postQueryService.getMapPins(
+                editorId,
+                MapFilter.ALL,
+                null,
+                null,
+                null,
+                null,
+                null);
 
         // then
         assertThat(response.getPins()).hasSize(1);
@@ -85,7 +92,14 @@ class PostQueryServiceTest {
         given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place1));
 
         // when (Filter by category1)
-        EditorMapDto.Response response = postQueryService.getMapPins(editorId, MapFilter.ALL, null, null, List.of(1L));
+        EditorMapDto.Response response = postQueryService.getMapPins(
+                editorId,
+                MapFilter.ALL,
+                null,
+                null,
+                null,
+                null,
+                List.of(1L));
 
         // then
         assertThat(response.getPins()).hasSize(1);
@@ -107,7 +121,14 @@ class PostQueryServiceTest {
         given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
 
         // when (Centered at 37.0, 127.0)
-        EditorMapDto.Response response = postQueryService.getMapPins(editorId, MapFilter.NEARBY, 37.0, 127.0, null);
+        EditorMapDto.Response response = postQueryService.getMapPins(
+                editorId,
+                MapFilter.NEARBY,
+                36.999,
+                126.999,
+                37.001,
+                127.001,
+                null);
 
         // then
         assertThat(response.getPins()).hasSize(1);

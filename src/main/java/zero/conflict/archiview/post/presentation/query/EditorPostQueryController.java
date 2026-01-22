@@ -36,10 +36,9 @@ public class EditorPostQueryController {
     @Operation(summary = "에디터 인사이트 장소 목록 조회", description = "에디터 인사이트 장소 목록을 조회합니다.")
     @GetMapping("/me/insights/places")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceCardListResponse>> getInsightPlaces(
-            @RequestParam(defaultValue = "ALL") EditorInsightDto.Period period,
             @RequestParam(defaultValue = "RECENT") EditorInsightDto.PlaceSort sort,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
-        return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.empty(period, sort)));
+        return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.empty(sort)));
     }
 
     @Operation(summary = "에디터 장소 상세 조회", description = "에디터 인사이트 장소 상세를 조회합니다.")
