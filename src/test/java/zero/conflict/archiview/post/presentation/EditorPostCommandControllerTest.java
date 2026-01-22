@@ -75,9 +75,10 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.postId").value(1L))
-                .andExpect(jsonPath("$.url").value("https://www.instagram.com/post"))
-                .andExpect(jsonPath("$.hashTag").value("#테스트 #여행"))
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.postId").value(1L))
+                .andExpect(jsonPath("$.data.url").value("https://www.instagram.com/post"))
+                .andExpect(jsonPath("$.data.hashTag").value("#테스트 #여행"))
                 .andDo(print());
     }
 
