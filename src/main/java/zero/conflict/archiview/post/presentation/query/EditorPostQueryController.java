@@ -45,9 +45,9 @@ public class EditorPostQueryController {
     @GetMapping("/me/insights/places/{placeId}")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceDetailResponse>> getInsightPlaceDetail(
             @PathVariable Long placeId,
-            @RequestParam(defaultValue = "ALL") EditorInsightDto.Period period,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
-        return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceDetailResponse.empty(placeId, period)));
+        return ResponseEntity.ok(ApiResponse.success(
+                postQueryService.getInsightPlaceDetail(user.getUserId(), placeId)));
     }
 
     @Operation(summary = "내 지도 장소 핀 조회", description = "에디터가 등록한 장소들을 지도 핀 형태로 조회합니다.")

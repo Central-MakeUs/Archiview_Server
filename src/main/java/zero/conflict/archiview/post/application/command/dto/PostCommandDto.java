@@ -48,6 +48,7 @@ public class PostCommandDto {
 
             private String imageUrl;
             private List<Long> categoryIds;
+            private String nearestStationWalkTime;
         }
     }
 

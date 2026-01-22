@@ -28,12 +28,18 @@ public class Place extends BaseTimeEntity {
 
     private Position position;
 
-    public static Place createOf(String name, Address address, Position position) {
+    private String nearestStationWalkTime;
 
+    public static Place createOf(String name, Address address, Position position) {
+        return createOf(name, address, position, null);
+    }
+
+    public static Place createOf(String name, Address address, Position position, String nearestStationWalkTime) {
         return Place.builder()
                 .name(name)
                 .address(address)
                 .position(position)
+                .nearestStationWalkTime(nearestStationWalkTime)
                 .build();
     }
 

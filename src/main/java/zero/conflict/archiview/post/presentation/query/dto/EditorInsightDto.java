@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Address;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -80,19 +81,35 @@ public class EditorInsightDto {
     @Builder
     public static class PlaceDetailResponse {
         private Long placeId;
-        private Period period;
         private String placeName;
         private String placeImageUrl;
-        private String editorSummary;
+        private Long editorTotal;
+        private Address address;
+        private String nearestStationWalkTime;
         private Stats stats;
-        private LocalDateTime updatedAt;
 
-        public static PlaceDetailResponse empty(Long placeId, Period period) {
+
+        private List<PostPlaceDetailResponse> postPlaces;
+
+        public static PlaceDetailResponse empty(Long placeId) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
-                    .period(period)
+                    .postPlaces(Collections.emptyList())
                     .build();
         }
+    }
+
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class PostPlaceDetailResponse {
+        private String editorName;
+        private String editorInstagramId;
+        private String postUrl;
+        private String postHashTag;
+        private String description;
     }
 
     @Getter

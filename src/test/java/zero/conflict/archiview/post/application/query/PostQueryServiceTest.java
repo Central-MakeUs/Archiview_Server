@@ -7,13 +7,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
+import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
+import zero.conflict.archiview.user.application.port.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -31,6 +32,12 @@ class PostQueryServiceTest {
 
     @Mock
     private PlaceRepository placeRepository;
+
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Test
     @DisplayName("에디터의 모든 핀을 조회한다")

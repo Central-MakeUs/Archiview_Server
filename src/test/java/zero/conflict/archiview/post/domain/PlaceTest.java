@@ -19,14 +19,16 @@ class PlaceTest {
         String name = "테스트 장소";
         Address address = Address.of("서울시 강남구", "101호", "12345");
         Position position = Position.of(Double.valueOf("37.5665"), Double.valueOf("126.9780"));
+        String nearestStationWalkTime = "도보 5분";
 
         // when
-        Place place = Place.createOf(name, address, position);
+        Place place = Place.createOf(name, address, position, nearestStationWalkTime);
 
         // then
         assertThat(place.getName()).isEqualTo(name);
         assertThat(place.getAddress()).isEqualTo(address);
         assertThat(place.getPosition()).isEqualTo(position);
+        assertThat(place.getNearestStationWalkTime()).isEqualTo(nearestStationWalkTime);
     }
 
     @Test

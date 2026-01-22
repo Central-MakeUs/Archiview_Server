@@ -22,4 +22,9 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     public List<PostPlace> findAllByEditorId(Long editorId) {
         return postPlaceJpaRepository.findAllByEditorId(editorId);
     }
+
+    @Override
+    public List<PostPlace> findAllByEditorIdAndPlaceId(Long editorId, Long placeId) {
+        return postPlaceJpaRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
+    }
 }

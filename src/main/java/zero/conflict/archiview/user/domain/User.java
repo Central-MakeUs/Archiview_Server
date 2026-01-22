@@ -25,6 +25,8 @@ public class User extends BaseTimeEntity {
 
     private String profileImageUrl;
 
+    private String instagramId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OAuthProvider provider;

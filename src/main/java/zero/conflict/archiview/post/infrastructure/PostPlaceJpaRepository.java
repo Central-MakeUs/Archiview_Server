@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
     List<PostPlace> findAllByEditorId(Long editorId);
+
+    List<PostPlace> findAllByEditorIdAndPlaceId(Long editorId, Long placeId);
 }

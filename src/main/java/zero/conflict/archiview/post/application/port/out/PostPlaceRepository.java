@@ -9,4 +9,6 @@ public interface PostPlaceRepository {
     PostPlace save(PostPlace postPlace);
 
     List<PostPlace> findAllByEditorId(Long editorId);
+
+    List<PostPlace> findAllByEditorIdAndPlaceId(Long editorId, Long placeId);
 }

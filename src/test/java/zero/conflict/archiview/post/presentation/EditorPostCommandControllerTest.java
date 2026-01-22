@@ -40,6 +40,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .zipCode("04524")
                         .latitude(Double.valueOf("37.5665"))
                         .longitude(Double.valueOf("126.9780"))
+                        .nearestStationWalkTime("도보 5분")
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -95,6 +96,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .zipCode("12345")
                         .latitude(Double.valueOf("37.5665"))
                         .longitude(Double.valueOf("126.9780"))
+                        .nearestStationWalkTime("도보 4분")
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -125,6 +127,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .zipCode("12345")
                         .latitude(Double.valueOf("37.5665"))
                         .longitude(Double.valueOf("126.9780"))
+                        .nearestStationWalkTime("도보 4분")
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -174,6 +177,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .zipCode("12345")
                         .latitude(Double.valueOf("37.5665"))
                         .longitude(Double.valueOf("126.9780"))
+                        .nearestStationWalkTime("도보 4분")
                         .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()

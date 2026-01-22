@@ -3,15 +3,21 @@ package zero.conflict.archiview.post.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
+import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
+import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -29,6 +35,8 @@ public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
+        private final PostRepository postRepository;
+        private final UserRepository userRepository;
 
         public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(Long editorId) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
@@ -137,6 +145,44 @@ public class PostQueryService {
 
                 return EditorMapDto.Response.builder()
                                 .pins(pins)
+                                .build();
+        }
+
+        public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(Long editorId, Long placeId) {
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
+                if (postPlaces.isEmpty()) {
+                        return EditorInsightDto.PlaceDetailResponse.empty(placeId);
+                }
+
+                User editor = userRepository.findById(editorId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+
+                Map<Long, Post> postMap = postRepository.findAllByIds(
+                                postPlaces.stream()
+                                                .map(PostPlace::getPostId)
+                                                .distinct()
+                                                .toList())
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                Post::getId,
+                                                Function.identity()));
+
+                List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
+                                .map(postPlace -> {
+                                        Post post = postMap.get(postPlace.getPostId());
+                                        return EditorInsightDto.PostPlaceDetailResponse.builder()
+                                                        .editorName(editor.getName())
+                                                        .editorInstagramId(editor.getInstagramId())
+                                                        .postUrl(post != null ? post.getUrl() : null)
+                                                        .postHashTag(post != null ? post.getHashTag() : null)
+                                                        .description(postPlace.getDescription())
+                                                        .build();
+                                })
+                                .toList();
+
+                return EditorInsightDto.PlaceDetailResponse.builder()
+                                .placeId(placeId)
+                                .postPlaces(details)
                                 .build();
         }
 

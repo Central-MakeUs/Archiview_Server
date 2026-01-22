@@ -19,6 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +55,7 @@ class PostCommandServiceTest {
                                 .description("멋진 장소")
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
+                                .nearestStationWalkTime("도보 5분")
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -69,7 +71,8 @@ class PostCommandServiceTest {
                                 placeInfoRequest.getName(),
                                 Address.of(placeInfoRequest.getRoadAddress(), placeInfoRequest.getDetailAddress(),
                                                 placeInfoRequest.getZipCode()),
-                                Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()));
+                                Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()),
+                                placeInfoRequest.getNearestStationWalkTime());
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
@@ -89,7 +92,8 @@ class PostCommandServiceTest {
 
                 verify(postRepository).save(any(Post.class));
                 verify(placeRepository).findByPosition(any(Position.class));
-                verify(placeRepository).save(any(Place.class));
+                verify(placeRepository).save(argThat(place ->
+                        "도보 5분".equals(place.getNearestStationWalkTime())));
                 verify(postPlacesRepository).save(any(PostPlace.class));
         }
 
@@ -110,6 +114,7 @@ class PostCommandServiceTest {
                                 .description("이미 존재하는 장소")
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
+                                .nearestStationWalkTime("도보 3분")
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -124,7 +129,8 @@ class PostCommandServiceTest {
                 Place existingPlace = Place.createOf(
                                 "기존 장소",
                                 Address.of("서울시 종로구", "201호", "54321"),
-                                Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")));
+                                Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
+                                "도보 3분");
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(),
@@ -160,6 +166,7 @@ class PostCommandServiceTest {
                                 .description("설명1")
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
+                                .nearestStationWalkTime("도보 4분")
                                 .build();
 
                 PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
@@ -170,6 +177,7 @@ class PostCommandServiceTest {
                                 .description("설명2")
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
+                                .nearestStationWalkTime("도보 6분")
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()

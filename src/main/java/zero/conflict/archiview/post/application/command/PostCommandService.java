@@ -108,7 +108,8 @@ public class PostCommandService {
                         placeInfo.getZipCode()),
                 Position.of(
                         placeInfo.getLatitude(),
-                        placeInfo.getLongitude()));
+                        placeInfo.getLongitude()),
+                placeInfo.getNearestStationWalkTime());
     }
 
     private static PostCommandDto.Response mapPostToResponse(
