@@ -1,5 +1,6 @@
 package zero.conflict.archiview.post.presentation.query.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -107,6 +108,7 @@ public class EditorInsightDto {
         private String placeImageUrl;
         private String editorSummary;
         private Stats stats;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime updatedAt;
     }
 
