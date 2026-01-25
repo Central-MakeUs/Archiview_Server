@@ -44,6 +44,18 @@ public class EditorInsightDto {
                     .period(period)
                     .build();
         }
+
+        public static SummaryResponse mock(Period period) {
+            return SummaryResponse.builder()
+                    .editorNickname("아카이브 마스터")
+                    .totalPlaceCount(128L)
+                    .period(period)
+                    .sharedPlaceCount(45L)
+                    .instagramInflowCount(1250L)
+                    .saveCount(890L)
+                    .viewCount(5600L)
+                    .build();
+        }
     }
 
     @Getter
@@ -58,6 +70,29 @@ public class EditorInsightDto {
             return PlaceCardListResponse.builder()
                     .sort(sort)
                     .places(Collections.emptyList())
+                    .build();
+        }
+
+        public static PlaceCardListResponse mock(PlaceSort sort) {
+            return PlaceCardListResponse.builder()
+                    .sort(sort)
+                    .places(List.of(
+                            PlaceCardResponse.builder()
+                                    .placeId(1L)
+                                    .placeName("샘플 카페 성수")
+                                    .placeImageUrl("https://picsum.photos/400/300?random=1")
+                                    .editorSummary("성수동에서 가장 힙한 분위기의 카페입니다.")
+                                    .stats(Stats.builder().viewCount(120L).saveCount(45L).build())
+                                    .updatedAt(LocalDateTime.now().minusDays(1))
+                                    .build(),
+                            PlaceCardResponse.builder()
+                                    .placeId(2L)
+                                    .placeName("연남동 맛집")
+                                    .placeImageUrl("https://picsum.photos/400/300?random=2")
+                                    .editorSummary("웨이팅이 아깝지 않은 정통 일식당입니다.")
+                                    .stats(Stats.builder().viewCount(350L).saveCount(120L).build())
+                                    .updatedAt(LocalDateTime.now().minusDays(2))
+                                    .build()))
                     .build();
         }
     }
@@ -88,7 +123,6 @@ public class EditorInsightDto {
         private String nearestStationWalkTime;
         private Stats stats;
 
-
         private List<PostPlaceDetailResponse> postPlaces;
 
         public static PlaceDetailResponse empty(Long placeId) {
@@ -97,8 +131,32 @@ public class EditorInsightDto {
                     .postPlaces(Collections.emptyList())
                     .build();
         }
-    }
 
+        public static PlaceDetailResponse mock(Long placeId) {
+            return PlaceDetailResponse.builder()
+                    .placeId(placeId)
+                    .placeName("모의 장소 상세")
+                    .placeImageUrl("https://picsum.photos/800/600?random=10")
+                    .editorTotal(5L)
+                    .address(Address.of("서울특별시 성동구 아차산로 123", "2층 201호", "04782"))
+                    .nearestStationWalkTime("성수역 도보 5분")
+                    .stats(Stats.builder()
+                            .viewCount(1500L)
+                            .saveCount(450L)
+                            .instagramInflowCount(800L)
+                            .directionCount(200L)
+                            .build())
+                    .postPlaces(List.of(
+                            PostPlaceDetailResponse.builder()
+                                    .editorName("에디터A")
+                                    .editorInstagramId("editor_a")
+                                    .postUrl("https://instagram.com/p/sample1")
+                                    .postHashTag("#성수카페 #감성")
+                                    .description("채광이 너무 좋은 곳이에요.")
+                                    .build()))
+                    .build();
+        }
+    }
 
     @Getter
     @NoArgsConstructor

@@ -22,6 +22,36 @@ public class EditorUploadedPlaceDto {
                     .places(Collections.emptyList())
                     .build();
         }
+
+        public static ListResponse mock() {
+            return ListResponse.builder()
+                    .places(List.of(
+                            PlaceCardResponse.builder()
+                                    .placeId(101L)
+                                    .placeName("성수동 카페거리 샘플")
+                                    .placeImageUrl("https://picsum.photos/400/300?random=11")
+                                    .editorSummary("성수동에서 가장 인기 있는 카페입니다.")
+                                    .stats(Stats.builder()
+                                            .viewCount(1000L)
+                                            .saveCount(300L)
+                                            .instagramInflowCount(500L)
+                                            .directionCount(150L)
+                                            .build())
+                                    .build(),
+                            PlaceCardResponse.builder()
+                                    .placeId(102L)
+                                    .placeName("연남동 베이커리")
+                                    .placeImageUrl("https://picsum.photos/400/300?random=12")
+                                    .editorSummary("직접 구운 빵이 유명한 곳이에요.")
+                                    .stats(Stats.builder()
+                                            .viewCount(850L)
+                                            .saveCount(210L)
+                                            .instagramInflowCount(320L)
+                                            .directionCount(90L)
+                                            .build())
+                                    .build()))
+                    .build();
+        }
     }
 
     @Getter

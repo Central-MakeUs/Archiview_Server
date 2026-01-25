@@ -40,5 +40,25 @@ public class EditorMapDto {
     public static class Response {
         @Schema(description = "필터링된 장소 핀 목록")
         private List<PlacePinResponse> pins;
+
+        public static Response mock() {
+            return Response.builder()
+                    .pins(List.of(
+                            PlacePinResponse.builder()
+                                    .placeId(1L)
+                                    .name("성수동 힙플레이스")
+                                    .latitude(37.5445)
+                                    .longitude(127.0560)
+                                    .categories(List.of("카페", "인테리어"))
+                                    .build(),
+                            PlacePinResponse.builder()
+                                    .placeId(2L)
+                                    .name("연남동 숨은 맛집")
+                                    .latitude(37.5615)
+                                    .longitude(126.9249)
+                                    .categories(List.of("맛집", "일식"))
+                                    .build()))
+                    .build();
+        }
     }
 }

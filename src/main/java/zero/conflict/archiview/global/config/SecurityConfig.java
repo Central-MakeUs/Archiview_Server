@@ -52,6 +52,7 @@ public class SecurityConfig {
                                                                 "/auth/**",
                                                                 "/api/auth/mobile/**",
                                                                 "/api/auth/refresh",
+                                                                "/api/auth/test/**",
                                                                 "/oauth2/**",
                                                                 "/login/**")
                                                 .permitAll()

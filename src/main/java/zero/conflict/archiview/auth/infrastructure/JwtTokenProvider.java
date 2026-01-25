@@ -32,15 +32,17 @@ public class JwtTokenProvider {
     }
 
     public String createAccessToken(CustomOAuth2User user) {
-        Claims claims = Jwts.claims().subject(String.valueOf(user.getUserId())).build();
-        claims.put("email", user.getUsername());
-        claims.put("role", user.getUser().getRole().name());
+        return createAccessToken(user, accessTokenValidity);
+    }
 
+    public String createAccessToken(CustomOAuth2User user, long validityMillis) {
         Date now = new Date();
-        Date validity = new Date(now.getTime() + accessTokenValidity);
+        Date validity = new Date(now.getTime() + validityMillis);
 
         return Jwts.builder()
-                .claims(claims)
+                .subject(String.valueOf(user.getUserId()))
+                .claim("email", user.getUsername())
+                .claim("role", user.getUser().getRole().name())
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key)
@@ -48,13 +50,11 @@ public class JwtTokenProvider {
     }
 
     public String createRefreshToken(Long userId) {
-        Claims claims = Jwts.claims().subject(String.valueOf(userId)).build();
-
         Date now = new Date();
         Date validity = new Date(now.getTime() + refreshTokenValidity);
 
         return Jwts.builder()
-                .claims(claims)
+                .subject(String.valueOf(userId))
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(key)
@@ -83,4 +83,3 @@ public class JwtTokenProvider {
         }
     }
 }
-

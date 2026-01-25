@@ -29,7 +29,11 @@ public class EditorPostQueryController {
     @GetMapping("/me/insights/summary")
     public ResponseEntity<ApiResponse<EditorInsightDto.SummaryResponse>> getInsightSummary(
             @RequestParam(defaultValue = "ALL") EditorInsightDto.Period period,
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.SummaryResponse.mock(period)));
+        }
         return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.SummaryResponse.empty(period)));
     }
 
@@ -37,7 +41,11 @@ public class EditorPostQueryController {
     @GetMapping("/me/insights/places")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceCardListResponse>> getInsightPlaces(
             @RequestParam(defaultValue = "RECENT") EditorInsightDto.PlaceSort sort,
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.mock(sort)));
+        }
         return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.empty(sort)));
     }
 
@@ -45,7 +53,11 @@ public class EditorPostQueryController {
     @GetMapping("/me/insights/places/{placeId}")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceDetailResponse>> getInsightPlaceDetail(
             @PathVariable Long placeId,
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceDetailResponse.mock(placeId)));
+        }
         return ResponseEntity.ok(ApiResponse.success(
                 postQueryService.getInsightPlaceDetail(user.getUserId(), placeId)));
     }
@@ -59,7 +71,12 @@ public class EditorPostQueryController {
             @RequestParam(required = false) Double maxLat,
             @RequestParam(required = false) Double maxLon,
             @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorMapDto.Response.mock()));
+        }
 
         return ResponseEntity.ok(ApiResponse.success(
                 postQueryService.getMapPins(
@@ -75,7 +92,11 @@ public class EditorPostQueryController {
     @Operation(summary = "내가 업로드한 장소 목록 조회", description = "에디터가 등록한 장소 목록과 통계를 조회합니다.")
     @GetMapping("/me/places")
     public ResponseEntity<ApiResponse<EditorUploadedPlaceDto.ListResponse>> getUploadedPlaces(
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorUploadedPlaceDto.ListResponse.mock()));
+        }
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getUploadedPlaces(oAuth2User.getUserId())));
     }
 
