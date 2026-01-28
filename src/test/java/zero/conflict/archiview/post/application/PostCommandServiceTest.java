@@ -11,6 +11,7 @@ import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
+import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.domain.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
@@ -37,6 +39,12 @@ class PostCommandServiceTest {
 
         @Mock
         private PostPlaceRepository postPlacesRepository;
+
+        @Mock
+        private CategoryRepository categoryRepository;
+
+        @Mock
+        private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
         @Test
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
@@ -82,7 +90,7 @@ class PostCommandServiceTest {
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
 
                 // then
                 assertThat(response.getUrl()).isEqualTo(url);
@@ -92,8 +100,7 @@ class PostCommandServiceTest {
 
                 verify(postRepository).save(any(Post.class));
                 verify(placeRepository).findByPosition(any(Position.class));
-                verify(placeRepository).save(argThat(place ->
-                        "도보 5분".equals(place.getNearestStationWalkTime())));
+                verify(placeRepository).save(argThat(place -> "도보 5분".equals(place.getNearestStationWalkTime())));
                 verify(postPlacesRepository).save(any(PostPlace.class));
         }
 
@@ -138,7 +145,7 @@ class PostCommandServiceTest {
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
 
                 // then
                 assertThat(response.getPlaceInfoResponseList()).hasSize(1);
@@ -194,7 +201,7 @@ class PostCommandServiceTest {
                                 .willAnswer(invocation -> invocation.getArgument(0));
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
 
                 // then
                 assertThat(response.getPlaceInfoResponseList()).hasSize(2);

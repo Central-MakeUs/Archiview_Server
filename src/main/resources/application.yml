@@ -33,6 +33,19 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+  cloud:
+    aws:
+      s3:
+        region: ap-northeast-2
+        bucket: ${AWS_S3_BUCKET:archiview-bucket}
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:}
+      region:
+        static: ap-northeast-2
+      stack:
+        auto: false
+
 # JWT
 jwt:
   access-token-validity: ${JWT_ACCESS_TOKEN_VALIDITY:3600000}

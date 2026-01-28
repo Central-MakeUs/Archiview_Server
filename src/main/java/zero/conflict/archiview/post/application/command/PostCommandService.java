@@ -28,16 +28,18 @@ public class PostCommandService {
     private final PlaceRepository placeRepository;
     private final PostPlaceRepository postPlacesRepository;
     private final CategoryRepository categoryRepository;
+    private final zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
     @Transactional
-    public PostCommandDto.Response createPost(PostCommandDto.Request request, Long editorId) {
+    public PostCommandDto.Response createPost(PostCommandDto.Request request,
+            List<org.springframework.web.multipart.MultipartFile> images, Long editorId) {
         validatePostRequest(request);
 
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), savedPost.getId(), editorId);
+                request.getPlaceInfoRequestList(), images, savedPost.getId(), editorId);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
@@ -59,13 +61,21 @@ public class PostCommandService {
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
+            List<org.springframework.web.multipart.MultipartFile> images,
             Long postId,
             Long editorId) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
-        for (PostCommandDto.Request.PlaceInfoRequest placeInfo : placeInfoRequests) {
+        for (int i = 0; i < placeInfoRequests.size(); i++) {
+            PostCommandDto.Request.PlaceInfoRequest placeInfo = placeInfoRequests.get(i);
             Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
+
+            // 이미지 업로드
+            String imageUrl = null;
+            if (images != null && images.size() > i) {
+                imageUrl = s3Service.upload(images.get(i), "posts");
+            }
 
             // 기존 Place 찾기 또는 새로 생성
             Place savedPlace = placeRepository.findByPosition(position)
@@ -78,7 +88,7 @@ public class PostCommandService {
                     postId,
                     savedPlace.getId(),
                     placeInfo.getDescription(),
-                    placeInfo.getImageUrl(),
+                    imageUrl,
                     editorId);
 
             if (placeInfo.getCategoryIds() != null) {

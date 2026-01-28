@@ -46,7 +46,6 @@ public class PostCommandDto {
             @NotNull(message = "경도는 필수입니다.")
             private Double longitude;
 
-            private String imageUrl;
             private List<Long> categoryIds;
             private String nearestStationWalkTime;
         }

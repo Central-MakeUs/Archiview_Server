@@ -22,11 +22,12 @@ public class EditorPostCommandController {
     private final PostCommandService postCommandService;
 
     @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
-    @PostMapping("/posts")
+    @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> createPost(
-            @RequestBody @Valid PostCommandDto.Request request,
+            @RequestPart("request") @Valid PostCommandDto.Request request,
+            @RequestPart("images") java.util.List<org.springframework.web.multipart.MultipartFile> images,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
-        return ResponseEntity.ok(ApiResponse.success(postCommandService.createPost(request, user.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(postCommandService.createPost(request, images, user.getUserId())));
     }
 
 }
