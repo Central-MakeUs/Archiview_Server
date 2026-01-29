@@ -34,8 +34,6 @@ public class PostCommandService {
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.Request request,
             List<org.springframework.web.multipart.MultipartFile> images, Long editorId) {
-        validatePostRequest(request);
-
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
@@ -47,21 +45,6 @@ public class PostCommandService {
                 request.getPlaceInfoRequestList(), images, savedPost, editor);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
-    }
-
-    private void validatePostRequest(PostCommandDto.Request request) {
-        // 인스타그램 URL 검증
-        if (request.getUrl() == null || !request.getUrl().startsWith("https://www.instagram.com/")) {
-            throw new DomainException(PostErrorCode.INVALID_INSTAGRAM_URL);
-        }
-
-        // 해시태그 개수 검증 (최대 3개)
-        if (request.getHashTag() != null && !request.getHashTag().isBlank()) {
-            String[] tags = request.getHashTag().trim().split("\\s+");
-            if (tags.length > 3) {
-                throw new DomainException(PostErrorCode.TOO_MANY_HASHTAGS);
-            }
-        }
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
