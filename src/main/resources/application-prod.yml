@@ -50,10 +50,6 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-  cloud:
-    aws:
-      s3:
-        bucket: ${AWS_S3_BUCKET}
 
 auth:
   mobile:

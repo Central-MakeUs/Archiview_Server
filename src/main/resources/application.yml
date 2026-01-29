@@ -37,7 +37,7 @@ spring:
     aws:
       s3:
         region: ap-northeast-2
-        bucket: ${AWS_S3_BUCKET:archiview-bucket}
+        bucket: ${AWS_S3_BUCKET}
       credentials:
         access-key: ${AWS_ACCESS_KEY_ID:}
         secret-key: ${AWS_SECRET_ACCESS_KEY:}
