@@ -127,6 +127,13 @@ public class EditorInsightDto {
 
         private List<PostPlaceDetailResponse> postPlaces;
 
+        public static PlaceDetailResponse of(Long placeId, List<PostPlaceDetailResponse> postPlaces) {
+            return PlaceDetailResponse.builder()
+                    .placeId(placeId)
+                    .postPlaces(postPlaces)
+                    .build();
+        }
+
         public static PlaceDetailResponse empty(Long placeId) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
@@ -170,6 +177,17 @@ public class EditorInsightDto {
         private String postUrl;
         private String postHashTag;
         private String description;
+
+        public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
+                String postHashTag, String description) {
+            return PostPlaceDetailResponse.builder()
+                    .editorName(editorName)
+                    .editorInstagramId(editorInstagramId)
+                    .postUrl(postUrl)
+                    .postHashTag(postHashTag)
+                    .description(description)
+                    .build();
+        }
     }
 
     @Getter
@@ -181,5 +199,14 @@ public class EditorInsightDto {
         private Long viewCount;
         private Long instagramInflowCount;
         private Long directionCount;
+
+        public static Stats from(long saveCount, long viewCount, long instagramInflowCount, long directionCount) {
+            return Stats.builder()
+                    .saveCount(saveCount)
+                    .viewCount(viewCount)
+                    .instagramInflowCount(instagramInflowCount)
+                    .directionCount(directionCount)
+                    .build();
+        }
     }
 }

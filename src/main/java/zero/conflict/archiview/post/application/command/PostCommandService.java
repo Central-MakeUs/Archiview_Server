@@ -130,21 +130,10 @@ public class PostCommandService {
     private static PostCommandDto.Response mapPostToResponse(
             Post savedPost,
             List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses) {
-        return PostCommandDto.Response.of(
-                savedPost.getId(),
-                savedPost.getUrl(),
-                savedPost.getHashTag(),
-                placeInfoResponses);
+        return PostCommandDto.Response.from(savedPost, placeInfoResponses);
     }
 
     private static PostCommandDto.Response.PlaceInfoResponse mapPlaceToResponse(Place place) {
-        return PostCommandDto.Response.PlaceInfoResponse.of(
-                place.getId(),
-                place.getName(),
-                place.getAddress().getRoadAddress(),
-                place.getAddress().getDetailAddress(),
-                place.getAddress().getZipCode(),
-                place.getPosition().getLatitude(),
-                place.getPosition().getLongitude());
+        return PostCommandDto.Response.PlaceInfoResponse.from(place);
     }
 }

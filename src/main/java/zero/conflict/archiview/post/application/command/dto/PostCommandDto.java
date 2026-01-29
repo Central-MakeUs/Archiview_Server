@@ -61,12 +61,12 @@ public class PostCommandDto {
         private String hashTag;
         private List<PlaceInfoResponse> placeInfoResponseList;
 
-        public static Response of(Long postId, String url, String hashTag,
+        public static Response from(zero.conflict.archiview.post.domain.Post post,
                 List<PlaceInfoResponse> placeInfoResponseList) {
             return Response.builder()
-                    .postId(postId)
-                    .url(url)
-                    .hashTag(hashTag)
+                    .postId(post.getId())
+                    .url(post.getUrl())
+                    .hashTag(post.getHashTag())
                     .placeInfoResponseList(placeInfoResponseList)
                     .build();
         }
@@ -83,6 +83,18 @@ public class PostCommandDto {
             private String zipCode;
             private Double latitude;
             private Double longitude;
+
+            public static PlaceInfoResponse from(zero.conflict.archiview.post.domain.Place place) {
+                return PlaceInfoResponse.builder()
+                        .placeId(place.getId())
+                        .name(place.getName())
+                        .roadAddress(place.getAddress().getRoadAddress())
+                        .detailAddress(place.getAddress().getDetailAddress())
+                        .zipCode(place.getAddress().getZipCode())
+                        .latitude(place.getPosition().getLatitude())
+                        .longitude(place.getPosition().getLongitude())
+                        .build();
+            }
 
             public static PlaceInfoResponse of(Long placeId, String name,
                     String roadAddress, String detailAddress,

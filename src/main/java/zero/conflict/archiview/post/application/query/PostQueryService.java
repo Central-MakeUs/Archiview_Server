@@ -55,9 +55,7 @@ public class PostQueryService {
                                 .map(entry -> toPlaceCardResponse(entry.getKey(), entry.getValue(), placeMap))
                                 .toList();
 
-                return EditorUploadedPlaceDto.ListResponse.builder()
-                                .places(places)
-                                .build();
+                return EditorUploadedPlaceDto.ListResponse.from(places);
         }
 
         private EditorUploadedPlaceDto.PlaceCardResponse toPlaceCardResponse(
@@ -70,13 +68,12 @@ public class PostQueryService {
                                 .orElseThrow();
 
                 Place place = placeMap.get(placeId);
-                return EditorUploadedPlaceDto.PlaceCardResponse.builder()
-                                .placeId(placeId)
-                                .placeName(place != null ? place.getName() : null)
-                                .placeImageUrl(latestPostPlace.getImageUrl())
-                                .editorSummary(latestPostPlace.getDescription())
-                                .stats(sumStats(postPlaces))
-                                .build();
+                return EditorUploadedPlaceDto.PlaceCardResponse.of(
+                                placeId,
+                                place != null ? place.getName() : null,
+                                latestPostPlace.getImageUrl(),
+                                latestPostPlace.getDescription(),
+                                sumStats(postPlaces));
         }
 
         private EditorUploadedPlaceDto.Stats sumStats(List<PostPlace> postPlaces) {
@@ -92,12 +89,7 @@ public class PostQueryService {
                         directionCount += defaultZero(postPlace.getDirectionCount());
                 }
 
-                return EditorUploadedPlaceDto.Stats.builder()
-                                .viewCount(viewCount)
-                                .saveCount(saveCount)
-                                .instagramInflowCount(instagramInflowCount)
-                                .directionCount(directionCount)
-                                .build();
+                return EditorUploadedPlaceDto.Stats.from(saveCount, viewCount, instagramInflowCount, directionCount);
         }
 
         private long defaultZero(Long value) {
@@ -130,9 +122,7 @@ public class PostQueryService {
                                 .filter(pin -> filterPin(pin, filter))
                                 .toList();
 
-                return EditorMapDto.Response.builder()
-                                .pins(pins)
-                                .build();
+                return EditorMapDto.Response.from(pins);
         }
 
         public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(Long editorId, Long placeId) {
@@ -147,20 +137,16 @@ public class PostQueryService {
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
                                 .map(postPlace -> {
                                         Post post = postPlace.getPost();
-                                        return EditorInsightDto.PostPlaceDetailResponse.builder()
-                                                        .editorName(editor.getName())
-                                                        .editorInstagramId(editor.getInstagramId())
-                                                        .postUrl(post != null ? post.getUrl() : null)
-                                                        .postHashTag(post != null ? post.getHashTag() : null)
-                                                        .description(postPlace.getDescription())
-                                                        .build();
+                                        return EditorInsightDto.PostPlaceDetailResponse.of(
+                                                        editor.getName(),
+                                                        editor.getInstagramId(),
+                                                        post != null ? post.getUrl() : null,
+                                                        post != null ? post.getHashTag() : null,
+                                                        postPlace.getDescription());
                                 })
                                 .toList();
 
-                return EditorInsightDto.PlaceDetailResponse.builder()
-                                .placeId(placeId)
-                                .postPlaces(details)
-                                .build();
+                return EditorInsightDto.PlaceDetailResponse.of(placeId, details);
         }
 
         private EditorMapDto.PlacePinResponse toPlacePin(

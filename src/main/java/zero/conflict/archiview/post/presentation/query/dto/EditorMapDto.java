@@ -30,6 +30,18 @@ public class EditorMapDto {
         private Double longitude;
         @Schema(description = "장소 카테고리 목록")
         private List<String> categories;
+
+        public static PlacePinResponse from(zero.conflict.archiview.post.domain.PostPlace postPlace,
+                List<String> categoryNames) {
+            zero.conflict.archiview.post.domain.Place place = postPlace.getPlace();
+            return PlacePinResponse.builder()
+                    .placeId(place.getId())
+                    .name(place.getName())
+                    .latitude(place.getPosition().getLatitude())
+                    .longitude(place.getPosition().getLongitude())
+                    .categories(categoryNames)
+                    .build();
+        }
     }
 
     @Getter
@@ -41,7 +53,14 @@ public class EditorMapDto {
         @Schema(description = "필터링된 장소 핀 목록")
         private List<PlacePinResponse> pins;
 
+        public static Response from(List<PlacePinResponse> pins) {
+            return Response.builder()
+                    .pins(pins)
+                    .build();
+        }
+
         public static Response mock() {
+            // ... (기존 mock 유지)
             return Response.builder()
                     .pins(List.of(
                             PlacePinResponse.builder()

@@ -17,6 +17,12 @@ public class EditorUploadedPlaceDto {
     public static class ListResponse {
         private List<PlaceCardResponse> places;
 
+        public static ListResponse from(List<PlaceCardResponse> places) {
+            return ListResponse.builder()
+                    .places(places)
+                    .build();
+        }
+
         public static ListResponse empty() {
             return ListResponse.builder()
                     .places(Collections.emptyList())
@@ -64,6 +70,17 @@ public class EditorUploadedPlaceDto {
         private String placeImageUrl;
         private String editorSummary;
         private Stats stats;
+
+        public static PlaceCardResponse of(Long placeId, String placeName, String imageUrl, String description,
+                Stats stats) {
+            return PlaceCardResponse.builder()
+                    .placeId(placeId)
+                    .placeName(placeName)
+                    .placeImageUrl(imageUrl)
+                    .editorSummary(description)
+                    .stats(stats)
+                    .build();
+        }
     }
 
     @Getter
@@ -75,5 +92,14 @@ public class EditorUploadedPlaceDto {
         private Long viewCount;
         private Long instagramInflowCount;
         private Long directionCount;
+
+        public static Stats from(long saveCount, long viewCount, long instagramInflowCount, long directionCount) {
+            return Stats.builder()
+                    .saveCount(saveCount)
+                    .viewCount(viewCount)
+                    .instagramInflowCount(instagramInflowCount)
+                    .directionCount(directionCount)
+                    .build();
+        }
     }
 }
