@@ -103,12 +103,17 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PlaceCardResponse {
+        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 ID", example = "101")
         private Long placeId;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "장소명", example = "아카이브 성수")
         private String placeName;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300")
         private String placeImageUrl;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 요약", example = "성수동 감성 카페의 정석")
         private String editorSummary;
         private Stats stats;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @io.swagger.v3.oas.annotations.media.Schema(description = "업데이트 일시", example = "2024-01-29 10:00:00")
         private LocalDateTime updatedAt;
     }
 
@@ -172,11 +177,17 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PostPlaceDetailResponse {
+        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 이름", example = "아카이브 마스터")
         private String editorName;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
         private String editorInstagramId;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String postUrl;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "게시글 해시태그", example = "#성수카페 #감성레벨")
         private String postHashTag;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
         private List<String> categories;
 
         public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
