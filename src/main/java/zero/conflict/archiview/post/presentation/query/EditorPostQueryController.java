@@ -34,7 +34,7 @@ public class EditorPostQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.SummaryResponse.mock(period)));
         }
-        return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.SummaryResponse.empty(period)));
+        return ResponseEntity.ok(ApiResponse.success(postQueryService.getInsightSummary(user.getUserId(), period)));
     }
 
     @Operation(summary = "에디터 인사이트 장소 목록 조회", description = "에디터 인사이트 장소 목록을 조회합니다.")
@@ -46,7 +46,7 @@ public class EditorPostQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.mock(sort)));
         }
-        return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.empty(sort)));
+        return ResponseEntity.ok(ApiResponse.success(postQueryService.getInsightPlaces(user.getUserId(), sort)));
     }
 
     @Operation(summary = "에디터 장소 상세 조회", description = "에디터 인사이트 장소 상세를 조회합니다.")

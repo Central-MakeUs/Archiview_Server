@@ -125,6 +125,64 @@ public class PostQueryService {
                 return EditorMapDto.Response.from(pins);
         }
 
+        public EditorInsightDto.SummaryResponse getInsightSummary(Long editorId, EditorInsightDto.Period period) {
+                User editor = userRepository.findById(editorId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
+
+                // 기간(period) 필터링
+                LocalDateTime now = LocalDateTime.now();
+                postPlaces = postPlaces.stream()
+                                .filter(pp -> matchesPeriod(pp, period, now))
+                                .toList();
+
+                long totalPlaceCount = postPlaces.stream()
+                                .map(pp -> pp.getPlace().getId())
+                                .distinct()
+                                .count();
+
+                long viewCount = 0;
+                long saveCount = 0;
+                long instagramInflowCount = 0;
+
+                for (PostPlace postPlace : postPlaces) {
+                        viewCount += defaultZero(postPlace.getViewCount());
+                        saveCount += defaultZero(postPlace.getSaveCount());
+                        instagramInflowCount += defaultZero(postPlace.getInstagramInflowCount());
+                }
+
+                return EditorInsightDto.SummaryResponse.of(
+                                editor.getName(),
+                                totalPlaceCount,
+                                instagramInflowCount,
+                                saveCount,
+                                viewCount,
+                                period);
+        }
+
+        public EditorInsightDto.PlaceCardListResponse getInsightPlaces(Long editorId, EditorInsightDto.PlaceSort sort) {
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
+                if (postPlaces.isEmpty()) {
+                        return EditorInsightDto.PlaceCardListResponse.empty(sort);
+                }
+
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
+
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
+                                postPlacesByPlaceId.keySet().stream().toList())
+                                .stream()
+                                .collect(Collectors.toMap(Place::getId, Function.identity()));
+
+                List<EditorInsightDto.PlaceCardResponse> places = postPlacesByPlaceId.entrySet().stream()
+                                .map(entry -> toInsightPlaceCardResponse(entry.getKey(), entry.getValue(), placeMap))
+                                .sorted(getInsightComparator(sort))
+                                .toList();
+
+                return EditorInsightDto.PlaceCardListResponse.of(sort, places);
+        }
+
         public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(Long editorId, Long placeId) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
                 if (postPlaces.isEmpty()) {
@@ -199,6 +257,63 @@ public class PostQueryService {
                                 .filter(category -> category != null)
                                 .map(category -> category.getId())
                                 .anyMatch(categoryIds::contains);
+        }
+
+        private boolean matchesPeriod(PostPlace postPlace, EditorInsightDto.Period period, LocalDateTime now) {
+                if (period == EditorInsightDto.Period.ALL) {
+                        return true;
+                }
+                LocalDateTime targetDate = (period == EditorInsightDto.Period.MONTH)
+                                ? now.minusMonths(1)
+                                : now.minusWeeks(1);
+
+                LocalDateTime lastUpdatedAt = getLastUpdatedAt(postPlace);
+                return lastUpdatedAt != null && lastUpdatedAt.isAfter(targetDate);
+        }
+
+        private EditorInsightDto.PlaceCardResponse toInsightPlaceCardResponse(
+                        Long placeId,
+                        List<PostPlace> postPlaces,
+                        Map<Long, Place> placeMap) {
+                PostPlace latestPostPlace = postPlaces.stream()
+                                .max(Comparator.comparing(this::getLastUpdatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .orElseThrow();
+
+                Place place = placeMap.get(placeId);
+                EditorUploadedPlaceDto.Stats stats = sumStats(postPlaces);
+                EditorInsightDto.Stats insightStats = EditorInsightDto.Stats.from(
+                                stats.getSaveCount(),
+                                stats.getViewCount(),
+                                stats.getInstagramInflowCount(),
+                                stats.getDirectionCount());
+
+                return EditorInsightDto.PlaceCardResponse.of(
+                                place,
+                                latestPostPlace.getDescription(),
+                                latestPostPlace.getImageUrl(),
+                                insightStats,
+                                getLastUpdatedAt(latestPostPlace));
+        }
+
+        private Comparator<EditorInsightDto.PlaceCardResponse> getInsightComparator(EditorInsightDto.PlaceSort sort) {
+                return switch (sort) {
+                        case RECENT -> Comparator.comparing(EditorInsightDto.PlaceCardResponse::getUpdatedAt,
+                                        Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+                        case MOST_VIEWED -> Comparator.comparing(
+                                        (EditorInsightDto.PlaceCardResponse p) -> p.getStats().getViewCount(),
+                                        Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+                        case MOST_SAVED -> Comparator.comparing(
+                                        (EditorInsightDto.PlaceCardResponse p) -> p.getStats().getSaveCount(),
+                                        Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+                        case MOST_INSTAGRAM -> Comparator.comparing(
+                                        (EditorInsightDto.PlaceCardResponse p) -> p.getStats()
+                                                        .getInstagramInflowCount(),
+                                        Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+                        case MOST_DIRECTIONS -> Comparator.comparing(
+                                        (EditorInsightDto.PlaceCardResponse p) -> p.getStats().getDirectionCount(),
+                                        Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+                };
         }
 
         private LocalDateTime getLastUpdatedAt(PostPlace postPlace) {

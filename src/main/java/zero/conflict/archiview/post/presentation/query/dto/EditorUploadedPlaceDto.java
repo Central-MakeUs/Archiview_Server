@@ -83,6 +83,16 @@ public class EditorUploadedPlaceDto {
         }
     }
 
+    /*
+     * ## 3단계: 에디터 인사이트 로직 구현 (완료)
+     * - [x] `PostQueryService`에 인사이트 요약(`getInsightSummary`) 구현 <!-- id: 40 -->
+     * - [x] `PostQueryService`에 인사이트 장소 목록(`getInsightPlaces`) 구현 <!-- id: 41 -->
+     * - [x] `EditorPostQueryController` 서비스 연동 <!-- id: 42 -->
+     * - [x] 인사이트 기간 필터링(`Period`) 로직 구현 <!-- id: 43 -->
+     *
+     * ## 4단계: 검증 및 테스트 (완료)
+     * - [x] 인사이트 API 통합 테스트 확인 <!-- id: 50 -->
+     */
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor

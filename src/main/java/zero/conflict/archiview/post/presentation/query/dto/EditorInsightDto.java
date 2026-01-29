@@ -35,10 +35,21 @@ public class EditorInsightDto {
         private String editorNickname;
         private Long totalPlaceCount;
         private Period period;
-        private Long sharedPlaceCount;
         private Long instagramInflowCount;
         private Long saveCount;
         private Long viewCount;
+
+        public static SummaryResponse of(String nickname, long totalCount, long instagramCount,
+                long saveCount, long viewCount, Period period) {
+            return SummaryResponse.builder()
+                    .editorNickname(nickname)
+                    .totalPlaceCount(totalCount)
+                    .instagramInflowCount(instagramCount)
+                    .saveCount(saveCount)
+                    .viewCount(viewCount)
+                    .period(period)
+                    .build();
+        }
 
         public static SummaryResponse empty(Period period) {
             return SummaryResponse.builder()
@@ -51,7 +62,6 @@ public class EditorInsightDto {
                     .editorNickname("아카이브 마스터")
                     .totalPlaceCount(128L)
                     .period(period)
-                    .sharedPlaceCount(45L)
                     .instagramInflowCount(1250L)
                     .saveCount(890L)
                     .viewCount(5600L)
@@ -66,6 +76,13 @@ public class EditorInsightDto {
     public static class PlaceCardListResponse {
         private PlaceSort sort;
         private List<PlaceCardResponse> places;
+
+        public static PlaceCardListResponse of(PlaceSort sort, List<PlaceCardResponse> places) {
+            return PlaceCardListResponse.builder()
+                    .sort(sort)
+                    .places(places)
+                    .build();
+        }
 
         public static PlaceCardListResponse empty(PlaceSort sort) {
             return PlaceCardListResponse.builder()
@@ -115,6 +132,18 @@ public class EditorInsightDto {
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @io.swagger.v3.oas.annotations.media.Schema(description = "업데이트 일시", example = "2024-01-29 10:00:00")
         private LocalDateTime updatedAt;
+
+        public static PlaceCardResponse of(zero.conflict.archiview.post.domain.Place place, String summary,
+                String imageUrl, Stats stats, LocalDateTime updatedAt) {
+            return PlaceCardResponse.builder()
+                    .placeId(place.getId())
+                    .placeName(place.getName())
+                    .placeImageUrl(imageUrl)
+                    .editorSummary(summary)
+                    .stats(stats)
+                    .updatedAt(updatedAt)
+                    .build();
+        }
     }
 
     @Getter
