@@ -62,14 +62,10 @@ public class EditorPostQueryController {
                 postQueryService.getInsightPlaceDetail(user.getUserId(), placeId)));
     }
 
-    @Operation(summary = "내 지도 장소 핀 조회", description = "에디터가 등록한 장소들을 지도 핀 형태로 조회합니다.")
+    @Operation(summary = "내 장소 지도 핀 조회", description = "에디터가 등록한 장소들을 지도 핀 형태로 조회합니다.")
     @GetMapping("/me/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getMapPins(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
-            @RequestParam(required = false) Double minLat,
-            @RequestParam(required = false) Double minLon,
-            @RequestParam(required = false) Double maxLat,
-            @RequestParam(required = false) Double maxLon,
             @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
@@ -82,10 +78,6 @@ public class EditorPostQueryController {
                 postQueryService.getMapPins(
                         oAuth2User.getUserId(),
                         filter,
-                        minLat,
-                        minLon,
-                        maxLat,
-                        maxLon,
                         categoryIds)));
     }
 
