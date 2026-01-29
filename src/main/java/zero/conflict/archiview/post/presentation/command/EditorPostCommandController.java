@@ -22,6 +22,7 @@ public class EditorPostCommandController {
     private final PostCommandService postCommandService;
 
     @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @io.swagger.v3.oas.annotations.media.Content(encoding = @io.swagger.v3.oas.annotations.media.Encoding(name = "request", contentType = "application/json")))
     @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> createPost(
             @RequestPart("request") @Valid PostCommandDto.Request request,

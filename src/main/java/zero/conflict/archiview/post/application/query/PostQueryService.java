@@ -137,12 +137,16 @@ public class PostQueryService {
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
                                 .map(postPlace -> {
                                         Post post = postPlace.getPost();
+                                        List<String> categories = postPlace.getPostPlaceCategories().stream()
+                                                        .map(pc -> pc.getCategory().getName())
+                                                        .toList();
                                         return EditorInsightDto.PostPlaceDetailResponse.of(
                                                         editor.getName(),
                                                         editor.getInstagramId(),
                                                         post != null ? post.getUrl() : null,
                                                         post != null ? post.getHashTag() : null,
-                                                        postPlace.getDescription());
+                                                        postPlace.getDescription(),
+                                                        categories);
                                 })
                                 .toList();
 

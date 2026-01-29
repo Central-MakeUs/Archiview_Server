@@ -177,15 +177,17 @@ public class EditorInsightDto {
         private String postUrl;
         private String postHashTag;
         private String description;
+        private List<String> categories;
 
         public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
-                String postHashTag, String description) {
+                String postHashTag, String description, List<String> categories) {
             return PostPlaceDetailResponse.builder()
                     .editorName(editorName)
                     .editorInstagramId(editorInstagramId)
                     .postUrl(postUrl)
                     .postHashTag(postHashTag)
                     .description(description)
+                    .categories(categories)
                     .build();
         }
     }
