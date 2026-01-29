@@ -22,11 +22,17 @@ public class PostPlace extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
-    private Long placeId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id")
+    private Place place;
 
-    private Long editorId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "editor_id")
+    private zero.conflict.archiview.user.domain.User editor;
 
     private String description;
 
@@ -48,14 +54,14 @@ public class PostPlace extends BaseTimeEntity {
     @Builder.Default
     private Long directionCount = 0L;
 
-    public static PostPlace createOf(Long postId, Long placeId, String description, String imageUrl,
-            Long editorId) {
+    public static PostPlace createOf(Post post, Place place, String description, String imageUrl,
+            zero.conflict.archiview.user.domain.User editor) {
         return PostPlace.builder()
-                .postId(postId)
-                .placeId(placeId)
+                .post(post)
+                .place(place)
                 .description(description)
                 .imageUrl(imageUrl)
-                .editorId(editorId)
+                .editor(editor)
                 .build();
     }
 
@@ -65,25 +71,25 @@ public class PostPlace extends BaseTimeEntity {
     }
 
     public void increaseViewCount(Long actorId) {
-        if (!this.editorId.equals(actorId)) {
+        if (!this.editor.getId().equals(actorId)) {
             this.viewCount++;
         }
     }
 
     public void increaseSaveCount(Long actorId) {
-        if (!this.editorId.equals(actorId)) {
+        if (!this.editor.getId().equals(actorId)) {
             this.saveCount++;
         }
     }
 
     public void increaseInstagramInflowCount(Long actorId) {
-        if (!this.editorId.equals(actorId)) {
+        if (!this.editor.getId().equals(actorId)) {
             this.instagramInflowCount++;
         }
     }
 
     public void increaseDirectionCount(Long actorId) {
-        if (!this.editorId.equals(actorId)) {
+        if (!this.editor.getId().equals(actorId)) {
             this.directionCount++;
         }
     }

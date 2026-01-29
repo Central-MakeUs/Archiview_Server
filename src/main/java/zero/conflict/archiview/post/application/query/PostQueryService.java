@@ -3,7 +3,6 @@ package zero.conflict.archiview.post.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
-import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
@@ -31,7 +30,6 @@ public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
-        private final PostRepository postRepository;
         private final UserRepository userRepository;
 
         public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(Long editorId) {
@@ -41,7 +39,7 @@ public class PostQueryService {
                 }
 
                 Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
-                                .collect(Collectors.groupingBy(PostPlace::getPlaceId));
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
                 Map<Long, Place> placeMap = placeRepository.findAllByIds(
                                 postPlacesByPlaceId.keySet().stream().toList())
@@ -118,7 +116,7 @@ public class PostQueryService {
                 }
 
                 Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
-                                .collect(Collectors.groupingBy(PostPlace::getPlaceId));
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
                 Map<Long, Place> placeMap = placeRepository.findAllByIds(
                                 postPlacesByPlaceId.keySet().stream().toList())
@@ -146,19 +144,9 @@ public class PostQueryService {
                 User editor = userRepository.findById(editorId)
                                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
-                Map<Long, Post> postMap = postRepository.findAllByIds(
-                                postPlaces.stream()
-                                                .map(PostPlace::getPostId)
-                                                .distinct()
-                                                .toList())
-                                .stream()
-                                .collect(Collectors.toMap(
-                                                Post::getId,
-                                                Function.identity()));
-
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
                                 .map(postPlace -> {
-                                        Post post = postMap.get(postPlace.getPostId());
+                                        Post post = postPlace.getPost();
                                         return EditorInsightDto.PostPlaceDetailResponse.builder()
                                                         .editorName(editor.getName())
                                                         .editorInstagramId(editor.getInstagramId())

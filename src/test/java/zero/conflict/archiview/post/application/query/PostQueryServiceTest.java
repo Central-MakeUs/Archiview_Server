@@ -52,10 +52,15 @@ class PostQueryServiceTest {
                                 .position(Position.of(37.0, 127.0))
                                 .build();
 
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                Post post = Post.builder().id(200L).build();
+
                 PostPlace postPlace = PostPlace.builder()
                                 .id(100L)
-                                .placeId(place.getId())
-                                .editorId(editorId)
+                                .post(post)
+                                .place(place)
+                                .editor(editor)
                                 .build();
                 postPlace.addCategory(category);
 
@@ -85,10 +90,14 @@ class PostQueryServiceTest {
                 Place place1 = Place.builder().id(10L).name("한식당").position(Position.of(37.0, 127.0)).build();
                 Place place2 = Place.builder().id(11L).name("양식당").position(Position.of(37.1, 127.1)).build();
 
-                PostPlace pp1 = PostPlace.builder().id(100L).placeId(place1.getId()).editorId(editorId).build();
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                Post post = Post.builder().id(200L).build();
+
+                PostPlace pp1 = PostPlace.builder().id(100L).post(post).place(place1).editor(editor).build();
                 pp1.addCategory(category1);
 
-                PostPlace pp2 = PostPlace.builder().id(101L).placeId(place2.getId()).editorId(editorId).build();
+                PostPlace pp2 = PostPlace.builder().id(101L).post(post).place(place2).editor(editor).build();
                 pp2.addCategory(category2);
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
@@ -113,8 +122,12 @@ class PostQueryServiceTest {
                 Place nearPlace = Place.builder().id(10L).name("가까운곳").position(Position.of(37.0001, 127.0001)).build();
                 Place farPlace = Place.builder().id(11L).name("먼곳").position(Position.of(37.5, 127.5)).build();
 
-                PostPlace pp1 = PostPlace.builder().id(100L).placeId(nearPlace.getId()).editorId(editorId).build();
-                PostPlace pp2 = PostPlace.builder().id(101L).placeId(farPlace.getId()).editorId(editorId).build();
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                Post post = Post.builder().id(200L).build();
+
+                PostPlace pp1 = PostPlace.builder().id(100L).post(post).place(nearPlace).editor(editor).build();
+                PostPlace pp2 = PostPlace.builder().id(101L).post(post).place(farPlace).editor(editor).build();
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));

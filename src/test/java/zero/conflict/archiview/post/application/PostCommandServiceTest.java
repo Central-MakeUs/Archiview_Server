@@ -44,6 +44,9 @@ class PostCommandServiceTest {
         private CategoryRepository categoryRepository;
 
         @Mock
+        private zero.conflict.archiview.user.application.port.UserRepository userRepository;
+
+        @Mock
         private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
         @Test
@@ -84,9 +87,13 @@ class PostCommandServiceTest {
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
-                PostPlace postPlace = PostPlace.createOf(savedPost.getId(), newPlace.getId(),
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
+
+                PostPlace postPlace = PostPlace.createOf(savedPost, newPlace,
                                 placeInfoRequest.getDescription(),
-                                null, editorId);
+                                null, editor);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -133,6 +140,10 @@ class PostCommandServiceTest {
                 Post savedPost = Post.createOf(editorId, url, hashTag);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
+
                 Place existingPlace = Place.createOf(
                                 "기존 장소",
                                 Address.of("서울시 종로구", "201호", "54321"),
@@ -140,8 +151,8 @@ class PostCommandServiceTest {
                                 "도보 3분");
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
-                PostPlace postPlace = PostPlace.createOf(savedPost.getId(), existingPlace.getId(),
-                                placeInfoRequest.getDescription(), null, editorId);
+                PostPlace postPlace = PostPlace.createOf(savedPost, existingPlace,
+                                placeInfoRequest.getDescription(), null, editor);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when

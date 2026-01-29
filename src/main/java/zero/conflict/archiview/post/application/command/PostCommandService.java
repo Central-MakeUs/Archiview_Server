@@ -28,6 +28,7 @@ public class PostCommandService {
     private final PlaceRepository placeRepository;
     private final PostPlaceRepository postPlacesRepository;
     private final CategoryRepository categoryRepository;
+    private final zero.conflict.archiview.user.application.port.UserRepository userRepository;
     private final zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
     @Transactional
@@ -38,8 +39,12 @@ public class PostCommandService {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
+        zero.conflict.archiview.user.domain.User editor = userRepository.findById(editorId)
+                .orElseThrow(() -> new DomainException(
+                        zero.conflict.archiview.user.domain.error.UserErrorCode.USER_NOT_FOUND));
+
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), images, savedPost.getId(), editorId);
+                request.getPlaceInfoRequestList(), images, savedPost, editor);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
@@ -62,8 +67,8 @@ public class PostCommandService {
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
             List<org.springframework.web.multipart.MultipartFile> images,
-            Long postId,
-            Long editorId) {
+            Post post,
+            zero.conflict.archiview.user.domain.User editor) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
@@ -85,11 +90,11 @@ public class PostCommandService {
                     });
 
             PostPlace postPlace = PostPlace.createOf(
-                    postId,
-                    savedPlace.getId(),
+                    post,
+                    savedPlace,
                     placeInfo.getDescription(),
                     imageUrl,
-                    editorId);
+                    editor);
 
             if (placeInfo.getCategoryIds() != null) {
                 for (Long categoryId : placeInfo.getCategoryIds()) {
