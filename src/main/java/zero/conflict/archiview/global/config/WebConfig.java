@@ -19,6 +19,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(
                         "https://archiview.space",
                         "https://api.archiview.space",
+                        "https://appleid.apple.com",
                         "http://localhost:3000",
                         "http://localhost:8080")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
