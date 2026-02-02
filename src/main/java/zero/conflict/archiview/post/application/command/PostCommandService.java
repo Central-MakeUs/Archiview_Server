@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
+import zero.conflict.archiview.post.application.command.dto.PresignedUrlCommandDto;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
@@ -16,6 +17,7 @@ import zero.conflict.archiview.post.domain.Position;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +47,15 @@ public class PostCommandService {
                 request.getPlaceInfoRequestList(), images, savedPost, editor);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
+    }
+
+    public PresignedUrlCommandDto.Response createPostImagePresignedUrl(PresignedUrlCommandDto.Request request) {
+        PresignedUrlInfo presignedUrl = s3Service.generatePresignedUploadUrl(
+                "posts",
+                request.getFilename(),
+                request.getContentType());
+
+        return PresignedUrlCommandDto.Response.of(presignedUrl.uploadUrl());
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(

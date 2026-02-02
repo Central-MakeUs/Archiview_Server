@@ -12,6 +12,7 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.command.PostCommandService;
 import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
+import zero.conflict.archiview.post.application.command.dto.PresignedUrlCommandDto;
 
 @RestController
 @RequestMapping("/api/v1/editors")
@@ -29,6 +30,13 @@ public class EditorPostCommandController {
             @RequestPart("images") java.util.List<org.springframework.web.multipart.MultipartFile> images,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(postCommandService.createPost(request, images, user.getUserId())));
+    }
+
+    @Operation(summary = "게시글 이미지 presigned URL 발급", description = "에디터가 게시글 이미지 업로드를 위한 presigned URL을 발급받습니다.")
+    @PostMapping("/posts/presigned-url")
+    public ResponseEntity<ApiResponse<PresignedUrlCommandDto.Response>> createPostImagePresignedUrl(
+            @RequestBody @Valid PresignedUrlCommandDto.Request request) {
+        return ResponseEntity.ok(ApiResponse.success(postCommandService.createPostImagePresignedUrl(request)));
     }
 
 }
