@@ -7,10 +7,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
-import zero.conflict.archiview.user.domain.User;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -20,8 +19,9 @@ import java.util.List;
 public class PostPlace extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
@@ -31,9 +31,8 @@ public class PostPlace extends BaseTimeEntity {
     @JoinColumn(name = "place_id")
     private Place place;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "editor_id")
-    private User editor;
+    @Column(name = "editor_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID editorId;
 
     private String description;
 
@@ -56,13 +55,13 @@ public class PostPlace extends BaseTimeEntity {
     private Long directionCount = 0L;
 
     public static PostPlace createOf(Post post, Place place, String description, String imageUrl,
-            zero.conflict.archiview.user.domain.User editor) {
+            UUID editorId) {
         return PostPlace.builder()
                 .post(post)
                 .place(place)
                 .description(description)
                 .imageUrl(imageUrl)
-                .editor(editor)
+                .editorId(editorId)
                 .build();
     }
 
@@ -71,26 +70,26 @@ public class PostPlace extends BaseTimeEntity {
         this.postPlaceCategories.add(postPlaceCategory);
     }
 
-    public void increaseViewCount(Long actorId) {
-        if (!this.editor.getId().equals(actorId)) {
+    public void increaseViewCount(UUID actorId) {
+        if (!this.editorId.equals(actorId)) {
             this.viewCount++;
         }
     }
 
-    public void increaseSaveCount(Long actorId) {
-        if (!this.editor.getId().equals(actorId)) {
+    public void increaseSaveCount(UUID actorId) {
+        if (!this.editorId.equals(actorId)) {
             this.saveCount++;
         }
     }
 
-    public void increaseInstagramInflowCount(Long actorId) {
-        if (!this.editor.getId().equals(actorId)) {
+    public void increaseInstagramInflowCount(UUID actorId) {
+        if (!this.editorId.equals(actorId)) {
             this.instagramInflowCount++;
         }
     }
 
-    public void increaseDirectionCount(Long actorId) {
-        if (!this.editor.getId().equals(actorId)) {
+    public void increaseDirectionCount(UUID actorId) {
+        if (!this.editorId.equals(actorId)) {
             this.directionCount++;
         }
     }

@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class EditorUploadedPlaceDto {
 
@@ -33,7 +34,7 @@ public class EditorUploadedPlaceDto {
             return ListResponse.builder()
                     .places(List.of(
                             PlaceCardResponse.builder()
-                                    .placeId(101L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000101"))
                                     .placeName("성수동 카페거리 샘플")
                                     .placeImageUrl("https://picsum.photos/400/300?random=11")
                                     .editorSummary("성수동에서 가장 인기 있는 카페입니다.")
@@ -45,7 +46,7 @@ public class EditorUploadedPlaceDto {
                                             .build())
                                     .build(),
                             PlaceCardResponse.builder()
-                                    .placeId(102L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000102"))
                                     .placeName("연남동 베이커리")
                                     .placeImageUrl("https://picsum.photos/400/300?random=12")
                                     .editorSummary("직접 구운 빵이 유명한 곳이에요.")
@@ -65,13 +66,13 @@ public class EditorUploadedPlaceDto {
     @AllArgsConstructor
     @Builder
     public static class PlaceCardResponse {
-        private Long placeId;
+        private UUID placeId;
         private String placeName;
         private String placeImageUrl;
         private String editorSummary;
         private Stats stats;
 
-        public static PlaceCardResponse of(Long placeId, String placeName, String imageUrl, String description,
+        public static PlaceCardResponse of(UUID placeId, String placeName, String imageUrl, String description,
                 Stats stats) {
             return PlaceCardResponse.builder()
                     .placeId(placeId)

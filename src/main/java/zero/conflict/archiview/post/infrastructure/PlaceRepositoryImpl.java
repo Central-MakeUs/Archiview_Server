@@ -8,6 +8,7 @@ import zero.conflict.archiview.post.domain.Position;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -27,7 +28,7 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     }
 
     @Override
-    public List<Place> findAllByIds(List<Long> ids) {
+    public List<Place> findAllByIds(List<UUID> ids) {
         return placeJpaRepository.findAllById(ids);
     }
 }

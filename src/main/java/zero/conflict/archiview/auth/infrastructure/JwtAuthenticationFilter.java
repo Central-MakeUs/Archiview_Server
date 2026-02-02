@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = resolveToken(request);
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
+            java.util.UUID userId = jwtTokenProvider.getUserIdFromToken(token);
 
             userRepository.findById(userId).ifPresent(user -> {
                 CustomOAuth2User oAuth2User = new CustomOAuth2User(user, new HashMap<>());
@@ -61,4 +61,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-

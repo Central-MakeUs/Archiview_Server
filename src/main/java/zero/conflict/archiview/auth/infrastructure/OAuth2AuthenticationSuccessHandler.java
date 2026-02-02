@@ -46,4 +46,3 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         response.getWriter().write(objectMapper.writeValueAsString(tokenResponse));
     }
 }
-

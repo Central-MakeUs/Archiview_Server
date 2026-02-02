@@ -52,7 +52,7 @@ class PostCommandServiceTest {
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
         void createPost_withNewPlace_success() {
                 // given
-                Long editorId = 1L;
+                java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post1";
                 String hashTag = "여행";
 
@@ -92,7 +92,7 @@ class PostCommandServiceTest {
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, newPlace,
                                 placeInfoRequest.getDescription(),
-                                null, editor);
+                                null, editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -114,7 +114,7 @@ class PostCommandServiceTest {
         @DisplayName("Post 생성 시 중복된 위치의 Place는 재사용해야 한다")
         void createPost_withExistingPlace_reusePlace() {
                 // given
-                Long editorId = 1L;
+                java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post2";
                 String hashTag = "맛집";
 
@@ -151,7 +151,7 @@ class PostCommandServiceTest {
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, existingPlace,
-                                placeInfoRequest.getDescription(), null, editor);
+                                placeInfoRequest.getDescription(), null, editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -171,7 +171,7 @@ class PostCommandServiceTest {
         @DisplayName("여러 Place를 포함한 Post 생성 테스트")
         void createPost_withMultiplePlaces_success() {
                 // given
-                Long editorId = 1L;
+                java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post3";
                 String hashTag = "여행";
 

@@ -52,7 +52,7 @@ public class EditorPostQueryController {
     @Operation(summary = "에디터 장소 상세 조회", description = "에디터 인사이트 장소 상세를 조회합니다.")
     @GetMapping("/me/insights/places/{placeId}")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceDetailResponse>> getInsightPlaceDetail(
-            @PathVariable Long placeId,
+            @PathVariable java.util.UUID placeId,
             @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         if (useMock) {
@@ -66,7 +66,7 @@ public class EditorPostQueryController {
     @GetMapping("/me/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getMapPins(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
-            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) List<java.util.UUID> categoryIds,
             @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 

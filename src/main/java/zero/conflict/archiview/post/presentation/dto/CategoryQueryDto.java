@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 public class CategoryQueryDto {
 
@@ -14,10 +15,10 @@ public class CategoryQueryDto {
     @AllArgsConstructor
     @Builder
     public static class CategoryResponse {
-        private Long id;
+        private UUID id;
         private String name;
 
-        public static CategoryResponse of(Long id, String name) {
+        public static CategoryResponse of(UUID id, String name) {
             return CategoryResponse.builder()
                     .id(id)
                     .name(name)

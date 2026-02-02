@@ -50,7 +50,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
 
                 PostCommandDto.Response.PlaceInfoResponse placeInfoResponse = PostCommandDto.Response.PlaceInfoResponse
                                 .builder()
-                                .placeId(1L)
+                                .placeId(java.util.UUID.fromString("00000000-0000-0000-0000-000000000101"))
                                 .name("테스트 장소")
                                 .roadAddress("서울시 중구 세종대로 110")
                                 .detailAddress("1층")
@@ -60,13 +60,14 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                                 .build();
 
                 PostCommandDto.Response mockResponse = PostCommandDto.Response.builder()
-                                .postId(1L)
+                                .postId(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))
                                 .url("https://www.instagram.com/post")
                                 .hashTag("#테스트 #여행")
                                 .placeInfoResponseList(Collections.singletonList(placeInfoResponse))
                                 .build();
 
-                given(postCommandService.createPost(any(PostCommandDto.Request.class), eq(1L)))
+                given(postCommandService.createPost(any(PostCommandDto.Request.class),
+                                eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
                                 .willReturn(mockResponse);
 
                 // when & then
@@ -76,7 +77,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.success").value(true))
-                                .andExpect(jsonPath("$.data.postId").value(1L))
+                                .andExpect(jsonPath("$.data.postId").value("00000000-0000-0000-0000-000000000001"))
                                 .andExpect(jsonPath("$.data.url").value("https://www.instagram.com/post"))
                                 .andExpect(jsonPath("$.data.hashTag").value("#테스트 #여행"))
                                 .andDo(print());

@@ -6,6 +6,7 @@ import zero.conflict.archiview.user.application.port.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,7 +20,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public Optional<User> findById(UUID id) {
         return userJpaRepository.findById(id);
     }
 

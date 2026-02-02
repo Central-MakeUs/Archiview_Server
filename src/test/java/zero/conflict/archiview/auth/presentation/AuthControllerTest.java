@@ -32,7 +32,7 @@ class AuthControllerTest extends ControllerTestSupport {
         Map<String, Object> response = Map.of(
                 "accessToken", "access-token",
                 "refreshToken", "refresh-token",
-                "userId", 1L,
+                "userId", java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
                 "email", "test@example.com",
                 "name", "testuser"
         );
@@ -56,7 +56,7 @@ class AuthControllerTest extends ControllerTestSupport {
         Map<String, Object> response = Map.of(
                 "accessToken", "access-token",
                 "refreshToken", "refresh-token",
-                "userId", 1L,
+                "userId", java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"),
                 "email", "test@example.com",
                 "name", "testuser"
         );

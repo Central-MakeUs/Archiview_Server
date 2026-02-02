@@ -67,7 +67,7 @@ public class AuthController {
             );
         }
 
-        Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+        java.util.UUID userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         User user = userRepository.findById(userId)
                 .orElse(null);
         if (user == null) {

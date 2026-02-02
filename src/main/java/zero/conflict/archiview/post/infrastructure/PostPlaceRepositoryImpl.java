@@ -6,6 +6,7 @@ import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.PostPlace;
 
 import java.util.List;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,12 +20,12 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
-    public List<PostPlace> findAllByEditorId(Long editorId) {
+    public List<PostPlace> findAllByEditorId(UUID editorId) {
         return postPlaceJpaRepository.findAllByEditorId(editorId);
     }
 
     @Override
-    public List<PostPlace> findAllByEditorIdAndPlaceId(Long editorId, Long placeId) {
+    public List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId) {
         return postPlaceJpaRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
     }
 }

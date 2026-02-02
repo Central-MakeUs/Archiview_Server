@@ -5,6 +5,7 @@ import zero.conflict.archiview.post.domain.Position;
 
 import java.util.Optional;
 import java.util.List;
+import java.util.UUID;
 
 public interface PlaceRepository {
 
@@ -12,5 +13,5 @@ public interface PlaceRepository {
 
     Optional<Place> findByPosition(Position position);
 
-    List<Place> findAllByIds(List<Long> ids);
+    List<Place> findAllByIds(List<UUID> ids);
 }

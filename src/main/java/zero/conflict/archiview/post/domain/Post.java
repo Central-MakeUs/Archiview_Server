@@ -11,6 +11,8 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,10 +21,12 @@ import lombok.NoArgsConstructor;
 public class Post extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @jakarta.persistence.Column(columnDefinition = "BINARY(16)")
+    private UUID id;
 
-    private Long editorId;
+    @jakarta.persistence.Column(columnDefinition = "BINARY(16)", nullable = false)
+    private UUID editorId;
 
     @Embedded
     private InstagramUrl url;
@@ -32,7 +36,7 @@ public class Post extends BaseTimeEntity {
 
     private Boolean isDeleted;
 
-    public static Post createOf(Long editorId, String url, String hashTag) {
+    public static Post createOf(UUID editorId, String url, String hashTag) {
         return Post.builder()
                 .editorId(editorId)
                 .url(InstagramUrl.from(url))

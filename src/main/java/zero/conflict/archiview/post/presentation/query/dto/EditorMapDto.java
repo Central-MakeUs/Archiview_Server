@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 public class EditorMapDto {
 
@@ -21,7 +22,7 @@ public class EditorMapDto {
     @Schema(description = "에디터 지도 장소 핀 응답")
     public static class PlacePinResponse {
         @Schema(description = "장소 ID")
-        private Long placeId;
+        private UUID placeId;
         @Schema(description = "장소명")
         private String name;
         @Schema(description = "위도")
@@ -64,14 +65,14 @@ public class EditorMapDto {
             return Response.builder()
                     .pins(List.of(
                             PlacePinResponse.builder()
-                                    .placeId(1L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
                                     .name("성수동 힙플레이스")
                                     .latitude(37.5445)
                                     .longitude(127.0560)
                                     .categories(List.of("카페", "인테리어"))
                                     .build(),
                             PlacePinResponse.builder()
-                                    .placeId(2L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000002"))
                                     .name("연남동 숨은 맛집")
                                     .latitude(37.5615)
                                     .longitude(126.9249)

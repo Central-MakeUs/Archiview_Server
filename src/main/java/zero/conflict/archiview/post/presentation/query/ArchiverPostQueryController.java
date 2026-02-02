@@ -30,7 +30,7 @@ public class ArchiverPostQueryController {
     @Operation(summary = "아카이버 공개 프로필 조회", description = "특정 아카이버의 공개된 프로필 정보를 조회합니다.")
     @GetMapping("/{archiverId}/profile")
     public ResponseEntity<ApiResponse<zero.conflict.archiview.user.presentation.dto.ArchiverProfileDto.Response>> getArchiverProfile(
-            @PathVariable Long archiverId,
+            @PathVariable java.util.UUID archiverId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         return ResponseEntity
                 .ok(ApiResponse.success(

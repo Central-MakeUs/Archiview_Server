@@ -20,7 +20,7 @@ public class EditorProfileCommandService {
     private final EditorProfileRepository editorProfileRepository;
 
     @Transactional
-    public EditorProfileDto.Response createProfile(Long userId, EditorProfileDto.CreateRequest request) {
+    public EditorProfileDto.Response createProfile(java.util.UUID userId, EditorProfileDto.CreateRequest request) {
         User user = getEditorUser(userId);
 
         if (editorProfileRepository.existsByUserId(userId)) {
@@ -52,7 +52,7 @@ public class EditorProfileCommandService {
     }
 
     @Transactional
-    public EditorProfileDto.Response updateProfile(Long userId, EditorProfileDto.UpdateRequest request) {
+    public EditorProfileDto.Response updateProfile(java.util.UUID userId, EditorProfileDto.UpdateRequest request) {
         User user = getEditorUser(userId);
 
         EditorProfile profile = editorProfileRepository.findByUserId(userId)
@@ -79,7 +79,7 @@ public class EditorProfileCommandService {
                 .build();
     }
 
-    private User getEditorUser(Long userId) {
+    private User getEditorUser(java.util.UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 

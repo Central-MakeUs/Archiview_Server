@@ -64,8 +64,7 @@ public class CustomOAuth2User implements OAuth2User, UserDetails {
         return true;
     }
 
-    public Long getUserId() {
+    public java.util.UUID getUserId() {
         return user.getId();
     }
 }
-

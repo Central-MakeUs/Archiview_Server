@@ -18,6 +18,8 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
 
+import java.util.UUID;
+
 @Entity
 @Table(name = "editor_profiles")
 @Getter
@@ -27,8 +29,9 @@ import zero.conflict.archiview.global.domain.BaseTimeEntity;
 public class EditorProfile extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)

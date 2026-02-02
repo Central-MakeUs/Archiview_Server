@@ -37,7 +37,7 @@ public class EditorProfileQueryController {
     @Operation(summary = "에디터 공개 프로필 조회", description = "특정 에디터의 공개된 프로필 정보를 조회합니다.")
     @GetMapping("/{editorId}/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getEditorProfile(
-            @PathVariable Long editorId,
+            @PathVariable java.util.UUID editorId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         return ResponseEntity.ok(ApiResponse.success(
                 editorProfileQueryService.getEditorProfile(editorId)));

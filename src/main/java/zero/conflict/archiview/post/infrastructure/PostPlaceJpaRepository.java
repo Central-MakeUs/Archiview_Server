@@ -4,9 +4,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import zero.conflict.archiview.post.domain.PostPlace;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
-    List<PostPlace> findAllByEditorId(Long editorId);
+public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, UUID> {
+    List<PostPlace> findAllByEditorId(UUID editorId);
 
-    List<PostPlace> findAllByEditorIdAndPlaceId(Long editorId, Long placeId);
+    List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId);
 }

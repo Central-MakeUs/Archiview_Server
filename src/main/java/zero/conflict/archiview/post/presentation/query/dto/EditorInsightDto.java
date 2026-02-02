@@ -10,6 +10,7 @@ import zero.conflict.archiview.post.domain.Address;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 public class EditorInsightDto {
 
@@ -96,7 +97,7 @@ public class EditorInsightDto {
                     .sort(sort)
                     .places(List.of(
                             PlaceCardResponse.builder()
-                                    .placeId(1L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000001"))
                                     .placeName("샘플 카페 성수")
                                     .placeImageUrl("https://picsum.photos/400/300?random=1")
                                     .editorSummary("성수동에서 가장 힙한 분위기의 카페입니다.")
@@ -104,7 +105,7 @@ public class EditorInsightDto {
                                     .updatedAt(LocalDateTime.now().minusDays(1))
                                     .build(),
                             PlaceCardResponse.builder()
-                                    .placeId(2L)
+                                    .placeId(UUID.fromString("00000000-0000-0000-0000-000000000002"))
                                     .placeName("연남동 맛집")
                                     .placeImageUrl("https://picsum.photos/400/300?random=2")
                                     .editorSummary("웨이팅이 아깝지 않은 정통 일식당입니다.")
@@ -121,7 +122,7 @@ public class EditorInsightDto {
     @Builder
     public static class PlaceCardResponse {
         @io.swagger.v3.oas.annotations.media.Schema(description = "장소 ID", example = "101")
-        private Long placeId;
+        private UUID placeId;
         @io.swagger.v3.oas.annotations.media.Schema(description = "장소명", example = "아카이브 성수")
         private String placeName;
         @io.swagger.v3.oas.annotations.media.Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300")
@@ -151,7 +152,7 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PlaceDetailResponse {
-        private Long placeId;
+        private UUID placeId;
         private String placeName;
         private String placeImageUrl;
         private Long editorTotal;
@@ -161,21 +162,21 @@ public class EditorInsightDto {
 
         private List<PostPlaceDetailResponse> postPlaces;
 
-        public static PlaceDetailResponse of(Long placeId, List<PostPlaceDetailResponse> postPlaces) {
+        public static PlaceDetailResponse of(UUID placeId, List<PostPlaceDetailResponse> postPlaces) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
                     .postPlaces(postPlaces)
                     .build();
         }
 
-        public static PlaceDetailResponse empty(Long placeId) {
+        public static PlaceDetailResponse empty(UUID placeId) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
                     .postPlaces(Collections.emptyList())
                     .build();
         }
 
-        public static PlaceDetailResponse mock(Long placeId) {
+        public static PlaceDetailResponse mock(UUID placeId) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
                     .placeName("모의 장소 상세")

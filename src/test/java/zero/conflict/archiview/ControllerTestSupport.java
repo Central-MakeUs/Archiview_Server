@@ -12,6 +12,7 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.Map;
+import java.util.UUID;
 
 public abstract class ControllerTestSupport {
 
@@ -23,7 +24,7 @@ public abstract class ControllerTestSupport {
 
     protected CustomOAuth2User createMockUser() {
         User testUser = User.builder()
-                .id(1L)
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
                 .email("test@example.com")
                 .name("testuser")
                 .role(User.Role.EDITOR)
@@ -59,7 +60,7 @@ public abstract class ControllerTestSupport {
     void setUp() {
         // 테스트용 User 객체 생성
         User testUser = User.builder()
-                .id(1L)
+                .id(UUID.fromString("00000000-0000-0000-0000-000000000001"))
                 .email("test@example.com")
                 .name("testuser")
                 .role(User.Role.EDITOR)

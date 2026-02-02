@@ -34,7 +34,7 @@ public class PostCommandService {
     private final zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
     @Transactional
-    public PostCommandDto.Response createPost(PostCommandDto.Request request, Long editorId) {
+    public PostCommandDto.Response createPost(PostCommandDto.Request request, java.util.UUID editorId) {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
@@ -43,7 +43,7 @@ public class PostCommandService {
                         zero.conflict.archiview.user.domain.error.UserErrorCode.USER_NOT_FOUND));
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), savedPost, editor);
+                request.getPlaceInfoRequestList(), savedPost, editor.getId());
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
@@ -60,7 +60,7 @@ public class PostCommandService {
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
             Post post,
-            zero.conflict.archiview.user.domain.User editor) {
+            java.util.UUID editorId) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
@@ -82,10 +82,10 @@ public class PostCommandService {
                     savedPlace,
                     placeInfo.getDescription(),
                     imageUrl,
-                    editor);
+                    editorId);
 
             if (placeInfo.getCategoryIds() != null) {
-                for (Long categoryId : placeInfo.getCategoryIds()) {
+                for (java.util.UUID categoryId : placeInfo.getCategoryIds()) {
                     if (categoryId == null) {
                         throw new DomainException(PostErrorCode.INVALID_CATEGORY_ID);
                     }

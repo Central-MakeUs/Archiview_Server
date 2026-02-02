@@ -18,7 +18,7 @@ public class EditorProfileQueryService {
     private final EditorProfileRepository editorProfileRepository;
 
     @Transactional(readOnly = true)
-    public EditorProfileDto.Response getMyProfile(Long userId) {
+    public EditorProfileDto.Response getMyProfile(java.util.UUID userId) {
         EditorProfile profile = editorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
@@ -26,7 +26,7 @@ public class EditorProfileQueryService {
     }
 
     @Transactional(readOnly = true)
-    public EditorProfileDto.Response getEditorProfile(Long editorId) {
+    public EditorProfileDto.Response getEditorProfile(java.util.UUID editorId) {
         EditorProfile profile = editorProfileRepository.findByUserId(editorId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 

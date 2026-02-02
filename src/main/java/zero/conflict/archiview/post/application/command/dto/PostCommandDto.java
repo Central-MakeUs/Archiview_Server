@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 public class PostCommandDto {
 
@@ -58,8 +59,8 @@ public class PostCommandDto {
             @io.swagger.v3.oas.annotations.media.Schema(description = "경도", example = "127.0560")
             private Double longitude;
 
-            @io.swagger.v3.oas.annotations.media.Schema(description = "카테고리 ID 목록 (1:한식, 2:양식, 3:일식, 4:카페, 5:데이트, 6:이자카야, 7:기타)", example = "[1, 4]")
-            private List<Long> categoryIds;
+            @io.swagger.v3.oas.annotations.media.Schema(description = "카테고리 ID 목록", example = "[\"00000000-0000-0000-0000-000000000001\", \"00000000-0000-0000-0000-000000000004\"]")
+            private List<UUID> categoryIds;
             @io.swagger.v3.oas.annotations.media.Schema(description = "가까운 역에서 도보 시간", example = "성수역 도보 5분")
             private String nearestStationWalkTime;
 
@@ -73,8 +74,8 @@ public class PostCommandDto {
     @AllArgsConstructor
     @Builder
     public static class Response {
-        @io.swagger.v3.oas.annotations.media.Schema(description = "저장된 게시글 ID", example = "1")
-        private Long postId;
+        @io.swagger.v3.oas.annotations.media.Schema(description = "저장된 게시글 ID", example = "00000000-0000-0000-0000-000000000001")
+        private UUID postId;
         @io.swagger.v3.oas.annotations.media.Schema(description = "등록된 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String url;
         @io.swagger.v3.oas.annotations.media.Schema(description = "등록된 해시태그", example = "#성수카페 #감성레벨 #디저트맛집")
@@ -96,8 +97,8 @@ public class PostCommandDto {
         @AllArgsConstructor
         @Builder
         public static class PlaceInfoResponse {
-            @io.swagger.v3.oas.annotations.media.Schema(description = "장소 ID", example = "101")
-            private Long placeId;
+            @io.swagger.v3.oas.annotations.media.Schema(description = "장소 ID", example = "00000000-0000-0000-0000-000000000101")
+            private UUID placeId;
             @io.swagger.v3.oas.annotations.media.Schema(description = "장소명", example = "아카이브 성수")
             private String name;
             @io.swagger.v3.oas.annotations.media.Schema(description = "도로명 주소", example = "서울특별시 성동구 아차산로 123")
@@ -123,7 +124,7 @@ public class PostCommandDto {
                         .build();
             }
 
-            public static PlaceInfoResponse of(Long placeId, String name,
+            public static PlaceInfoResponse of(UUID placeId, String name,
                     String roadAddress, String detailAddress,
                     String zipCode, Double latitude,
                     Double longitude) {

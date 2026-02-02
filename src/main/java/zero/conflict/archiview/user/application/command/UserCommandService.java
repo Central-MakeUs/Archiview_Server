@@ -16,7 +16,7 @@ public class UserCommandService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void completeOnboarding(Long userId, UserDto.OnboardingRequest request) {
+    public void completeOnboarding(java.util.UUID userId, UserDto.OnboardingRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 

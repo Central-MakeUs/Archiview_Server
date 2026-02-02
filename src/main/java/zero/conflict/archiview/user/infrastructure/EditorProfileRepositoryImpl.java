@@ -6,6 +6,7 @@ import zero.conflict.archiview.user.application.port.EditorProfileRepository;
 import zero.conflict.archiview.user.domain.EditorProfile;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -19,17 +20,17 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
     }
 
     @Override
-    public Optional<EditorProfile> findByUserId(Long userId) {
+    public Optional<EditorProfile> findByUserId(UUID userId) {
         return editorProfileJpaRepository.findByUserId(userId);
     }
 
     @Override
-    public Optional<EditorProfile> findById(Long id) {
+    public Optional<EditorProfile> findById(UUID id) {
         return editorProfileJpaRepository.findById(id);
     }
 
     @Override
-    public boolean existsByUserId(Long userId) {
+    public boolean existsByUserId(UUID userId) {
         return editorProfileJpaRepository.existsByUserId(userId);
     }
 

@@ -14,7 +14,7 @@ class PostDomainTest {
     @DisplayName("유효한 인스타그램 URL과 해시태그로 Post를 생성할 수 있다")
     void createPost_success() {
         // given
-        Long editorId = 1L;
+        java.util.UUID editorId = java.util.UUID.randomUUID();
         String url = "https://www.instagram.com/p/DBU0yXOz_A-/";
         String hashTag = "#성수 #카페";
 
@@ -30,7 +30,7 @@ class PostDomainTest {
     @DisplayName("잘못된 형식의 인스타그램 URL은 예외를 발생시킨다")
     void createPost_invalidUrl_throwsException() {
         // given
-        Long editorId = 1L;
+        java.util.UUID editorId = java.util.UUID.randomUUID();
         String invalidUrl = "https://wrong-url.com";
         String hashTag = "#성수";
 
@@ -44,7 +44,7 @@ class PostDomainTest {
     @DisplayName("해시태그가 3개를 초과하면 예외를 발생시킨다")
     void createPost_tooManyHashTags_throwsException() {
         // given
-        Long editorId = 1L;
+        java.util.UUID editorId = java.util.UUID.randomUUID();
         String url = "https://www.instagram.com/p/DBU0yXOz_A-/";
         String tooManyTags = "#하나 #둘 #셋 #넷";
 
