@@ -77,14 +77,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return userRepository.findByProviderAndProviderId(provider, oAuth2UserInfo.getProviderId())
                 .map(user -> {
-                    user.updateProfile(oAuth2UserInfo.getName(), oAuth2UserInfo.getProfileImageUrl());
+                    user.updateName(oAuth2UserInfo.getName());
                     return userRepository.save(user);
                 })
                 .orElseGet(() -> userRepository.save(
                         User.builder()
                                 .email(oAuth2UserInfo.getEmail())
                                 .name(oAuth2UserInfo.getName())
-                                .profileImageUrl(oAuth2UserInfo.getProfileImageUrl())
                                 .provider(provider)
                                 .providerId(oAuth2UserInfo.getProviderId())
                                 .role(role) // ✅ GUEST로 시작

@@ -23,10 +23,6 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private String name;
 
-    private String profileImageUrl;
-
-    private String instagramId;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OAuthProvider provider;
@@ -46,9 +42,8 @@ public class User extends BaseTimeEntity {
         GUEST, ARCHIVER, EDITOR
     }
 
-    public void updateProfile(String name, String profileImageUrl) {
+    public void updateName(String name) {
         this.name = name;
-        this.profileImageUrl = profileImageUrl;
     }
 
     public void assignRole(Role role) {

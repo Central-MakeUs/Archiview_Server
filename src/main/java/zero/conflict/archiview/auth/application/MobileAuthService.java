@@ -42,7 +42,7 @@ public class MobileAuthService {
 
         User user = userRepository.findByProviderAndProviderId(provider, info.subject())
                 .map(existing -> {
-                    existing.updateProfile(info.name(), null);
+                    existing.updateName(info.name());
                     return userRepository.save(existing);
                 })
                 .orElseGet(() -> userRepository.save(

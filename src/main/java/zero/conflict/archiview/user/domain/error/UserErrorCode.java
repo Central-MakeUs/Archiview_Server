@@ -10,7 +10,13 @@ import zero.conflict.archiview.global.error.DomainErrorCode;
 public enum UserErrorCode implements DomainErrorCode {
 
     USER_NOT_FOUND("USER_001", "사용자를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    ALREADY_ONBOARDED("USER_002", "이미 온보딩을 완료한 사용자입니다.", HttpStatus.BAD_REQUEST);
+    ALREADY_ONBOARDED("USER_002", "이미 온보딩을 완료한 사용자입니다.", HttpStatus.BAD_REQUEST),
+    DUPLICATE_NICKNAME("USER_003", "이미 사용 중인 닉네임입니다.", HttpStatus.CONFLICT),
+    EDITOR_PROFILE_ALREADY_EXISTS("USER_004", "이미 에디터 프로필이 존재합니다.", HttpStatus.BAD_REQUEST),
+    EDITOR_PROFILE_NOT_FOUND("USER_005", "에디터 프로필을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_HASHTAG("USER_006", "해시태그는 비어있을 수 없습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ROLE_FOR_EDITOR_PROFILE("USER_007", "에디터만 프로필을 등록할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    DUPLICATE_INSTAGRAM_ID("USER_008", "이미 사용 중인 인스타그램 아이디입니다.", HttpStatus.CONFLICT);
 
     private final String code;
     private final String message;

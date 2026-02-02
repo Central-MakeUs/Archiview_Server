@@ -11,4 +11,3 @@ public interface UserRepository {
     Optional<User> findByProviderAndProviderId(User.OAuthProvider provider, String providerId);
     boolean existsByEmail(String email);
 }
-

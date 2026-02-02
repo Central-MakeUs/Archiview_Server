@@ -38,4 +38,3 @@ public class UserRepositoryImpl implements UserRepository {
         return userJpaRepository.existsByEmail(email);
     }
 }
-
