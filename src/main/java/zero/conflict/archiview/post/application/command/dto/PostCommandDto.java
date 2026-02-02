@@ -17,6 +17,7 @@ public class PostCommandDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @io.swagger.v3.oas.annotations.media.Schema(name = "PostCreateRequest")
     public static class Request {
         @NotBlank(message = "URL은 필수입니다.")
         @io.swagger.v3.oas.annotations.media.Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")

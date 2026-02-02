@@ -14,6 +14,7 @@ public class PresignedUrlCommandDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "PresignedUrlRequest")
     public static class Request {
         @NotBlank(message = "파일명은 필수입니다.")
         @io.swagger.v3.oas.annotations.media.Schema(description = "원본 파일명", example = "photo.png")
@@ -32,6 +33,7 @@ public class PresignedUrlCommandDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "PresignedUrlResponse")
     public static class Response {
         @Schema(description = "업로드용 presigned URL")
         private String uploadUrl;
