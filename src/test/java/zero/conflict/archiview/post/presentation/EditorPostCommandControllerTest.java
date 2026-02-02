@@ -12,9 +12,9 @@ import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
 
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -66,21 +66,14 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                                 .placeInfoResponseList(Collections.singletonList(placeInfoResponse))
                                 .build();
 
-                given(postCommandService.createPost(any(PostCommandDto.Request.class), any(java.util.List.class),
-                                eq(1L)))
+                given(postCommandService.createPost(any(PostCommandDto.Request.class), eq(1L)))
                                 .willReturn(mockResponse);
 
                 // when & then
-                org.springframework.mock.web.MockMultipartFile requestPart = new org.springframework.mock.web.MockMultipartFile(
-                                "request", "", "application/json", objectMapper.writeValueAsBytes(request));
-                org.springframework.mock.web.MockMultipartFile imagePart = new org.springframework.mock.web.MockMultipartFile(
-                                "images", "test.jpg", "image/jpeg", "test image content".getBytes());
-
-                mockMvc.perform(multipart("/api/v1/editors/posts")
-                                .file(requestPart)
-                                .file(imagePart)
+                mockMvc.perform(post("/api/v1/editors/posts")
                                 .with(authenticatedUser())
-                                .contentType(MediaType.MULTIPART_FORM_DATA))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.postId").value(1L))

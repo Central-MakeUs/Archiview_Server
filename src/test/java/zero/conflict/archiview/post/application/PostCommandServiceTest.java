@@ -19,7 +19,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
@@ -97,7 +96,7 @@ class PostCommandServiceTest {
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
                 // then
                 assertThat(response.getUrl()).isEqualTo(url);
@@ -156,7 +155,7 @@ class PostCommandServiceTest {
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
                 // then
                 assertThat(response.getPlaceInfoResponseList()).hasSize(1);
@@ -212,7 +211,7 @@ class PostCommandServiceTest {
                                 .willAnswer(invocation -> invocation.getArgument(0));
 
                 // when
-                PostCommandDto.Response response = postCommandService.createPost(request, List.of(), editorId);
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
 
                 // then
                 assertThat(response.getPlaceInfoResponseList()).hasSize(2);

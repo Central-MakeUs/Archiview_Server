@@ -61,6 +61,9 @@ public class PostCommandDto {
             private List<Long> categoryIds;
             @io.swagger.v3.oas.annotations.media.Schema(description = "가까운 역에서 도보 시간", example = "성수역 도보 5분")
             private String nearestStationWalkTime;
+
+            @io.swagger.v3.oas.annotations.media.Schema(description = "업로드된 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/uuid_photo.png")
+            private String imageUrl;
         }
     }
 

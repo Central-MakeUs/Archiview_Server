@@ -34,8 +34,7 @@ public class PostCommandService {
     private final zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
     @Transactional
-    public PostCommandDto.Response createPost(PostCommandDto.Request request,
-            List<org.springframework.web.multipart.MultipartFile> images, Long editorId) {
+    public PostCommandDto.Response createPost(PostCommandDto.Request request, Long editorId) {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
@@ -44,7 +43,7 @@ public class PostCommandService {
                         zero.conflict.archiview.user.domain.error.UserErrorCode.USER_NOT_FOUND));
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), images, savedPost, editor);
+                request.getPlaceInfoRequestList(), savedPost, editor);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
@@ -60,7 +59,6 @@ public class PostCommandService {
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
-            List<org.springframework.web.multipart.MultipartFile> images,
             Post post,
             zero.conflict.archiview.user.domain.User editor) {
 
@@ -70,11 +68,7 @@ public class PostCommandService {
             PostCommandDto.Request.PlaceInfoRequest placeInfo = placeInfoRequests.get(i);
             Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
 
-            // 이미지 업로드
-            String imageUrl = null;
-            if (images != null && images.size() > i) {
-                imageUrl = s3Service.upload(images.get(i), "posts");
-            }
+            String imageUrl = placeInfo.getImageUrl();
 
             // 기존 Place 찾기 또는 새로 생성
             Place savedPlace = placeRepository.findByPosition(position)

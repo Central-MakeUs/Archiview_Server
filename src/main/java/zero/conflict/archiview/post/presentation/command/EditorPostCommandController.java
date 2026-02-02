@@ -23,13 +23,11 @@ public class EditorPostCommandController {
     private final PostCommandService postCommandService;
 
     @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @io.swagger.v3.oas.annotations.media.Content(encoding = @io.swagger.v3.oas.annotations.media.Encoding(name = "request", contentType = "application/json")))
-    @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> createPost(
-            @RequestPart("request") @Valid PostCommandDto.Request request,
-            @RequestPart("images") java.util.List<org.springframework.web.multipart.MultipartFile> images,
+            @RequestBody @Valid PostCommandDto.Request request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
-        return ResponseEntity.ok(ApiResponse.success(postCommandService.createPost(request, images, user.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(postCommandService.createPost(request, user.getUserId())));
     }
 
     @Operation(summary = "게시글 이미지 presigned URL 발급", description = "에디터가 게시글 이미지 업로드를 위한 presigned URL을 발급받습니다.")
