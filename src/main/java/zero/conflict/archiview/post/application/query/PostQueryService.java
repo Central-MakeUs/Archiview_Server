@@ -13,8 +13,8 @@ import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
-import zero.conflict.archiview.user.application.port.UserRepository;
-import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.application.port.EditorProfileRepository;
+import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
-        private final UserRepository userRepository;
+        private final EditorProfileRepository editorProfileRepository;
 
         public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(Long editorId) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
@@ -126,8 +126,8 @@ public class PostQueryService {
         }
 
         public EditorInsightDto.SummaryResponse getInsightSummary(Long editorId, EditorInsightDto.Period period) {
-                User editor = userRepository.findById(editorId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+                EditorProfile editorProfile = editorProfileRepository.findByUserId(editorId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
 
@@ -153,7 +153,7 @@ public class PostQueryService {
                 }
 
                 return EditorInsightDto.SummaryResponse.of(
-                                editor.getName(),
+                                editorProfile.getNickname(),
                                 totalPlaceCount,
                                 instagramInflowCount,
                                 saveCount,
@@ -189,8 +189,8 @@ public class PostQueryService {
                         return EditorInsightDto.PlaceDetailResponse.empty(placeId);
                 }
 
-                User editor = userRepository.findById(editorId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+                EditorProfile editorProfile = editorProfileRepository.findByUserId(editorId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
                                 .map(postPlace -> {
@@ -199,8 +199,8 @@ public class PostQueryService {
                                                         .map(pc -> pc.getCategory().getName())
                                                         .toList();
                                         return EditorInsightDto.PostPlaceDetailResponse.of(
-                                                        editor.getName(),
-                                                        editor.getInstagramId(),
+                                                        editorProfile.getNickname(),
+                                                        editorProfile.getInstagramId(),
                                                         post != null ? post.getUrl() : null,
                                                         post != null ? post.getHashTag() : null,
                                                         postPlace.getDescription(),
