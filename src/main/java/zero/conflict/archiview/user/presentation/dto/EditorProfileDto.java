@@ -51,6 +51,9 @@ public class EditorProfileDto {
         @Schema(description = "인스타그램 ID", example = "editor_insta")
         private String instagramId;
         @jakarta.validation.constraints.NotBlank
+        @jakarta.validation.constraints.Pattern(
+                regexp = "^https://(www\\.)?instagram\\.com/[^\\s]+$",
+                message = "유효한 인스타그램 URL 형식이어야 합니다.")
         @Schema(description = "인스타그램 URL", example = "https://www.instagram.com/editor_insta")
         private String instagramUrl;
         @jakarta.validation.constraints.NotBlank
@@ -75,6 +78,9 @@ public class EditorProfileDto {
         @Schema(description = "수정할 인스타그램 ID", example = "new_insta")
         private String instagramId;
         @jakarta.validation.constraints.NotBlank
+        @jakarta.validation.constraints.Pattern(
+                regexp = "^https://(www\\.)?instagram\\.com/[^\\s]+$",
+                message = "유효한 인스타그램 URL 형식이어야 합니다.")
         @Schema(description = "수정할 인스타그램 URL", example = "https://www.instagram.com/new_insta")
         private String instagramUrl;
         @jakarta.validation.constraints.NotBlank
