@@ -1,4 +1,4 @@
-package zero.conflict.archiview.post.presentation.query.dto;
+package zero.conflict.archiview.post.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

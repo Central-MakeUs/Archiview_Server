@@ -1,4 +1,4 @@
-package zero.conflict.archiview.post.application.command.dto;
+package zero.conflict.archiview.post.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;

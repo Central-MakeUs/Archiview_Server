@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.command.EditorProfileCommandService;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 @RestController
 @RequiredArgsConstructor

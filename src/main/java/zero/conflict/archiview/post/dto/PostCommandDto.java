@@ -1,4 +1,4 @@
-package zero.conflict.archiview.post.application.command.dto;
+package zero.conflict.archiview.post.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

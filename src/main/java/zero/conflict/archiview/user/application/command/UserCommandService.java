@@ -7,7 +7,7 @@ import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.user.application.port.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
-import zero.conflict.archiview.user.presentation.dto.UserDto;
+import zero.conflict.archiview.user.dto.UserDto;
 import zero.conflict.archiview.user.application.support.NicknameGenerator;
 import zero.conflict.archiview.user.application.port.ArchiverProfileRepository;
 import zero.conflict.archiview.user.domain.ArchiverProfile;

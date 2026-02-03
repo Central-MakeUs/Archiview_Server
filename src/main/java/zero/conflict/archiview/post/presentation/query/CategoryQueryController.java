@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.CategoryQueryService;
-import zero.conflict.archiview.post.presentation.dto.CategoryQueryDto;
+import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 @RestController
 @RequestMapping("/categories")

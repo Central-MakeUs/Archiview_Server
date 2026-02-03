@@ -1,4 +1,4 @@
-package zero.conflict.archiview.user.presentation.dto;
+package zero.conflict.archiview.user.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;

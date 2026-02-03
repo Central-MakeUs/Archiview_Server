@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.post.application.command.PostCommandService;
-import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
+import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
@@ -205,6 +205,9 @@ class PostCommandServiceTest {
 
                 Post savedPost = Post.createOf(editorId, url, hashTag);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
+                                .id(editorId).build();
+                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(postPlacesRepository.save(any(PostPlace.class)))

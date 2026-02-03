@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
-import zero.conflict.archiview.auth.presentation.dto.MobileLoginRequest;
+import zero.conflict.archiview.auth.dto.MobileLoginRequest;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.global.infra.response.ApiResponse;

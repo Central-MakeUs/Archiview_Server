@@ -1,4 +1,4 @@
-package zero.conflict.archiview.auth.presentation.dto;
+package zero.conflict.archiview.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

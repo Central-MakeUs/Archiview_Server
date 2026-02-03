@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.command.UserCommandService;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
-import zero.conflict.archiview.user.presentation.dto.UserDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
+import zero.conflict.archiview.user.dto.UserDto;
 
 @Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
 @RestController

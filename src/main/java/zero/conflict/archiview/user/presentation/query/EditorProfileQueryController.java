@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 @Tag(name = "Editor Profile Query", description = "에디터용 프로필 조회 API")
 @RestController

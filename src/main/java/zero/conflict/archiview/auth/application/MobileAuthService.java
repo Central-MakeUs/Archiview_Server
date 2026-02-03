@@ -3,7 +3,7 @@ package zero.conflict.archiview.auth.application;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zero.conflict.archiview.auth.presentation.dto.MobileLoginRequest;
+import zero.conflict.archiview.auth.dto.MobileLoginRequest;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.auth.infrastructure.apple.AppleIdTokenVerifier;
 import zero.conflict.archiview.auth.infrastructure.kakao.KakaoIdTokenVerifier;

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.command.PostCommandService;
-import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
-import zero.conflict.archiview.post.application.command.dto.PresignedUrlCommandDto;
+import zero.conflict.archiview.post.dto.PostCommandDto;
+import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 
 @RestController
 @RequestMapping("/api/v1/editors")

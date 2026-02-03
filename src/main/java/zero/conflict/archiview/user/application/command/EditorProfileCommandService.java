@@ -10,7 +10,7 @@ import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.Hashtags;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 @Service
 @RequiredArgsConstructor

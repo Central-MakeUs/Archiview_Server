@@ -10,10 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.PostQueryService;
-import zero.conflict.archiview.post.presentation.query.dto.EditorInsightDto;
-import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto;
-import zero.conflict.archiview.post.presentation.query.dto.EditorUploadedPlaceDto;
-import zero.conflict.archiview.post.presentation.query.dto.EditorMapDto.MapFilter;
+import zero.conflict.archiview.post.dto.EditorInsightDto;
+import zero.conflict.archiview.post.dto.EditorMapDto;
+import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
+import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 
 import java.util.List;
 

@@ -7,7 +7,7 @@ import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
 import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
-import zero.conflict.archiview.user.presentation.dto.EditorProfileDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 import java.util.List;
 

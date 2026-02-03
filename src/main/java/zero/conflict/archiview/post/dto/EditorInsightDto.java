@@ -1,4 +1,4 @@
-package zero.conflict.archiview.post.presentation.query.dto;
+package zero.conflict.archiview.post.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;

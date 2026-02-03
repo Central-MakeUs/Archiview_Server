@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.presentation.dto.ArchiverProfileDto;
+import zero.conflict.archiview.user.dto.ArchiverProfileDto;
 
 @Tag(name = "Archiver Post Command", description = "아카이버용 장소 정보 업데이트 API (CUD)")
 @RestController

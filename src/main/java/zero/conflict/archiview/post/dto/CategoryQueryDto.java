@@ -1,4 +1,4 @@
-package zero.conflict.archiview.post.presentation.dto;
+package zero.conflict.archiview.post.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

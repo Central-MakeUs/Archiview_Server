@@ -8,7 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.command.PostCommandService;
-import zero.conflict.archiview.post.application.command.dto.PostCommandDto;
+import zero.conflict.archiview.post.dto.PostCommandDto;
 
 import java.util.Collections;
 

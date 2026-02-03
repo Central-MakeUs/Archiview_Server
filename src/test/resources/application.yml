@@ -1,48 +1,25 @@
 spring:
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-  security:
-    oauth2:
-      client:
-        registration:
-          apple:
-            client-id: test-client-id
-            client-secret: test-client-secret
-            authorization-grant-type: authorization_code
-            redirect-uri: http://localhost:8080/login/oauth2/code/apple
-            scope: name, email
-        provider:
-          apple:
-            authorization-uri: https://appleid.apple.com/auth/authorize
-            token-uri: https://appleid.apple.com/auth/token
-            jwk-set-uri: https://appleid.apple.com/auth/keys
-            user-name-attribute: sub
-          kakao:
-            authorization-uri: https://kauth.kakao.com/oauth/authorize
-            token-uri: https://kauth.kakao.com/oauth/token
-            user-info-uri: https://kapi.kakao.com/v2/user/me
-            user-name-attribute: id
-
-jwt:
-  secret: test-secret-key-for-testing-purposes-only-must-be-long-enough
-  access-token-validity: 3600000
-  refresh-token-validity: 604800000
+  profiles:
+    active: test
+  main:
+    allow-bean-definition-overriding: true
+  cloud:
+    aws:
+      enabled: false
+      s3:
+        region: ap-northeast-2
+        bucket: test-bucket
+      credentials:
+        access-key: test-access-key
+        secret-key: test-secret-key
+      region:
+        static: ap-northeast-2
 
 auth:
   mobile:
     apple:
       issuer: https://appleid.apple.com
-      audience: test-apple-audience
+      audience: test-audience
     kakao:
       issuer: https://kauth.kakao.com
-      audience: test-kakao-audience
+      audience: test-audience

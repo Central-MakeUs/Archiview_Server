@@ -7,7 +7,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.query.PostQueryService;
+import zero.conflict.archiview.post.dto.EditorInsightDto;
 
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,6 +24,11 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("에디터 인사이트 장소 목록 조회 - 기본 정렬 및 기간 필터 없음")
     void getInsightPlaces_DefaultSort_NoPeriod() throws Exception {
+        given(postQueryService.getInsightPlaces(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(EditorInsightDto.PlaceSort.RECENT)))
+                .willReturn(EditorInsightDto.PlaceCardListResponse.empty(EditorInsightDto.PlaceSort.RECENT));
+
         mockMvc.perform(get("/api/v1/editors/me/insights/places")
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
