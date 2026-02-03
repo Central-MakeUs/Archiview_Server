@@ -42,12 +42,12 @@ public class PostQueryService {
                         return ArchiverHotPlaceDto.ListResponse.empty();
                 }
 
-                List<UUID> placeIds = places.stream()
+                List<Long> placeIds = places.stream()
                                 .map(Place::getId)
                                 .toList();
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceIds(placeIds);
 
-                Map<UUID, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
+                Map<Long, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()))
                                 .entrySet()
                                 .stream()
@@ -82,17 +82,17 @@ public class PostQueryService {
                         return EditorUploadedPlaceDto.ListResponse.empty();
                 }
 
-                Map<UUID, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
-                Map<UUID, Place> placeMap = placeRepository.findAllByIds(
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
                                 postPlacesByPlaceId.keySet().stream().toList())
                                 .stream()
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
                 List<EditorUploadedPlaceDto.PlaceCardResponse> places = postPlacesByPlaceId.entrySet().stream()
                                 .sorted(Comparator.comparing(
-                                                (Map.Entry<UUID, List<PostPlace>> entry) -> getLatestUpdatedAt(
+                                                (Map.Entry<Long, List<PostPlace>> entry) -> getLatestUpdatedAt(
                                                                 entry.getValue()),
                                                 Comparator.nullsLast(Comparator.naturalOrder()))
                                                 .reversed())
@@ -103,9 +103,9 @@ public class PostQueryService {
         }
 
         private EditorUploadedPlaceDto.PlaceCardResponse toPlaceCardResponse(
-                        UUID placeId,
+                        Long placeId,
                         List<PostPlace> postPlaces,
-                        Map<UUID, Place> placeMap) {
+                        Map<Long, Place> placeMap) {
                 PostPlace latestPostPlace = postPlaces.stream()
                                 .max(Comparator.comparing(this::getLastUpdatedAt,
                                                 Comparator.nullsLast(Comparator.naturalOrder())))
@@ -140,7 +140,7 @@ public class PostQueryService {
                 return value == null ? 0L : value;
         }
 
-        public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(UUID placeId) {
+        public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId) {
                 Place place = placeRepository.findById(placeId)
                                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
@@ -183,7 +183,7 @@ public class PostQueryService {
         public EditorMapDto.Response getMapPins(
                         UUID editorId,
                         MapFilter filter,
-                        List<UUID> categoryIds) {
+                        List<Long> categoryIds) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
                 if (postPlaces.isEmpty()) {
                         return EditorMapDto.Response.builder()
@@ -191,10 +191,10 @@ public class PostQueryService {
                                         .build();
                 }
 
-                Map<UUID, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
-                Map<UUID, Place> placeMap = placeRepository.findAllByIds(
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
                                 postPlacesByPlaceId.keySet().stream().toList())
                                 .stream()
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
@@ -251,10 +251,10 @@ public class PostQueryService {
                         return EditorInsightDto.PlaceCardListResponse.empty(sort);
                 }
 
-                Map<UUID, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
-                Map<UUID, Place> placeMap = placeRepository.findAllByIds(
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
                                 postPlacesByPlaceId.keySet().stream().toList())
                                 .stream()
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
@@ -267,7 +267,7 @@ public class PostQueryService {
                 return EditorInsightDto.PlaceCardListResponse.of(sort, places);
         }
 
-        public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, UUID placeId) {
+        public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, Long placeId) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
                 if (postPlaces.isEmpty()) {
                         return EditorInsightDto.PlaceDetailResponse.empty(placeId);
@@ -296,9 +296,9 @@ public class PostQueryService {
         }
 
         private EditorMapDto.PlacePinResponse toPlacePin(
-                        UUID placeId,
+                        Long placeId,
                         List<PostPlace> postPlaces,
-                        Map<UUID, Place> placeMap) {
+                        Map<Long, Place> placeMap) {
                 Place place = placeMap.get(placeId);
                 if (place == null || place.getPosition() == null) {
                         return null;
@@ -331,7 +331,7 @@ public class PostQueryService {
                 return true;
         }
 
-        private boolean matchCategories(List<PostPlace> postPlaces, List<UUID> categoryIds) {
+        private boolean matchCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
                 if (categoryIds == null || categoryIds.isEmpty()) {
                         return true;
                 }
@@ -356,9 +356,9 @@ public class PostQueryService {
         }
 
         private EditorInsightDto.PlaceCardResponse toInsightPlaceCardResponse(
-                        UUID placeId,
+                        Long placeId,
                         List<PostPlace> postPlaces,
-                        Map<UUID, Place> placeMap) {
+                        Map<Long, Place> placeMap) {
                 PostPlace latestPostPlace = postPlaces.stream()
                                 .max(Comparator.comparing(this::getLastUpdatedAt,
                                                 Comparator.nullsLast(Comparator.naturalOrder())))

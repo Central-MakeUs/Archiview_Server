@@ -36,7 +36,7 @@ public class ArchiverPlaceQueryController {
     @Operation(summary = "장소 상세 조회 (아카이버)", description = "placeId로 장소 상세와 연결된 게시글 목록을 조회합니다.")
     @GetMapping("/places/{placeId}")
     public ResponseEntity<ApiResponse<ArchiverPlaceDetailDto.Response>> getPlaceDetail(
-            @PathVariable java.util.UUID placeId,
+            @PathVariable Long placeId,
             @RequestParam(defaultValue = "false") boolean useMock) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));

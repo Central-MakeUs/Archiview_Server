@@ -25,7 +25,7 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
     }
 
     @Override
-    public Optional<EditorProfile> findById(UUID id) {
+    public Optional<EditorProfile> findById(Long id) {
         return editorProfileJpaRepository.findById(id);
     }
 

@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface EditorProfileRepository {
     EditorProfile save(EditorProfile editorProfile);
     Optional<EditorProfile> findByUserId(UUID userId);
-    Optional<EditorProfile> findById(UUID id);
+    Optional<EditorProfile> findById(Long id);
     boolean existsByUserId(UUID userId);
     boolean existsByNickname(String nickname);
     boolean existsByInstagramId(String instagramId);

@@ -44,18 +44,18 @@ class PostQueryServiceTest {
         void getMapPins_all_success() {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
-                Category category = Category.builder().id(java.util.UUID.randomUUID()).name("한식").build();
+                Category category = Category.builder().id(1L).name("한식").build();
 
                 Place place = Place.builder()
-                                .id(java.util.UUID.randomUUID())
+                                .id(1L)
                                 .name("식당")
                                 .position(Position.of(37.0, 127.0))
                                 .build();
 
-                Post post = Post.builder().id(java.util.UUID.randomUUID()).build();
+                Post post = Post.builder().id(1L).build();
 
                 PostPlace postPlace = PostPlace.builder()
-                                .id(java.util.UUID.randomUUID())
+                                .id(1L)
                                 .post(post)
                                 .place(place)
                                 .editorId(editorId)
@@ -82,18 +82,18 @@ class PostQueryServiceTest {
         void getMapPins_withCategoryFilter() {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
-                Category category1 = Category.builder().id(java.util.UUID.randomUUID()).name("한식").build();
-                Category category2 = Category.builder().id(java.util.UUID.randomUUID()).name("양식").build();
+                Category category1 = Category.builder().id(1L).name("한식").build();
+                Category category2 = Category.builder().id(2L).name("양식").build();
 
-                Place place1 = Place.builder().id(java.util.UUID.randomUUID()).name("한식당").position(Position.of(37.0, 127.0)).build();
-                Place place2 = Place.builder().id(java.util.UUID.randomUUID()).name("양식당").position(Position.of(37.1, 127.1)).build();
+                Place place1 = Place.builder().id(1L).name("한식당").position(Position.of(37.0, 127.0)).build();
+                Place place2 = Place.builder().id(2L).name("양식당").position(Position.of(37.1, 127.1)).build();
 
-                Post post = Post.builder().id(java.util.UUID.randomUUID()).build();
+                Post post = Post.builder().id(1L).build();
 
-                PostPlace pp1 = PostPlace.builder().id(java.util.UUID.randomUUID()).post(post).place(place1).editorId(editorId).build();
+                PostPlace pp1 = PostPlace.builder().id(1L).post(post).place(place1).editorId(editorId).build();
                 pp1.addCategory(category1);
 
-                PostPlace pp2 = PostPlace.builder().id(java.util.UUID.randomUUID()).post(post).place(place2).editorId(editorId).build();
+                PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(place2).editorId(editorId).build();
                 pp2.addCategory(category2);
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
@@ -115,13 +115,13 @@ class PostQueryServiceTest {
         void getMapPins_nearbyFilter() {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
-                Place nearPlace = Place.builder().id(java.util.UUID.randomUUID()).name("가까운곳").position(Position.of(37.0001, 127.0001)).build();
-                Place farPlace = Place.builder().id(java.util.UUID.randomUUID()).name("먼곳").position(Position.of(37.5, 127.5)).build();
+                Place nearPlace = Place.builder().id(1L).name("가까운곳").position(Position.of(37.0001, 127.0001)).build();
+                Place farPlace = Place.builder().id(2L).name("먼곳").position(Position.of(37.5, 127.5)).build();
 
-                Post post = Post.builder().id(java.util.UUID.randomUUID()).build();
+                Post post = Post.builder().id(1L).build();
 
-                PostPlace pp1 = PostPlace.builder().id(java.util.UUID.randomUUID()).post(post).place(nearPlace).editorId(editorId).build();
-                PostPlace pp2 = PostPlace.builder().id(java.util.UUID.randomUUID()).post(post).place(farPlace).editorId(editorId).build();
+                PostPlace pp1 = PostPlace.builder().id(1L).post(post).place(nearPlace).editorId(editorId).build();
+                PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(farPlace).editorId(editorId).build();
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));

@@ -21,9 +21,8 @@ import java.util.UUID;
 public class Post extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @jakarta.persistence.Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @jakarta.persistence.Column(columnDefinition = "BINARY(16)", nullable = false)
     private UUID editorId;

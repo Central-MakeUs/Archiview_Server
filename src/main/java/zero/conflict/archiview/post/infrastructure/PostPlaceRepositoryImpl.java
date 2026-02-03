@@ -20,17 +20,17 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
-    public java.util.Optional<PostPlace> findById(UUID postPlaceId) {
+    public java.util.Optional<PostPlace> findById(Long postPlaceId) {
         return postPlaceJpaRepository.findById(postPlaceId);
     }
 
     @Override
-    public void deleteAllByPostId(UUID postId) {
+    public void deleteAllByPostId(Long postId) {
         postPlaceJpaRepository.deleteAllByPost_Id(postId);
     }
 
     @Override
-    public List<PostPlace> findAllByPlaceIds(List<UUID> placeIds) {
+    public List<PostPlace> findAllByPlaceIds(List<Long> placeIds) {
         if (placeIds == null || placeIds.isEmpty()) {
             return List.of();
         }
@@ -38,7 +38,7 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
-    public List<PostPlace> findAllByPlaceId(UUID placeId) {
+    public List<PostPlace> findAllByPlaceId(Long placeId) {
         return postPlaceJpaRepository.findAllByPlace_Id(placeId);
     }
 
@@ -48,7 +48,7 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
-    public List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId) {
+    public List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, Long placeId) {
         return postPlaceJpaRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
     }
 }

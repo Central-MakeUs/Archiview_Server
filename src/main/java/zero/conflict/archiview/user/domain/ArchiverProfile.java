@@ -5,8 +5,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "archiver_profiles")
 @Getter
@@ -16,9 +14,8 @@ import java.util.UUID;
 public class ArchiverProfile extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)

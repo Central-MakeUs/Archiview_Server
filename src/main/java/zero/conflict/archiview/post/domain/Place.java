@@ -13,8 +13,6 @@ import zero.conflict.archiview.global.domain.BaseTimeEntity;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
-import java.util.UUID;
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -23,9 +21,8 @@ import java.util.UUID;
 public class Place extends BaseTimeEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @jakarta.persistence.Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String name;
 

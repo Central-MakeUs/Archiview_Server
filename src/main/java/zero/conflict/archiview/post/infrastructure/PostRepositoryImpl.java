@@ -6,7 +6,6 @@ import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.domain.Post;
 
 import java.util.List;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,12 +19,12 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public java.util.Optional<Post> findById(UUID id) {
+    public java.util.Optional<Post> findById(Long id) {
         return postJpaRepository.findById(id);
     }
 
     @Override
-    public List<Post> findAllByIds(List<UUID> ids) {
+    public List<Post> findAllByIds(List<Long> ids) {
         return postJpaRepository.findAllById(ids);
     }
 }

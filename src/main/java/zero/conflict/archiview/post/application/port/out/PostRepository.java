@@ -3,13 +3,12 @@ package zero.conflict.archiview.post.application.port.out;
 import zero.conflict.archiview.post.domain.Post;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface PostRepository {
 
     Post save(Post post);
 
-    java.util.Optional<Post> findById(java.util.UUID id);
+    java.util.Optional<Post> findById(Long id);
 
-    List<Post> findAllByIds(List<UUID> ids);
+    List<Post> findAllByIds(List<Long> ids);
 }

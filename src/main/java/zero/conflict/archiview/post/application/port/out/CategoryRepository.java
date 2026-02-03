@@ -4,7 +4,6 @@ import zero.conflict.archiview.post.domain.Category;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface CategoryRepository {
 
@@ -12,7 +11,7 @@ public interface CategoryRepository {
 
     Optional<Category> findByName(String name);
 
-    Optional<Category> findById(UUID id);
+    Optional<Category> findById(Long id);
 
     List<Category> findAll();
 }

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 
 @Schema(description = "아카이버용 장소 상세 DTO")
 public class ArchiverPlaceDetailDto {
@@ -38,8 +37,8 @@ public class ArchiverPlaceDetailDto {
 
         public static Response mock() {
             return Response.builder()
-                    .place(PlaceResponse.builder()
-                            .placeId(UUID.fromString("00000000-0000-0000-0000-000000000301"))
+                            .place(PlaceResponse.builder()
+                            .placeId(301L)
                             .name("성수 핫플 카페")
                             .roadAddress("서울특별시 성동구 아차산로 123")
                             .detailAddress("2층 201호")
@@ -49,17 +48,17 @@ public class ArchiverPlaceDetailDto {
                             .nearestStationWalkTime("성수역 도보 5분")
                             .viewCount(1200L)
                             .build())
-                    .postPlaces(List.of(
+                            .postPlaces(List.of(
                             PostPlaceResponse.builder()
-                                    .postPlaceId(UUID.fromString("00000000-0000-0000-0000-000000000401"))
-                                    .postId(UUID.fromString("00000000-0000-0000-0000-000000000501"))
+                                    .postPlaceId(401L)
+                                    .postId(501L)
                                     .description("분위기가 너무 좋고 커피가 맛있어요.")
                                     .imageUrl("https://picsum.photos/400/300?random=31")
                                     .categoryNames(List.of("카페", "디저트"))
                                     .build(),
                             PostPlaceResponse.builder()
-                                    .postPlaceId(UUID.fromString("00000000-0000-0000-0000-000000000402"))
-                                    .postId(UUID.fromString("00000000-0000-0000-0000-000000000502"))
+                                    .postPlaceId(402L)
+                                    .postId(502L)
                                     .description("조용해서 대화하기 좋아요.")
                                     .imageUrl("https://picsum.photos/400/300?random=32")
                                     .categoryNames(List.of("카페"))
@@ -75,7 +74,7 @@ public class ArchiverPlaceDetailDto {
     @Schema(name = "ArchiverPlaceDetailPlace", description = "장소 정보")
     public static class PlaceResponse {
         @Schema(description = "장소 ID", example = "00000000-0000-0000-0000-000000000301")
-        private UUID placeId;
+        private Long placeId;
         @Schema(description = "장소명", example = "성수 핫플 카페")
         private String name;
         @Schema(description = "도로명 주소", example = "서울특별시 성동구 아차산로 123")
@@ -101,9 +100,9 @@ public class ArchiverPlaceDetailDto {
     @Schema(name = "ArchiverPlaceDetailPostPlace", description = "장소에 연결된 게시글 정보")
     public static class PostPlaceResponse {
         @Schema(description = "PostPlace ID", example = "00000000-0000-0000-0000-000000000401")
-        private UUID postPlaceId;
+        private Long postPlaceId;
         @Schema(description = "게시글 ID", example = "00000000-0000-0000-0000-000000000501")
-        private UUID postId;
+        private Long postId;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
         @Schema(description = "이미지 URL")

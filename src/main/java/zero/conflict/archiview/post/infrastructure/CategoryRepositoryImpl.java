@@ -7,7 +7,6 @@ import zero.conflict.archiview.post.domain.Category;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public Optional<Category> findById(UUID id) {
+    public Optional<Category> findById(Long id) {
         return categoryJpaRepository.findById(id);
     }
 

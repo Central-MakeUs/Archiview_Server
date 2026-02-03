@@ -58,7 +58,7 @@ public class PostCommandService {
     }
 
     @Transactional
-    public void increasePostPlaceViewCount(java.util.UUID postPlaceId, java.util.UUID actorId) {
+    public void increasePostPlaceViewCount(Long postPlaceId, java.util.UUID actorId) {
         PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
@@ -67,7 +67,7 @@ public class PostCommandService {
 
     @Transactional
     public PostCommandDto.Response updatePost(
-            java.util.UUID postId,
+            Long postId,
             PostCommandDto.Request request,
             java.util.UUID editorId) {
         Post post = postRepository.findById(postId)
@@ -116,7 +116,7 @@ public class PostCommandService {
                     editorId);
 
             if (placeInfo.getCategoryIds() != null) {
-                for (java.util.UUID categoryId : placeInfo.getCategoryIds()) {
+                for (Long categoryId : placeInfo.getCategoryIds()) {
                     if (categoryId == null) {
                         throw new DomainException(PostErrorCode.INVALID_CATEGORY_ID);
                     }

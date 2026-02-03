@@ -40,7 +40,7 @@ public class EditorPostCommandController {
     @Operation(summary = "게시글 수정", description = "에디터가 등록한 게시글 정보를 수정합니다.")
     @PutMapping(value = "/me/posts/{postId}", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> updatePost(
-            @PathVariable java.util.UUID postId,
+            @PathVariable Long postId,
             @RequestBody @Valid PostCommandDto.Request request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(

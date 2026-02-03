@@ -9,15 +9,15 @@ public interface PostPlaceRepository {
 
     PostPlace save(PostPlace postPlace);
 
-    void deleteAllByPostId(UUID postId);
+    void deleteAllByPostId(Long postId);
 
-    java.util.Optional<PostPlace> findById(UUID postPlaceId);
+    java.util.Optional<PostPlace> findById(Long postPlaceId);
 
-    List<PostPlace> findAllByPlaceIds(List<UUID> placeIds);
+    List<PostPlace> findAllByPlaceIds(List<Long> placeIds);
 
-    List<PostPlace> findAllByPlaceId(UUID placeId);
+    List<PostPlace> findAllByPlaceId(Long placeId);
 
     List<PostPlace> findAllByEditorId(UUID editorId);
 
-    List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId);
+    List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, Long placeId);
 }
