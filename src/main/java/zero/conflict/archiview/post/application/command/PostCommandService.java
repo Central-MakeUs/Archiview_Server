@@ -18,6 +18,7 @@ import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
+import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +40,7 @@ public class PostCommandService {
         Post savedPost = postRepository.save(post);
 
         zero.conflict.archiview.user.domain.User editor = userRepository.findById(editorId)
-                .orElseThrow(() -> new DomainException(
-                        zero.conflict.archiview.user.domain.error.UserErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
                 request.getPlaceInfoRequestList(), savedPost, editor.getId());
@@ -66,7 +66,7 @@ public class PostCommandService {
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_NOT_FOUND));
 
         if (!post.getEditorId().equals(editorId)) {
-            throw new DomainException(PostErrorCode.POST_NOT_FOUND);
+            throw new DomainException(PostErrorCode.POST_FORBIDDEN);
         }
 
         post.update(request.getUrl(), request.getHashTag());
