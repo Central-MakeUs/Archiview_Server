@@ -26,6 +26,19 @@ public class EditorProfileDto {
         private java.util.List<String> hashtags;
         @Schema(description = "프로필 이미지 URL")
         private String profileImageUrl;
+
+        public static Response from(zero.conflict.archiview.user.domain.EditorProfile profile) {
+            return Response.builder()
+                    .nickname(profile.getNickname())
+                    .instagramId(profile.getInstagramId())
+                    .instagramUrl(profile.getInstagramUrl())
+                    .introduction(profile.getIntroduction())
+                    .hashtags(java.util.List.of(
+                            profile.getHashtags().getFirst(),
+                            profile.getHashtags().getSecond()))
+                    .profileImageUrl(profile.getProfileImageUrl())
+                    .build();
+        }
     }
 
     @Getter
@@ -36,6 +49,12 @@ public class EditorProfileDto {
     public static class InstagramIdCheckResponse {
         @Schema(description = "이미 사용 중인지 여부", example = "true")
         private boolean exists;
+
+        public static InstagramIdCheckResponse of(boolean exists) {
+            return InstagramIdCheckResponse.builder()
+                    .exists(exists)
+                    .build();
+        }
     }
 
     @Getter

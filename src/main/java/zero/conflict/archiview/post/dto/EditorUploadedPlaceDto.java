@@ -81,6 +81,21 @@ public class EditorUploadedPlaceDto {
                     .stats(stats)
                     .build();
         }
+
+        public static PlaceCardResponse from(
+                zero.conflict.archiview.post.domain.Place place,
+                zero.conflict.archiview.post.domain.PostPlace latestPostPlace,
+                Stats stats) {
+            zero.conflict.archiview.post.domain.Place resolvedPlace =
+                    place != null ? place : latestPostPlace.getPlace();
+            return PlaceCardResponse.builder()
+                    .placeId(resolvedPlace.getId())
+                    .placeName(resolvedPlace.getName())
+                    .placeImageUrl(latestPostPlace.getImageUrl())
+                    .editorSummary(latestPostPlace.getDescription())
+                    .stats(stats)
+                    .build();
+        }
     }
 
     /*

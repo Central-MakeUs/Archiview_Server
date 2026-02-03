@@ -6,7 +6,6 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
-import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
@@ -61,16 +60,9 @@ public class PostQueryService {
                                                                 .orElse(null)));
 
                 List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
-                                .map(place -> {
-                                        PostPlace latestPostPlace = latestPostPlaceByPlaceId.get(place.getId());
-                                        return ArchiverHotPlaceDto.PlaceCardResponse.builder()
-                                                        .placeId(place.getId())
-                                                        .name(place.getName())
-                                                        .imageUrl(latestPostPlace != null ? latestPostPlace.getImageUrl()
-                                                                        : null)
-                                                        .viewCount(defaultZero(place.getViewCount()))
-                                                        .build();
-                                })
+                                .map(place -> ArchiverHotPlaceDto.PlaceCardResponse.from(
+                                                place,
+                                                latestPostPlaceByPlaceId.get(place.getId())))
                                 .toList();
 
                 return ArchiverHotPlaceDto.ListResponse.from(cards);
@@ -112,11 +104,9 @@ public class PostQueryService {
                                 .orElseThrow();
 
                 Place place = placeMap.get(placeId);
-                return EditorUploadedPlaceDto.PlaceCardResponse.of(
-                                placeId,
-                                place != null ? place.getName() : null,
-                                latestPostPlace.getImageUrl(),
-                                latestPostPlace.getDescription(),
+                return EditorUploadedPlaceDto.PlaceCardResponse.from(
+                                place,
+                                latestPostPlace,
                                 sumStats(postPlaces));
         }
 
@@ -146,39 +136,14 @@ public class PostQueryService {
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceId(placeId);
 
-                ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.builder()
-                                .placeId(place.getId())
-                                .name(place.getName())
-                                .roadAddress(place.getAddress() != null ? place.getAddress().getRoadAddress() : null)
-                                .detailAddress(place.getAddress() != null ? place.getAddress().getDetailAddress() : null)
-                                .zipCode(place.getAddress() != null ? place.getAddress().getZipCode() : null)
-                                .latitude(place.getPosition() != null ? place.getPosition().getLatitude() : null)
-                                .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
-                                .nearestStationWalkTime(place.getNearestStationWalkTime())
-                                .viewCount(defaultZero(place.getViewCount()))
-                                .build();
+                ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(place);
 
                 if (postPlaces.isEmpty()) {
                         return ArchiverPlaceDetailDto.Response.empty(placeResponse);
                 }
 
                 List<ArchiverPlaceDetailDto.PostPlaceResponse> postPlaceResponses = postPlaces.stream()
-                                .map(postPlace -> ArchiverPlaceDetailDto.PostPlaceResponse.builder()
-                                                .postPlaceId(postPlace.getId())
-                                                .postId(postPlace.getPost() != null ? postPlace.getPost().getId() : null)
-                                                .instagramUrl(postPlace.getPost() != null ? postPlace.getPost().getUrl()
-                                                                : null)
-                                                .hashTag(postPlace.getPost() != null ? postPlace.getPost().getHashTag()
-                                                                : null)
-                                                .description(postPlace.getDescription())
-                                                .imageUrl(postPlace.getImageUrl())
-                                                .categoryNames(postPlace.getPostPlaceCategories().stream()
-                                                                .map(PostPlaceCategory::getCategory)
-                                                                .filter(category -> category != null)
-                                                                .map(category -> category.getName())
-                                                                .filter(name -> name != null)
-                                                                .toList())
-                                                .build())
+                                .map(ArchiverPlaceDetailDto.PostPlaceResponse::from)
                                 .toList();
 
                 return ArchiverPlaceDetailDto.Response.from(placeResponse, postPlaceResponses);
@@ -190,9 +155,7 @@ public class PostQueryService {
                         List<Long> categoryIds) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
                 if (postPlaces.isEmpty()) {
-                        return EditorMapDto.Response.builder()
-                                        .pins(List.of())
-                                        .build();
+                        return EditorMapDto.Response.empty();
                 }
 
                 Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
@@ -240,8 +203,8 @@ public class PostQueryService {
                         instagramInflowCount += defaultZero(postPlace.getInstagramInflowCount());
                 }
 
-                return EditorInsightDto.SummaryResponse.of(
-                                editorProfile.getNickname(),
+                return EditorInsightDto.SummaryResponse.from(
+                                editorProfile,
                                 totalPlaceCount,
                                 instagramInflowCount,
                                 saveCount,
@@ -281,19 +244,8 @@ public class PostQueryService {
                                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
-                                .map(postPlace -> {
-                                        Post post = postPlace.getPost();
-                                        List<String> categories = postPlace.getPostPlaceCategories().stream()
-                                                        .map(pc -> pc.getCategory().getName())
-                                                        .toList();
-                                        return EditorInsightDto.PostPlaceDetailResponse.of(
-                                                        editorProfile.getNickname(),
-                                                        editorProfile.getInstagramId(),
-                                                        post != null ? post.getUrl() : null,
-                                                        post != null ? post.getHashTag() : null,
-                                                        postPlace.getDescription(),
-                                                        categories);
-                                })
+                                .map(postPlace -> EditorInsightDto.PostPlaceDetailResponse.from(
+                                                editorProfile, postPlace))
                                 .toList();
 
                 return EditorInsightDto.PlaceDetailResponse.of(placeId, details);
@@ -308,21 +260,7 @@ public class PostQueryService {
                         return null;
                 }
 
-                List<String> categoryNames = postPlaces.stream()
-                                .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
-                                .map(PostPlaceCategory::getCategory)
-                                .filter(category -> category != null && category.getName() != null)
-                                .map(category -> category.getName())
-                                .distinct()
-                                .toList();
-
-                return EditorMapDto.PlacePinResponse.builder()
-                                .placeId(placeId)
-                                .name(place.getName())
-                                .latitude(place.getPosition().getLatitude())
-                                .longitude(place.getPosition().getLongitude())
-                                .categories(categoryNames)
-                                .build();
+                return EditorMapDto.PlacePinResponse.from(place, postPlaces);
         }
 
         private boolean filterPin(

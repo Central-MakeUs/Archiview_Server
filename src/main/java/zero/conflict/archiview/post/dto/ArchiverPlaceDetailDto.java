@@ -91,6 +91,20 @@ public class ArchiverPlaceDetailDto {
         private String nearestStationWalkTime;
         @Schema(description = "조회수", example = "1200")
         private Long viewCount;
+
+        public static PlaceResponse from(zero.conflict.archiview.post.domain.Place place) {
+            return PlaceResponse.builder()
+                    .placeId(place.getId())
+                    .name(place.getName())
+                    .roadAddress(place.getAddress() != null ? place.getAddress().getRoadAddress() : null)
+                    .detailAddress(place.getAddress() != null ? place.getAddress().getDetailAddress() : null)
+                    .zipCode(place.getAddress() != null ? place.getAddress().getZipCode() : null)
+                    .latitude(place.getPosition() != null ? place.getPosition().getLatitude() : null)
+                    .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
+                    .nearestStationWalkTime(place.getNearestStationWalkTime())
+                    .viewCount(place.getViewCount() == null ? 0L : place.getViewCount())
+                    .build();
+        }
     }
 
     @Getter
@@ -113,5 +127,24 @@ public class ArchiverPlaceDetailDto {
         private String imageUrl;
         @Schema(description = "카테고리명 목록")
         private List<String> categoryNames;
+
+        public static PostPlaceResponse from(zero.conflict.archiview.post.domain.PostPlace postPlace) {
+            zero.conflict.archiview.post.domain.Post post = postPlace.getPost();
+            List<String> categories = postPlace.getPostPlaceCategories().stream()
+                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .filter(category -> category != null)
+                    .map(category -> category.getName())
+                    .filter(name -> name != null)
+                    .toList();
+            return PostPlaceResponse.builder()
+                    .postPlaceId(postPlace.getId())
+                    .postId(post != null ? post.getId() : null)
+                    .instagramUrl(post != null ? post.getUrl() : null)
+                    .hashTag(post != null ? post.getHashTag() : null)
+                    .description(postPlace.getDescription())
+                    .imageUrl(postPlace.getImageUrl())
+                    .categoryNames(categories)
+                    .build();
+        }
     }
 }

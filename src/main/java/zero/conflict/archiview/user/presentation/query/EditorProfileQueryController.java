@@ -49,6 +49,6 @@ public class EditorProfileQueryController {
             @RequestParam @jakarta.validation.constraints.NotBlank String instagramId) {
         boolean exists = editorProfileQueryService.existsInstagramId(instagramId);
         return ResponseEntity.ok(ApiResponse.success(
-                EditorProfileDto.InstagramIdCheckResponse.builder().exists(exists).build()));
+                EditorProfileDto.InstagramIdCheckResponse.of(exists)));
     }
 }

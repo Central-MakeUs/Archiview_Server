@@ -9,7 +9,6 @@ import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +21,7 @@ public class EditorProfileQueryService {
         EditorProfile profile = editorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
-        return mapToResponse(profile);
+        return EditorProfileDto.Response.from(profile);
     }
 
     @Transactional(readOnly = true)
@@ -30,7 +29,7 @@ public class EditorProfileQueryService {
         EditorProfile profile = editorProfileRepository.findByUserId(editorId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
-        return mapToResponse(profile);
+        return EditorProfileDto.Response.from(profile);
     }
 
     @Transactional(readOnly = true)
@@ -38,14 +37,4 @@ public class EditorProfileQueryService {
         return editorProfileRepository.existsByInstagramId(instagramId);
     }
 
-    private EditorProfileDto.Response mapToResponse(EditorProfile profile) {
-        return EditorProfileDto.Response.builder()
-                .nickname(profile.getNickname())
-                .instagramId(profile.getInstagramId())
-                .instagramUrl(profile.getInstagramUrl())
-                .introduction(profile.getIntroduction())
-                .hashtags(List.of(profile.getHashtags().getFirst(), profile.getHashtags().getSecond()))
-                .profileImageUrl(profile.getProfileImageUrl())
-                .build();
-    }
 }

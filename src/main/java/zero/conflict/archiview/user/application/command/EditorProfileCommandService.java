@@ -41,14 +41,7 @@ public class EditorProfileCommandService {
 
         EditorProfile savedProfile = editorProfileRepository.save(profile);
 
-        return EditorProfileDto.Response.builder()
-                .nickname(savedProfile.getNickname())
-                .instagramId(savedProfile.getInstagramId())
-                .instagramUrl(savedProfile.getInstagramUrl())
-                .introduction(savedProfile.getIntroduction())
-                .hashtags(java.util.List.of(savedProfile.getHashtags().getFirst(), savedProfile.getHashtags().getSecond()))
-                .profileImageUrl(savedProfile.getProfileImageUrl())
-                .build();
+        return EditorProfileDto.Response.from(savedProfile);
     }
 
     @Transactional
@@ -69,14 +62,7 @@ public class EditorProfileCommandService {
                 request.getProfileImageUrl() == null ? profile.getProfileImageUrl() : request.getProfileImageUrl(),
                 Hashtags.of(request.getHashtags().get(0), request.getHashtags().get(1)));
 
-        return EditorProfileDto.Response.builder()
-                .nickname(profile.getNickname())
-                .instagramId(profile.getInstagramId())
-                .instagramUrl(profile.getInstagramUrl())
-                .introduction(profile.getIntroduction())
-                .hashtags(java.util.List.of(profile.getHashtags().getFirst(), profile.getHashtags().getSecond()))
-                .profileImageUrl(profile.getProfileImageUrl())
-                .build();
+        return EditorProfileDto.Response.from(profile);
     }
 
     private User getEditorUser(java.util.UUID userId) {

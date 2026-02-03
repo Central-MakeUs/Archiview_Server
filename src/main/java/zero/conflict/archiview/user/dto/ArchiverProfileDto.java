@@ -24,6 +24,14 @@ public class ArchiverProfileDto {
         @Schema(description = "프로필 이미지 URL")
         private String profileImageUrl;
 
+        public static Response from(zero.conflict.archiview.user.domain.ArchiverProfile profile) {
+            return Response.builder()
+                    .userId(profile.getUser().getId())
+                    .nickname(profile.getNickname())
+                    .profileImageUrl(profile.getProfileImageUrl())
+                    .build();
+        }
+
         public static Response mock() {
             return Response.builder()
                     .userId(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))

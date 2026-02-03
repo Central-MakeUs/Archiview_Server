@@ -31,9 +31,16 @@ public class EditorMapDto {
         @Schema(description = "장소 카테고리 목록")
         private List<String> categories;
 
-        public static PlacePinResponse from(zero.conflict.archiview.post.domain.PostPlace postPlace,
-                List<String> categoryNames) {
-            zero.conflict.archiview.post.domain.Place place = postPlace.getPlace();
+        public static PlacePinResponse from(
+                zero.conflict.archiview.post.domain.Place place,
+                List<zero.conflict.archiview.post.domain.PostPlace> postPlaces) {
+            List<String> categoryNames = postPlaces.stream()
+                    .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
+                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .filter(category -> category != null && category.getName() != null)
+                    .map(category -> category.getName())
+                    .distinct()
+                    .toList();
             return PlacePinResponse.builder()
                     .placeId(place.getId())
                     .name(place.getName())
@@ -56,6 +63,12 @@ public class EditorMapDto {
         public static Response from(List<PlacePinResponse> pins) {
             return Response.builder()
                     .pins(pins)
+                    .build();
+        }
+
+        public static Response empty() {
+            return Response.builder()
+                    .pins(List.of())
                     .build();
         }
 

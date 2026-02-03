@@ -16,10 +16,10 @@ public class CategoryQueryDto {
         private Long id;
         private String name;
 
-        public static CategoryResponse of(Long id, String name) {
+        public static CategoryResponse from(zero.conflict.archiview.post.domain.Category category) {
             return CategoryResponse.builder()
-                    .id(id)
-                    .name(name)
+                    .id(category.getId())
+                    .name(category.getName())
                     .build();
         }
     }
@@ -34,6 +34,12 @@ public class CategoryQueryDto {
         public static CategoryListResponse of(List<CategoryResponse> categories) {
             return CategoryListResponse.builder()
                     .categories(categories)
+                    .build();
+        }
+
+        public static CategoryListResponse from(List<zero.conflict.archiview.post.domain.Category> categories) {
+            return CategoryListResponse.builder()
+                    .categories(categories.stream().map(CategoryResponse::from).toList())
                     .build();
         }
     }

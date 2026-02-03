@@ -65,5 +65,16 @@ public class ArchiverHotPlaceDto {
         private String imageUrl;
         @Schema(description = "조회수", example = "1200")
         private Long viewCount;
+
+        public static PlaceCardResponse from(
+                zero.conflict.archiview.post.domain.Place place,
+                zero.conflict.archiview.post.domain.PostPlace latestPostPlace) {
+            return PlaceCardResponse.builder()
+                    .placeId(place.getId())
+                    .name(place.getName())
+                    .imageUrl(latestPostPlace != null ? latestPostPlace.getImageUrl() : null)
+                    .viewCount(place.getViewCount() == null ? 0L : place.getViewCount())
+                    .build();
+        }
     }
 }

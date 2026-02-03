@@ -50,6 +50,18 @@ public class EditorInsightDto {
                     .build();
         }
 
+        public static SummaryResponse from(zero.conflict.archiview.user.domain.EditorProfile editorProfile,
+                long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
+            return SummaryResponse.builder()
+                    .editorNickname(editorProfile.getNickname())
+                    .totalPlaceCount(totalCount)
+                    .instagramInflowCount(instagramCount)
+                    .saveCount(saveCount)
+                    .viewCount(viewCount)
+                    .period(period)
+                    .build();
+        }
+
         public static SummaryResponse empty(Period period) {
             return SummaryResponse.builder()
                     .period(period)
@@ -226,6 +238,25 @@ public class EditorInsightDto {
                     .postUrl(postUrl)
                     .postHashTag(postHashTag)
                     .description(description)
+                    .categories(categories)
+                    .build();
+        }
+
+        public static PostPlaceDetailResponse from(
+                zero.conflict.archiview.user.domain.EditorProfile editorProfile,
+                zero.conflict.archiview.post.domain.PostPlace postPlace) {
+            zero.conflict.archiview.post.domain.Post post = postPlace.getPost();
+            List<String> categories = postPlace.getPostPlaceCategories().stream()
+                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .filter(category -> category != null)
+                    .map(category -> category.getName())
+                    .toList();
+            return PostPlaceDetailResponse.builder()
+                    .editorName(editorProfile.getNickname())
+                    .editorInstagramId(editorProfile.getInstagramId())
+                    .postUrl(post != null ? post.getUrl() : null)
+                    .postHashTag(post != null ? post.getHashTag() : null)
+                    .description(postPlace.getDescription())
                     .categories(categories)
                     .build();
         }

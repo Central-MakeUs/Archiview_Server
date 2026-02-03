@@ -22,14 +22,7 @@ public class ArchiverProfileQueryService {
         ArchiverProfile profile = archiverProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.ARCHIVER_PROFILE_NOT_FOUND));
 
-        return mapToResponse(profile);
+        return ArchiverProfileDto.Response.from(profile);
     }
 
-    private ArchiverProfileDto.Response mapToResponse(ArchiverProfile profile) {
-        return ArchiverProfileDto.Response.builder()
-                .userId(profile.getUser().getId())
-                .nickname(profile.getNickname())
-                .profileImageUrl(profile.getProfileImageUrl())
-                .build();
-    }
 }
