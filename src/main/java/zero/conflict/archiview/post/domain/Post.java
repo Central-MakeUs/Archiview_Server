@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -35,11 +36,11 @@ public class Post extends BaseTimeEntity {
 
     private Boolean isDeleted;
 
-    public static Post createOf(UUID editorId, String url, String hashTag) {
+    public static Post createOf(UUID editorId, String url, List<String> hashTags) {
         return Post.builder()
                 .editorId(editorId)
                 .url(InstagramUrl.from(url))
-                .hashTags(HashTags.from(hashTag))
+                .hashTags(HashTags.from(hashTags))
                 .isDeleted(false)
                 .build();
     }
@@ -48,13 +49,13 @@ public class Post extends BaseTimeEntity {
         return url.getValue();
     }
 
-    public String getHashTag() {
-        return hashTags.getValue();
+    public List<String> getHashTags() {
+        return hashTags.asList();
     }
 
-    public void update(String url, String hashTag) {
+    public void update(String url, List<String> hashTags) {
         this.url = InstagramUrl.from(url);
-        this.hashTags = HashTags.from(hashTag);
+        this.hashTags = HashTags.from(hashTags);
     }
 
 }

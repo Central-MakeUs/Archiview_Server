@@ -54,7 +54,7 @@ class PostCommandServiceTest {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post1";
-                String hashTag = "여행";
+                java.util.List<String> hashTags = java.util.List.of("#여행", "#맛집");
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
@@ -70,11 +70,11 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url(url)
-                                .hashTag(hashTag)
+                                .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(placeInfoRequest))
                                 .build();
 
-                Post savedPost = Post.createOf(editorId, url, hashTag);
+                Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
                 Place newPlace = Place.createOf(
@@ -100,7 +100,7 @@ class PostCommandServiceTest {
 
                 // then
                 assertThat(response.getUrl()).isEqualTo(url);
-                assertThat(response.getHashTag()).isEqualTo(hashTag);
+                assertThat(response.getHashTags()).isEqualTo(hashTags);
                 assertThat(response.getPlaceInfoResponseList()).hasSize(1);
                 assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("테스트 장소");
 
@@ -116,7 +116,7 @@ class PostCommandServiceTest {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post2";
-                String hashTag = "맛집";
+                java.util.List<String> hashTags = java.util.List.of("#맛집", "#데이트");
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
@@ -132,11 +132,11 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url(url)
-                                .hashTag(hashTag)
+                                .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(placeInfoRequest))
                                 .build();
 
-                Post savedPost = Post.createOf(editorId, url, hashTag);
+                Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
                 zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
@@ -173,7 +173,7 @@ class PostCommandServiceTest {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
                 String url = "https://www.instagram.com/post3";
-                String hashTag = "여행";
+                java.util.List<String> hashTags = java.util.List.of("#여행", "#카페");
 
                 PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
                                 .name("장소1")
@@ -199,11 +199,11 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url(url)
-                                .hashTag(hashTag)
+                                .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(place1, place2))
                                 .build();
 
-                Post savedPost = Post.createOf(editorId, url, hashTag);
+                Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
                 zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
                                 .id(editorId).build();

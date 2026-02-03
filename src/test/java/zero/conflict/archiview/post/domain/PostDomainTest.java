@@ -16,14 +16,14 @@ class PostDomainTest {
         // given
         java.util.UUID editorId = java.util.UUID.randomUUID();
         String url = "https://www.instagram.com/p/DBU0yXOz_A-/";
-        String hashTag = "#성수 #카페";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
 
         // when
-        Post post = Post.createOf(editorId, url, hashTag);
+        Post post = Post.createOf(editorId, url, hashTags);
 
         // then
         assertThat(post.getUrl()).isEqualTo(url);
-        assertThat(post.getHashTag()).isEqualTo(hashTag);
+        assertThat(post.getHashTags()).isEqualTo(hashTags);
     }
 
     @Test
@@ -32,10 +32,10 @@ class PostDomainTest {
         // given
         java.util.UUID editorId = java.util.UUID.randomUUID();
         String invalidUrl = "https://wrong-url.com";
-        String hashTag = "#성수";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
 
         // when & then
-        assertThatThrownBy(() -> Post.createOf(editorId, invalidUrl, hashTag))
+        assertThatThrownBy(() -> Post.createOf(editorId, invalidUrl, hashTags))
                 .isInstanceOf(DomainException.class)
                 .hasFieldOrPropertyWithValue("errorCode", PostErrorCode.INVALID_INSTAGRAM_URL);
     }
@@ -46,11 +46,11 @@ class PostDomainTest {
         // given
         java.util.UUID editorId = java.util.UUID.randomUUID();
         String url = "https://www.instagram.com/p/DBU0yXOz_A-/";
-        String tooManyTags = "#하나 #둘 #셋 #넷";
+        java.util.List<String> tooManyTags = java.util.List.of("#하나", "#둘", "#셋");
 
         // when & then
         assertThatThrownBy(() -> Post.createOf(editorId, url, tooManyTags))
                 .isInstanceOf(DomainException.class)
-                .hasFieldOrPropertyWithValue("errorCode", PostErrorCode.TOO_MANY_HASHTAGS);
+                .hasFieldOrPropertyWithValue("errorCode", PostErrorCode.INVALID_HASHTAG);
     }
 }

@@ -39,7 +39,7 @@ public class PostCommandService {
 
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.Request request, java.util.UUID editorId) {
-        Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
+        Post post = Post.createOf(editorId, request.getUrl(), request.getHashTags());
         Post savedPost = postRepository.save(post);
 
         User editor = userRepository.findById(editorId)
@@ -80,7 +80,7 @@ public class PostCommandService {
             throw new DomainException(PostErrorCode.POST_FORBIDDEN);
         }
 
-        post.update(request.getUrl(), request.getHashTag());
+        post.update(request.getUrl(), request.getHashTags());
         postRepository.save(post);
 
         postPlacesRepository.deleteAllByPostId(postId);

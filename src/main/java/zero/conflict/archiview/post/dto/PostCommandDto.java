@@ -26,9 +26,10 @@ public class PostCommandDto {
         @Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String url;
 
-        @NotBlank(message = "해시태그는 필수입니다.")
-        @Schema(description = "게시글 해시태그 (최대 3개)", example = "#성수카페 #감성레벨 #디저트맛집")
-        private String hashTag;
+        @NotNull(message = "해시태그는 필수입니다.")
+        @jakarta.validation.constraints.Size(min = 2, max = 2, message = "해시태그는 2개여야 합니다.")
+        @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        private List<@NotBlank String> hashTags;
 
         @Valid
         @NotEmpty(message = "장소 정보는 최소 1개 이상 포함되어야 합니다.")
@@ -80,8 +81,8 @@ public class PostCommandDto {
         private Long postId;
         @Schema(description = "등록된 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String url;
-        @Schema(description = "등록된 해시태그", example = "#성수카페 #감성레벨 #디저트맛집")
-        private String hashTag;
+        @Schema(description = "등록된 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        private List<String> hashTags;
         private List<PlaceInfoResponse> placeInfoResponseList;
 
         public static Response from(Post post,
@@ -89,7 +90,7 @@ public class PostCommandDto {
             return Response.builder()
                     .postId(post.getId())
                     .url(post.getUrl())
-                    .hashTag(post.getHashTag())
+                    .hashTags(post.getHashTags())
                     .placeInfoResponseList(placeInfoResponseList)
                     .build();
         }

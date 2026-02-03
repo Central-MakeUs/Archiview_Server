@@ -9,10 +9,7 @@ import lombok.NoArgsConstructor;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Embeddable
 @Getter
@@ -20,40 +17,36 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode
 public class HashTags {
 
-    private static final int MAX_TAG_COUNT = 3;
+    @Column(name = "hash_tag_1", nullable = false)
+    private String primaryTag;
 
-    @Column(name = "hash_tag")
-    private String value;
+    @Column(name = "hash_tag_2", nullable = false)
+    private String secondaryTag;
 
-    public HashTags(String value) {
-        validate(value);
-        this.value = value;
+    private HashTags(String primaryTag, String secondaryTag) {
+        this.primaryTag = primaryTag;
+        this.secondaryTag = secondaryTag;
     }
 
-    private void validate(String value) {
-        if (value == null || value.isBlank()) {
-            return;
+    public static HashTags of(String primaryTag, String secondaryTag) {
+        if (isBlank(primaryTag) || isBlank(secondaryTag)) {
+            throw new DomainException(PostErrorCode.INVALID_HASHTAG);
         }
-
-        long count = Arrays.stream(value.trim().split("\\s+"))
-                .filter(tag -> !tag.isBlank())
-                .count();
-
-        if (count > MAX_TAG_COUNT) {
-            throw new DomainException(PostErrorCode.TOO_MANY_HASHTAGS);
-        }
+        return new HashTags(primaryTag.trim(), secondaryTag.trim());
     }
 
-    public List<String> getTagList() {
-        if (value == null || value.isBlank()) {
-            return Collections.emptyList();
+    public static HashTags from(List<String> tags) {
+        if (tags == null || tags.size() != 2) {
+            throw new DomainException(PostErrorCode.INVALID_HASHTAG);
         }
-        return Arrays.stream(value.trim().split("\\s+"))
-                .filter(tag -> !tag.isBlank())
-                .collect(Collectors.toList());
+        return of(tags.get(0), tags.get(1));
     }
 
-    public static HashTags from(String value) {
-        return new HashTags(value);
+    public List<String> asList() {
+        return List.of(primaryTag, secondaryTag);
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

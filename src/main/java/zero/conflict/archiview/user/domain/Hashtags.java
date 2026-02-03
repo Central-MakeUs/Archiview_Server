@@ -14,21 +14,21 @@ import zero.conflict.archiview.user.domain.error.UserErrorCode;
 public class Hashtags {
 
     @Column(name = "hashtag_1", nullable = false)
-    private String first;
+    private String primaryTag;
 
     @Column(name = "hashtag_2", nullable = false)
-    private String second;
+    private String secondaryTag;
 
-    private Hashtags(String first, String second) {
-        this.first = first;
-        this.second = second;
+    private Hashtags(String primaryTag, String secondaryTag) {
+        this.primaryTag = primaryTag;
+        this.secondaryTag = secondaryTag;
     }
 
-    public static Hashtags of(String first, String second) {
-        if (isBlank(first) || isBlank(second)) {
+    public static Hashtags of(String primaryTag, String secondaryTag) {
+        if (isBlank(primaryTag) || isBlank(secondaryTag)) {
             throw new DomainException(UserErrorCode.INVALID_HASHTAG);
         }
-        return new Hashtags(first.trim(), second.trim());
+        return new Hashtags(primaryTag.trim(), secondaryTag.trim());
     }
 
     private static boolean isBlank(String value) {

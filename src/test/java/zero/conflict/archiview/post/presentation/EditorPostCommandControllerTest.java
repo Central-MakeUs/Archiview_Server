@@ -44,7 +44,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url("https://www.instagram.com/post")
-                                .hashTag("#테스트 #여행")
+                                .hashTags(java.util.List.of("#테스트", "#여행"))
                                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                                 .build();
 
@@ -62,7 +62,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 PostCommandDto.Response mockResponse = PostCommandDto.Response.builder()
                                 .postId(1L)
                                 .url("https://www.instagram.com/post")
-                                .hashTag("#테스트 #여행")
+                                .hashTags(java.util.List.of("#테스트", "#여행"))
                                 .placeInfoResponseList(Collections.singletonList(placeInfoResponse))
                                 .build();
 
@@ -79,7 +79,8 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.postId").value(1))
                                 .andExpect(jsonPath("$.data.url").value("https://www.instagram.com/post"))
-                                .andExpect(jsonPath("$.data.hashTag").value("#테스트 #여행"))
+                                .andExpect(jsonPath("$.data.hashTags[0]").value("#테스트"))
+                                .andExpect(jsonPath("$.data.hashTags[1]").value("#여행"))
                                 .andDo(print());
         }
 
@@ -100,7 +101,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url("") // URL 누락
-                                .hashTag("#테스트")
+                                .hashTags(java.util.List.of("#테스트", "#여행"))
                                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                                 .build();
 
@@ -130,7 +131,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url("https://www.instagram.com/post")
-                                .hashTag("") // 해시태그 누락
+                                .hashTags(java.util.Collections.emptyList()) // 해시태그 누락
                                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                                 .build();
 
@@ -149,7 +150,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 // given
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url("https://www.instagram.com/post")
-                                .hashTag("#테스트")
+                                .hashTags(java.util.List.of("#테스트", "#여행"))
                                 .placeInfoRequestList(Collections.emptyList()) // 장소 정보 누락
                                 .build();
 
@@ -179,7 +180,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
                                 .url("https://www.instagram.com/post")
-                                .hashTag("#테스트")
+                                .hashTags(java.util.List.of("#테스트", "#여행"))
                                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                                 .build();
 

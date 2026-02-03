@@ -123,8 +123,8 @@ public class ArchiverPlaceDetailDto {
         private Long postId;
         @Schema(description = "인스타그램 게시글 URL")
         private String instagramUrl;
-        @Schema(description = "게시글 해시태그")
-        private String hashTag;
+        @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        private List<String> hashTags;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
         @Schema(description = "이미지 URL")
@@ -144,7 +144,7 @@ public class ArchiverPlaceDetailDto {
                     .postPlaceId(postPlace.getId())
                     .postId(post != null ? post.getId() : null)
                     .instagramUrl(post != null ? post.getUrl() : null)
-                    .hashTag(post != null ? post.getHashTag() : null)
+                    .hashTags(post != null ? post.getHashTags() : null)
                     .description(postPlace.getDescription())
                     .imageUrl(postPlace.getImageUrl())
                     .categoryNames(categories)

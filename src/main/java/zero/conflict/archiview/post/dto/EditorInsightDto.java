@@ -118,7 +118,7 @@ public class EditorInsightDto {
                                     .placeImageUrl("https://picsum.photos/400/300?random=1")
                                     .editorSummary("성수동에서 가장 힙한 분위기의 카페입니다.")
                                     .categories(List.of("카페", "디저트"))
-                                    .hashTag("#성수카페 #감성")
+                                    .hashTags(List.of("#성수카페", "#감성"))
                                     .stats(Stats.builder().viewCount(120L).saveCount(45L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(1))
                                     .build(),
@@ -128,7 +128,7 @@ public class EditorInsightDto {
                                     .placeImageUrl("https://picsum.photos/400/300?random=2")
                                     .editorSummary("웨이팅이 아깝지 않은 정통 일식당입니다.")
                                     .categories(List.of("맛집"))
-                                    .hashTag("#연남동 #맛집")
+                                    .hashTags(List.of("#연남동", "#맛집"))
                                     .stats(Stats.builder().viewCount(350L).saveCount(120L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(2))
                                     .build()))
@@ -151,8 +151,8 @@ public class EditorInsightDto {
         private String editorSummary;
         @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"디저트\"]")
         private List<String> categories;
-        @Schema(description = "장소 해시태그", example = "#성수카페 #감성")
-        private String hashTag;
+        @Schema(description = "장소 해시태그 2개", example = "[\"#성수카페\", \"#감성\"]")
+        private List<String> hashTags;
         private Stats stats;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         @Schema(description = "업데이트 일시", example = "2024-01-29 10:00:00")
@@ -188,7 +188,7 @@ public class EditorInsightDto {
                     .placeImageUrl(postPlace.getImageUrl())
                     .editorSummary(postPlace.getDescription())
                     .categories(categories)
-                    .hashTag(post != null ? post.getHashTag() : null)
+                    .hashTags(post != null ? post.getHashTags() : null)
                     .stats(stats)
                     .updatedAt(updatedAt)
                     .build();
@@ -243,7 +243,7 @@ public class EditorInsightDto {
                                     .editorName("에디터A")
                                     .editorInstagramId("editor_a")
                                     .postUrl("https://instagram.com/p/sample1")
-                                    .postHashTag("#성수카페 #감성")
+                                    .postHashTags(List.of("#성수카페", "#감성"))
                                     .description("채광이 너무 좋은 곳이에요.")
                                     .build()))
                     .build();
@@ -261,20 +261,20 @@ public class EditorInsightDto {
         private String editorInstagramId;
         @Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String postUrl;
-        @Schema(description = "게시글 해시태그", example = "#성수카페 #감성레벨")
-        private String postHashTag;
+        @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        private List<String> postHashTags;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
         @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
         private List<String> categories;
 
         public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
-                String postHashTag, String description, List<String> categories) {
+                List<String> postHashTags, String description, List<String> categories) {
             return PostPlaceDetailResponse.builder()
                     .editorName(editorName)
                     .editorInstagramId(editorInstagramId)
                     .postUrl(postUrl)
-                    .postHashTag(postHashTag)
+                    .postHashTags(postHashTags)
                     .description(description)
                     .categories(categories)
                     .build();
@@ -293,7 +293,7 @@ public class EditorInsightDto {
                     .editorName(editorProfile.getNickname())
                     .editorInstagramId(editorProfile.getInstagramId())
                     .postUrl(post != null ? post.getUrl() : null)
-                    .postHashTag(post != null ? post.getHashTag() : null)
+                    .postHashTags(post != null ? post.getHashTags() : null)
                     .description(postPlace.getDescription())
                     .categories(categories)
                     .build();

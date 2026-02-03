@@ -35,8 +35,8 @@ public class EditorProfileDto {
                     .instagramUrl(profile.getInstagramUrl())
                     .introduction(profile.getIntroduction())
                     .hashtags(java.util.List.of(
-                            profile.getHashtags().getFirst(),
-                            profile.getHashtags().getSecond()))
+                            profile.getHashtags().getPrimaryTag(),
+                            profile.getHashtags().getSecondaryTag()))
                     .profileImageUrl(profile.getProfileImageUrl())
                     .build();
         }
