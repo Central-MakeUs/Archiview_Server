@@ -6,6 +6,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
 
+import org.springframework.data.domain.PageRequest;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +20,19 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     @Override
     public Place save(Place place) {
         return placeJpaRepository.save(place);
+    }
+
+    @Override
+    public Optional<Place> findById(UUID id) {
+        return placeJpaRepository.findById(id);
+    }
+
+    @Override
+    public List<Place> findTopByViewCount(int limit) {
+        if (limit <= 0) {
+            return List.of();
+        }
+        return placeJpaRepository.findAllByOrderByViewCountDesc(PageRequest.of(0, limit)).getContent();
     }
 
     @Override

@@ -9,6 +9,9 @@ import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
@@ -32,6 +35,46 @@ public class PostQueryService {
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
         private final EditorProfileRepository editorProfileRepository;
+
+        public ArchiverHotPlaceDto.ListResponse getHotPlaces(int limit) {
+                List<Place> places = placeRepository.findTopByViewCount(limit);
+                if (places.isEmpty()) {
+                        return ArchiverHotPlaceDto.ListResponse.empty();
+                }
+
+                List<UUID> placeIds = places.stream()
+                                .map(Place::getId)
+                                .toList();
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceIds(placeIds);
+
+                Map<UUID, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()))
+                                .entrySet()
+                                .stream()
+                                .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                entry -> entry.getValue().stream()
+                                                                .max(Comparator.comparing(
+                                                                                this::getLastUpdatedAt,
+                                                                                Comparator.nullsLast(
+                                                                                                Comparator.naturalOrder())))
+                                                                .orElse(null)));
+
+                List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
+                                .map(place -> {
+                                        PostPlace latestPostPlace = latestPostPlaceByPlaceId.get(place.getId());
+                                        return ArchiverHotPlaceDto.PlaceCardResponse.builder()
+                                                        .placeId(place.getId())
+                                                        .name(place.getName())
+                                                        .imageUrl(latestPostPlace != null ? latestPostPlace.getImageUrl()
+                                                                        : null)
+                                                        .viewCount(defaultZero(place.getViewCount()))
+                                                        .build();
+                                })
+                                .toList();
+
+                return ArchiverHotPlaceDto.ListResponse.from(cards);
+        }
 
         public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(UUID editorId) {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
@@ -95,6 +138,46 @@ public class PostQueryService {
 
         private long defaultZero(Long value) {
                 return value == null ? 0L : value;
+        }
+
+        public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(UUID placeId) {
+                Place place = placeRepository.findById(placeId)
+                                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceId(placeId);
+
+                ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.builder()
+                                .placeId(place.getId())
+                                .name(place.getName())
+                                .roadAddress(place.getAddress() != null ? place.getAddress().getRoadAddress() : null)
+                                .detailAddress(place.getAddress() != null ? place.getAddress().getDetailAddress() : null)
+                                .zipCode(place.getAddress() != null ? place.getAddress().getZipCode() : null)
+                                .latitude(place.getPosition() != null ? place.getPosition().getLatitude() : null)
+                                .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
+                                .nearestStationWalkTime(place.getNearestStationWalkTime())
+                                .viewCount(defaultZero(place.getViewCount()))
+                                .build();
+
+                if (postPlaces.isEmpty()) {
+                        return ArchiverPlaceDetailDto.Response.empty(placeResponse);
+                }
+
+                List<ArchiverPlaceDetailDto.PostPlaceResponse> postPlaceResponses = postPlaces.stream()
+                                .map(postPlace -> ArchiverPlaceDetailDto.PostPlaceResponse.builder()
+                                                .postPlaceId(postPlace.getId())
+                                                .postId(postPlace.getPost() != null ? postPlace.getPost().getId() : null)
+                                                .description(postPlace.getDescription())
+                                                .imageUrl(postPlace.getImageUrl())
+                                                .categoryNames(postPlace.getPostPlaceCategories().stream()
+                                                                .map(PostPlaceCategory::getCategory)
+                                                                .filter(category -> category != null)
+                                                                .map(category -> category.getName())
+                                                                .filter(name -> name != null)
+                                                                .toList())
+                                                .build())
+                                .toList();
+
+                return ArchiverPlaceDetailDto.Response.from(placeResponse, postPlaceResponses);
         }
 
         public EditorMapDto.Response getMapPins(

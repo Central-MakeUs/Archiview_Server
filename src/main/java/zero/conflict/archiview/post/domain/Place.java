@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -34,6 +35,9 @@ public class Place extends BaseTimeEntity {
 
     private String nearestStationWalkTime;
 
+    @Builder.Default
+    private Long viewCount = 0L;
+
     public static Place createOf(String name, Address address, Position position) {
         return createOf(name, address, position, null);
     }
@@ -53,6 +57,10 @@ public class Place extends BaseTimeEntity {
 
         this.name = name;
         this.address = address;
+    }
+
+    public void increaseViewCount() {
+        this.viewCount = (this.viewCount == null ? 0L : this.viewCount) + 1L;
     }
 
 

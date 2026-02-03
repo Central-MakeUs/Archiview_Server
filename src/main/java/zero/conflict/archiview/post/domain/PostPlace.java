@@ -73,6 +73,9 @@ public class PostPlace extends BaseTimeEntity {
     public void increaseViewCount(UUID actorId) {
         if (!this.editorId.equals(actorId)) {
             this.viewCount++;
+            if (this.place != null) {
+                this.place.increaseViewCount();
+            }
         }
     }
 

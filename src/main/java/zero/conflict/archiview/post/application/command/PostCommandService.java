@@ -58,6 +58,14 @@ public class PostCommandService {
     }
 
     @Transactional
+    public void increasePostPlaceViewCount(java.util.UUID postPlaceId, java.util.UUID actorId) {
+        PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
+                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+        postPlace.increaseViewCount(actorId);
+    }
+
+    @Transactional
     public PostCommandDto.Response updatePost(
             java.util.UUID postId,
             PostCommandDto.Request request,

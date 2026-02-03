@@ -11,6 +11,12 @@ public interface PostPlaceRepository {
 
     void deleteAllByPostId(UUID postId);
 
+    java.util.Optional<PostPlace> findById(UUID postPlaceId);
+
+    List<PostPlace> findAllByPlaceIds(List<UUID> placeIds);
+
+    List<PostPlace> findAllByPlaceId(UUID placeId);
+
     List<PostPlace> findAllByEditorId(UUID editorId);
 
     List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId);

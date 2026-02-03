@@ -11,5 +11,9 @@ public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, UUID> {
 
     void deleteAllByPost_Id(UUID postId);
 
+    List<PostPlace> findAllByPlace_IdIn(List<UUID> placeIds);
+
+    List<PostPlace> findAllByPlace_Id(UUID placeId);
+
     List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId);
 }

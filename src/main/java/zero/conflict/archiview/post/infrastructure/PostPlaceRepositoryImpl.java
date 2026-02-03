@@ -20,8 +20,26 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
+    public java.util.Optional<PostPlace> findById(UUID postPlaceId) {
+        return postPlaceJpaRepository.findById(postPlaceId);
+    }
+
+    @Override
     public void deleteAllByPostId(UUID postId) {
         postPlaceJpaRepository.deleteAllByPost_Id(postId);
+    }
+
+    @Override
+    public List<PostPlace> findAllByPlaceIds(List<UUID> placeIds) {
+        if (placeIds == null || placeIds.isEmpty()) {
+            return List.of();
+        }
+        return postPlaceJpaRepository.findAllByPlace_IdIn(placeIds);
+    }
+
+    @Override
+    public List<PostPlace> findAllByPlaceId(UUID placeId) {
+        return postPlaceJpaRepository.findAllByPlace_Id(placeId);
     }
 
     @Override
