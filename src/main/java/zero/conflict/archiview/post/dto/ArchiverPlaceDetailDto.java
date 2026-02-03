@@ -103,6 +103,10 @@ public class ArchiverPlaceDetailDto {
         private Long postPlaceId;
         @Schema(description = "게시글 ID", example = "00000000-0000-0000-0000-000000000501")
         private Long postId;
+        @Schema(description = "인스타그램 게시글 URL")
+        private String instagramUrl;
+        @Schema(description = "게시글 해시태그")
+        private String hashTag;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
         @Schema(description = "이미지 URL")
