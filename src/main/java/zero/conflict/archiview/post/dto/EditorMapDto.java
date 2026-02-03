@@ -5,6 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.PostPlaceCategory;
 
 import java.util.List;
 
@@ -32,11 +37,11 @@ public class EditorMapDto {
         private List<String> categories;
 
         public static PlacePinResponse from(
-                zero.conflict.archiview.post.domain.Place place,
-                List<zero.conflict.archiview.post.domain.PostPlace> postPlaces) {
+                Place place,
+                List<PostPlace> postPlaces) {
             List<String> categoryNames = postPlaces.stream()
                     .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
-                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .map(PostPlaceCategory::getCategory)
                     .filter(category -> category != null && category.getName() != null)
                     .map(category -> category.getName())
                     .distinct()

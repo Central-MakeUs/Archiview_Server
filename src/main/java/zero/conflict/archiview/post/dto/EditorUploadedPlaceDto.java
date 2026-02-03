@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.PostPlace;
 
 import java.util.Collections;
 import java.util.List;
@@ -83,10 +85,10 @@ public class EditorUploadedPlaceDto {
         }
 
         public static PlaceCardResponse from(
-                zero.conflict.archiview.post.domain.Place place,
-                zero.conflict.archiview.post.domain.PostPlace latestPostPlace,
+                Place place,
+                PostPlace latestPostPlace,
                 Stats stats) {
-            zero.conflict.archiview.post.domain.Place resolvedPlace =
+            Place resolvedPlace =
                     place != null ? place : latestPostPlace.getPlace();
             return PlaceCardResponse.builder()
                     .placeId(resolvedPlace.getId())

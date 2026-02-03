@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Post;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.PostPlaceCategory;
 
 import java.util.Collections;
 import java.util.List;
@@ -92,7 +96,7 @@ public class ArchiverPlaceDetailDto {
         @Schema(description = "조회수", example = "1200")
         private Long viewCount;
 
-        public static PlaceResponse from(zero.conflict.archiview.post.domain.Place place) {
+        public static PlaceResponse from(Place place) {
             return PlaceResponse.builder()
                     .placeId(place.getId())
                     .name(place.getName())
@@ -128,10 +132,10 @@ public class ArchiverPlaceDetailDto {
         @Schema(description = "카테고리명 목록")
         private List<String> categoryNames;
 
-        public static PostPlaceResponse from(zero.conflict.archiview.post.domain.PostPlace postPlace) {
-            zero.conflict.archiview.post.domain.Post post = postPlace.getPost();
+        public static PostPlaceResponse from(PostPlace postPlace) {
+            Post post = postPlace.getPost();
             List<String> categories = postPlace.getPostPlaceCategories().stream()
-                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .map(PostPlaceCategory::getCategory)
                     .filter(category -> category != null)
                     .map(category -> category.getName())
                     .filter(name -> name != null)

@@ -1,11 +1,17 @@
 package zero.conflict.archiview.post.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import zero.conflict.archiview.post.domain.Address;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Post;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.PostPlaceCategory;
+import zero.conflict.archiview.user.domain.EditorProfile;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -50,8 +56,8 @@ public class EditorInsightDto {
                     .build();
         }
 
-        public static SummaryResponse from(zero.conflict.archiview.user.domain.EditorProfile editorProfile,
-                long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
+        public static SummaryResponse from(EditorProfile editorProfile,
+                                           long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
             return SummaryResponse.builder()
                     .editorNickname(editorProfile.getNickname())
                     .totalPlaceCount(totalCount)
@@ -111,6 +117,8 @@ public class EditorInsightDto {
                                     .placeName("샘플 카페 성수")
                                     .placeImageUrl("https://picsum.photos/400/300?random=1")
                                     .editorSummary("성수동에서 가장 힙한 분위기의 카페입니다.")
+                                    .categories(List.of("카페", "디저트"))
+                                    .hashTag("#성수카페 #감성")
                                     .stats(Stats.builder().viewCount(120L).saveCount(45L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(1))
                                     .build(),
@@ -119,6 +127,8 @@ public class EditorInsightDto {
                                     .placeName("연남동 맛집")
                                     .placeImageUrl("https://picsum.photos/400/300?random=2")
                                     .editorSummary("웨이팅이 아깝지 않은 정통 일식당입니다.")
+                                    .categories(List.of("맛집"))
+                                    .hashTag("#연남동 #맛집")
                                     .stats(Stats.builder().viewCount(350L).saveCount(120L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(2))
                                     .build()))
@@ -131,26 +141,54 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PlaceCardResponse {
-        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 ID", example = "101")
+        @Schema(description = "장소 ID", example = "101")
         private Long placeId;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "장소명", example = "아카이브 성수")
+        @Schema(description = "장소명", example = "아카이브 성수")
         private String placeName;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300")
+        @Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300")
         private String placeImageUrl;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 요약", example = "성수동 감성 카페의 정석")
+        @Schema(description = "에디터 요약", example = "성수동 감성 카페의 정석")
         private String editorSummary;
+        @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"디저트\"]")
+        private List<String> categories;
+        @Schema(description = "장소 해시태그", example = "#성수카페 #감성")
+        private String hashTag;
         private Stats stats;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        @io.swagger.v3.oas.annotations.media.Schema(description = "업데이트 일시", example = "2024-01-29 10:00:00")
+        @Schema(description = "업데이트 일시", example = "2024-01-29 10:00:00")
         private LocalDateTime updatedAt;
 
-        public static PlaceCardResponse of(zero.conflict.archiview.post.domain.Place place, String summary,
-                String imageUrl, Stats stats, LocalDateTime updatedAt) {
+        public static PlaceCardResponse of(Place place, String summary,
+                                           String imageUrl, Stats stats, LocalDateTime updatedAt) {
             return PlaceCardResponse.builder()
                     .placeId(place.getId())
                     .placeName(place.getName())
                     .placeImageUrl(imageUrl)
                     .editorSummary(summary)
+                    .stats(stats)
+                    .updatedAt(updatedAt)
+                    .build();
+        }
+
+        public static PlaceCardResponse from(
+                Place place,
+                PostPlace postPlace,
+                Stats stats,
+                LocalDateTime updatedAt) {
+            List<String> categories = postPlace.getPostPlaceCategories().stream()
+                    .map(PostPlaceCategory::getCategory)
+                    .filter(category -> category != null && category.getName() != null)
+                    .map(category -> category.getName())
+                    .distinct()
+                    .toList();
+            Post post = postPlace.getPost();
+            return PlaceCardResponse.builder()
+                    .placeId(place.getId())
+                    .placeName(place.getName())
+                    .placeImageUrl(postPlace.getImageUrl())
+                    .editorSummary(postPlace.getDescription())
+                    .categories(categories)
+                    .hashTag(post != null ? post.getHashTag() : null)
                     .stats(stats)
                     .updatedAt(updatedAt)
                     .build();
@@ -217,17 +255,17 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PostPlaceDetailResponse {
-        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 이름", example = "아카이브 마스터")
+        @Schema(description = "에디터 이름", example = "아카이브 마스터")
         private String editorName;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
+        @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
         private String editorInstagramId;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
+        @Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String postUrl;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "게시글 해시태그", example = "#성수카페 #감성레벨")
+        @Schema(description = "게시글 해시태그", example = "#성수카페 #감성레벨")
         private String postHashTag;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
+        @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
-        @io.swagger.v3.oas.annotations.media.Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
+        @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
         private List<String> categories;
 
         public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
@@ -243,11 +281,11 @@ public class EditorInsightDto {
         }
 
         public static PostPlaceDetailResponse from(
-                zero.conflict.archiview.user.domain.EditorProfile editorProfile,
-                zero.conflict.archiview.post.domain.PostPlace postPlace) {
-            zero.conflict.archiview.post.domain.Post post = postPlace.getPost();
+                EditorProfile editorProfile,
+                PostPlace postPlace) {
+            Post post = postPlace.getPost();
             List<String> categories = postPlace.getPostPlaceCategories().stream()
-                    .map(zero.conflict.archiview.post.domain.PostPlaceCategory::getCategory)
+                    .map(PostPlaceCategory::getCategory)
                     .filter(category -> category != null)
                     .map(category -> category.getName())
                     .toList();

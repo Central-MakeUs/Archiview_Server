@@ -12,7 +12,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
-import zero.conflict.archiview.post.domain.*;
+import *;
 
 import java.util.List;
 import java.util.Optional;

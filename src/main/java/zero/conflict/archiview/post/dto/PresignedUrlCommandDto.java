@@ -17,15 +17,15 @@ public class PresignedUrlCommandDto {
     @Schema(name = "PresignedUrlRequest")
     public static class Request {
         @NotBlank(message = "파일명은 필수입니다.")
-        @io.swagger.v3.oas.annotations.media.Schema(description = "원본 파일명", example = "photo.png")
+        @Schema(description = "원본 파일명", example = "photo.png")
         private String filename;
 
         @NotBlank(message = "파일 타입은 필수입니다.")
-        @io.swagger.v3.oas.annotations.media.Schema(description = "파일 MIME 타입", example = "image/png")
+        @Schema(description = "파일 MIME 타입", example = "image/png")
         private String contentType;
 
         @NotNull(message = "파일 크기는 필수입니다.")
-        @io.swagger.v3.oas.annotations.media.Schema(description = "파일 크기 (바이트)", example = "345678")
+        @Schema(description = "파일 크기 (바이트)", example = "345678")
         private Long size;
     }
 

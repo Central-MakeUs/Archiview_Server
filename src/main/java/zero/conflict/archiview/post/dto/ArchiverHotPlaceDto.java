@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.PostPlace;
 
 import java.util.Collections;
 import java.util.List;
@@ -67,8 +69,8 @@ public class ArchiverHotPlaceDto {
         private Long viewCount;
 
         public static PlaceCardResponse from(
-                zero.conflict.archiview.post.domain.Place place,
-                zero.conflict.archiview.post.domain.PostPlace latestPostPlace) {
+                Place place,
+                PostPlace latestPostPlace) {
             return PlaceCardResponse.builder()
                     .placeId(place.getId())
                     .name(place.getName())

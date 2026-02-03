@@ -18,6 +18,9 @@ import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
+import zero.conflict.archiview.global.infra.s3.S3Service;
+import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.util.ArrayList;
@@ -31,15 +34,15 @@ public class PostCommandService {
     private final PlaceRepository placeRepository;
     private final PostPlaceRepository postPlacesRepository;
     private final CategoryRepository categoryRepository;
-    private final zero.conflict.archiview.user.application.port.UserRepository userRepository;
-    private final zero.conflict.archiview.global.infra.s3.S3Service s3Service;
+    private final UserRepository userRepository;
+    private final S3Service s3Service;
 
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.Request request, java.util.UUID editorId) {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTag());
         Post savedPost = postRepository.save(post);
 
-        zero.conflict.archiview.user.domain.User editor = userRepository.findById(editorId)
+        User editor = userRepository.findById(editorId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(

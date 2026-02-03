@@ -314,10 +314,9 @@ public class PostQueryService {
                                 stats.getInstagramInflowCount(),
                                 stats.getDirectionCount());
 
-                return EditorInsightDto.PlaceCardResponse.of(
+                return EditorInsightDto.PlaceCardResponse.from(
                                 place,
-                                latestPostPlace.getDescription(),
-                                latestPostPlace.getImageUrl(),
+                                latestPostPlace,
                                 insightStats,
                                 getLastUpdatedAt(latestPostPlace));
         }

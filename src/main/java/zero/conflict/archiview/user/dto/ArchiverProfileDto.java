@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.user.domain.ArchiverProfile;
 
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ public class ArchiverProfileDto {
         @Schema(description = "프로필 이미지 URL")
         private String profileImageUrl;
 
-        public static Response from(zero.conflict.archiview.user.domain.ArchiverProfile profile) {
+        public static Response from(ArchiverProfile profile) {
             return Response.builder()
                     .userId(profile.getUser().getId())
                     .nickname(profile.getNickname())

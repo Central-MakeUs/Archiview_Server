@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Category;
 
 import java.util.List;
 public class CategoryQueryDto {
@@ -16,7 +17,7 @@ public class CategoryQueryDto {
         private Long id;
         private String name;
 
-        public static CategoryResponse from(zero.conflict.archiview.post.domain.Category category) {
+        public static CategoryResponse from(Category category) {
             return CategoryResponse.builder()
                     .id(category.getId())
                     .name(category.getName())
@@ -37,7 +38,7 @@ public class CategoryQueryDto {
                     .build();
         }
 
-        public static CategoryListResponse from(List<zero.conflict.archiview.post.domain.Category> categories) {
+        public static CategoryListResponse from(List<Category> categories) {
             return CategoryListResponse.builder()
                     .categories(categories.stream().map(CategoryResponse::from).toList())
                     .build();

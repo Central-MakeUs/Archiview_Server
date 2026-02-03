@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import zero.conflict.archiview.global.error.DomainException;
-import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import error.PostErrorCode;
 
 @DisplayName("Place 도메인 테스트")
 class PlaceTest {

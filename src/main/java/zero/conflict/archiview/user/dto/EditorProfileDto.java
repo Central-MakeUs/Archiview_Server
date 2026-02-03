@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.user.domain.EditorProfile;
 
 public class EditorProfileDto {
 
@@ -27,7 +28,7 @@ public class EditorProfileDto {
         @Schema(description = "프로필 이미지 URL")
         private String profileImageUrl;
 
-        public static Response from(zero.conflict.archiview.user.domain.EditorProfile profile) {
+        public static Response from(EditorProfile profile) {
             return Response.builder()
                     .nickname(profile.getNickname())
                     .instagramId(profile.getInstagramId())
