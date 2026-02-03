@@ -7,12 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.post.application.command.PostCommandService;
+import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
-import *;
 
 import java.util.List;
 import java.util.Optional;

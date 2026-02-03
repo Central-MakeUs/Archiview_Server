@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import *;
+import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;

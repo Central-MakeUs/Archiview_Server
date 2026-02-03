@@ -3,7 +3,7 @@ package zero.conflict.archiview.post.domain;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import zero.conflict.archiview.global.error.DomainException;
-import error.PostErrorCode;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
