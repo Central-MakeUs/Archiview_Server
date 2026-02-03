@@ -20,6 +20,11 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
+    public void deleteAllByPostId(UUID postId) {
+        postPlaceJpaRepository.deleteAllByPost_Id(postId);
+    }
+
+    @Override
     public List<PostPlace> findAllByEditorId(UUID editorId) {
         return postPlaceJpaRepository.findAllByEditorId(editorId);
     }

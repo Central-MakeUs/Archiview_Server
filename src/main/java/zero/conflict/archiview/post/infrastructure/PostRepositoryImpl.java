@@ -20,6 +20,11 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
+    public java.util.Optional<Post> findById(UUID id) {
+        return postJpaRepository.findById(id);
+    }
+
+    @Override
     public List<Post> findAllByIds(List<UUID> ids) {
         return postJpaRepository.findAllById(ids);
     }

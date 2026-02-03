@@ -9,6 +9,8 @@ public interface PostPlaceRepository {
 
     PostPlace save(PostPlace postPlace);
 
+    void deleteAllByPostId(UUID postId);
+
     List<PostPlace> findAllByEditorId(UUID editorId);
 
     List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, UUID placeId);

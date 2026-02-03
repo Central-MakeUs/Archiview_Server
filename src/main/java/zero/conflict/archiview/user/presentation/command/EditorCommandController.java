@@ -21,7 +21,7 @@ public class EditorCommandController {
 
     private final EditorProfileCommandService editorProfileCommandService;
 
-    @Operation(summary = "에디터 프로필 등록", description = "로그인한 사용자의 에디터 프로필을 등록합니다.")
+    @Operation(summary = "에디터 내 프로필 등록", description = "로그인한 사용자의 에디터 프로필을 등록합니다.")
     @PostMapping("/me/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> createMyProfile(
             @RequestBody @Valid EditorProfileDto.CreateRequest request,
@@ -30,7 +30,7 @@ public class EditorCommandController {
                 editorProfileCommandService.createProfile(oAuth2User.getUserId(), request)));
     }
 
-    @Operation(summary = "에디터 내 프로필 수정", description = "로그인한 사용자의 프로필 정보를 수정합니다.")
+    @Operation(summary = "에디터 내 프로필 수정", description = "로그인한 사용자의 에디터 프로필 정보를 수정합니다.")
     @PutMapping("/me/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> updateMyProfile(
             @RequestBody @Valid EditorProfileDto.UpdateRequest request,

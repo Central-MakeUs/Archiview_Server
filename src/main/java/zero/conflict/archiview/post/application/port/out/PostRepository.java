@@ -9,5 +9,7 @@ public interface PostRepository {
 
     Post save(Post post);
 
+    java.util.Optional<Post> findById(java.util.UUID id);
+
     List<Post> findAllByIds(List<UUID> ids);
 }

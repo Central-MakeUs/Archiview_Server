@@ -57,6 +57,29 @@ public class PostCommandService {
         return PresignedUrlCommandDto.Response.of(presignedUrl.uploadUrl());
     }
 
+    @Transactional
+    public PostCommandDto.Response updatePost(
+            java.util.UUID postId,
+            PostCommandDto.Request request,
+            java.util.UUID editorId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new DomainException(PostErrorCode.POST_NOT_FOUND));
+
+        if (!post.getEditorId().equals(editorId)) {
+            throw new DomainException(PostErrorCode.POST_NOT_FOUND);
+        }
+
+        post.update(request.getUrl(), request.getHashTag());
+        postRepository.save(post);
+
+        postPlacesRepository.deleteAllByPostId(postId);
+
+        List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
+                request.getPlaceInfoRequestList(), post, editorId);
+
+        return mapPostToResponse(post, placeInfoResponses);
+    }
+
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
             List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
             Post post,

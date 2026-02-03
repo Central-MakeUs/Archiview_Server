@@ -55,6 +55,7 @@ public class Place extends BaseTimeEntity {
         this.address = address;
     }
 
+
     public boolean isSameLocation(Place other) {
         return this.position.equals(other.getPosition());
     }

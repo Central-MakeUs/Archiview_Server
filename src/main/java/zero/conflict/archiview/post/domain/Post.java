@@ -53,4 +53,9 @@ public class Post extends BaseTimeEntity {
         return hashTags.getValue();
     }
 
+    public void update(String url, String hashTag) {
+        this.url = InstagramUrl.from(url);
+        this.hashTags = HashTags.from(hashTag);
+    }
+
 }
