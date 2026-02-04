@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.CategoryQueryService;
@@ -21,7 +22,11 @@ public class CategoryQueryController {
 
     @Operation(summary = "카테고리 목록 조회", description = "사용 가능한 카테고리 목록을 조회합니다.")
     @GetMapping("")
-    public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryListResponse>> getCategories() {
+    public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryListResponse>> getCategories(
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryListResponse.mock()));
+        }
         return ResponseEntity.ok(ApiResponse.success(categoryQueryService.getCategories()));
     }
 }

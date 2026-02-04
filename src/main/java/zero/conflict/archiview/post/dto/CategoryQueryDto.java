@@ -43,5 +43,13 @@ public class CategoryQueryDto {
                     .categories(categories.stream().map(CategoryResponse::from).toList())
                     .build();
         }
+
+        public static CategoryListResponse mock() {
+            return CategoryListResponse.builder()
+                    .categories(List.of(
+                            CategoryResponse.builder().id(1L).name("카페").build(),
+                            CategoryResponse.builder().id(2L).name("디저트").build()))
+                    .build();
+        }
     }
 }

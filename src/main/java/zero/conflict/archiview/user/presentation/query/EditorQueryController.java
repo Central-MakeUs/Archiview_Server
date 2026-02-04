@@ -29,7 +29,11 @@ public class EditorQueryController {
     @Operation(summary = "에디터 프로필 조회", description = "로그인한 에디터 자신의 프로필 정보를 조회합니다.")
     @GetMapping("/me/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getMyProfile(
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
+        }
         return ResponseEntity.ok(ApiResponse.success(
                 editorProfileQueryService.getMyProfile(oAuth2User.getUserId())));
     }
@@ -38,7 +42,11 @@ public class EditorQueryController {
     @GetMapping("/{editorId}/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getEditorProfile(
             @PathVariable java.util.UUID editorId,
+            @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
+        }
         return ResponseEntity.ok(ApiResponse.success(
                 editorProfileQueryService.getEditorProfile(editorId)));
     }
@@ -46,7 +54,12 @@ public class EditorQueryController {
     @Operation(summary = "에디터 인스타그램 ID 중복 확인", description = "에디터 프로필 등록을 위한 인스타그램 ID 중복 여부를 확인합니다.")
     @GetMapping("/profile/instagram-id/exists")
     public ResponseEntity<ApiResponse<EditorProfileDto.InstagramIdCheckResponse>> checkInstagramId(
+            @RequestParam(defaultValue = "false") boolean useMock,
             @RequestParam @jakarta.validation.constraints.NotBlank String instagramId) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(
+                    EditorProfileDto.InstagramIdCheckResponse.of(true)));
+        }
         boolean exists = editorProfileQueryService.existsInstagramId(instagramId);
         return ResponseEntity.ok(ApiResponse.success(
                 EditorProfileDto.InstagramIdCheckResponse.of(exists)));

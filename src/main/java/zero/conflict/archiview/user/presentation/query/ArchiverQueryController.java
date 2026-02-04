@@ -55,7 +55,11 @@ public class ArchiverQueryController {
 
     @Operation(summary = "믿고 먹는 에디터 조회", description = "팔로워 수와 등록한 포스트 장소 수를 기준으로 상위 에디터를 조회합니다.")
     @GetMapping("/editors/trusted")
-    public ResponseEntity<ApiResponse<TrustedEditorDto.ListResponse>> getTrustedEditors() {
+    public ResponseEntity<ApiResponse<TrustedEditorDto.ListResponse>> getTrustedEditors(
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(TrustedEditorDto.ListResponse.mock()));
+        }
         return ResponseEntity.ok(ApiResponse.success(trustedEditorQueryService.getTrustedEditors()));
     }
 }

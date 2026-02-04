@@ -40,6 +40,17 @@ public class EditorProfileDto {
                     .profileImageUrl(profile.getProfileImageUrl())
                     .build();
         }
+
+        public static Response mock() {
+            return Response.builder()
+                    .nickname("맛집탐방가")
+                    .instagramId("editor_insta")
+                    .instagramUrl("https://www.instagram.com/editor_insta")
+                    .introduction("서울의 숨은 맛집을 기록합니다.")
+                    .hashtags(java.util.List.of("#성수카페", "#디저트맛집"))
+                    .profileImageUrl("https://picsum.photos/200/200?random=41")
+                    .build();
+        }
     }
 
     @Getter
