@@ -10,19 +10,19 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
-@Tag(name = "Editor Profile Query", description = "에디터용 프로필 조회 API")
+@Tag(name = "Editor Query", description = "에디터 전용 조회 API")
 @RestController
 @RequestMapping("/api/v1/editors")
 @RequiredArgsConstructor
 @Validated
-public class EditorProfileQueryController {
+public class EditorQueryController {
 
     private final EditorProfileQueryService editorProfileQueryService;
 

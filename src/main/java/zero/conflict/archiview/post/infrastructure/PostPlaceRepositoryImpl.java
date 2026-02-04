@@ -51,4 +51,12 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     public List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, Long placeId) {
         return postPlaceJpaRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
     }
+
+    @Override
+    public List<PostPlace> findAllByEditorIds(List<UUID> editorIds) {
+        if (editorIds == null || editorIds.isEmpty()) {
+            return List.of();
+        }
+        return postPlaceJpaRepository.findAllByEditorIdIn(editorIds);
+    }
 }

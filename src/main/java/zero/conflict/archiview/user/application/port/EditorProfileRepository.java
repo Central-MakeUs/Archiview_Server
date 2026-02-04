@@ -10,6 +10,7 @@ public interface EditorProfileRepository {
     EditorProfile save(EditorProfile editorProfile);
     Optional<EditorProfile> findByUserId(UUID userId);
     List<EditorProfile> findAllByUserIds(List<UUID> userIds);
+    List<EditorProfile> findAll();
     Optional<EditorProfile> findById(Long id);
     boolean existsByUserId(UUID userId);
     boolean existsByNickname(String nickname);

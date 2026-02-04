@@ -20,4 +20,6 @@ public interface PostPlaceRepository {
     List<PostPlace> findAllByEditorId(UUID editorId);
 
     List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, Long placeId);
+
+    List<PostPlace> findAllByEditorIds(List<UUID> editorIds);
 }

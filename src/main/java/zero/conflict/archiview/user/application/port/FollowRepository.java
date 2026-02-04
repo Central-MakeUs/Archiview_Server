@@ -21,4 +21,6 @@ public interface FollowRepository {
     List<Follow> findAllByArchiverId(UUID archiverId);
 
     List<Follow> findAllByEditorId(UUID editorId);
+
+    List<Follow> findAllByEditorIds(List<UUID> editorIds);
 }

@@ -18,4 +18,6 @@ public interface FollowJpaRepository extends JpaRepository<Follow, Long> {
     List<Follow> findAllByArchiverId(UUID archiverId);
 
     List<Follow> findAllByEditorId(UUID editorId);
+
+    List<Follow> findAllByEditorIdIn(List<UUID> editorIds);
 }

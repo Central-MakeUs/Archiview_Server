@@ -49,4 +49,12 @@ public class FollowRepositoryImpl implements FollowRepository {
     public List<Follow> findAllByEditorId(UUID editorId) {
         return followJpaRepository.findAllByEditorId(editorId);
     }
+
+    @Override
+    public List<Follow> findAllByEditorIds(List<UUID> editorIds) {
+        if (editorIds == null || editorIds.isEmpty()) {
+            return List.of();
+        }
+        return followJpaRepository.findAllByEditorIdIn(editorIds);
+    }
 }

@@ -31,6 +31,11 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
     }
 
     @Override
+    public List<EditorProfile> findAll() {
+        return editorProfileJpaRepository.findAll();
+    }
+
+    @Override
     public Optional<EditorProfile> findById(Long id) {
         return editorProfileJpaRepository.findById(id);
     }
