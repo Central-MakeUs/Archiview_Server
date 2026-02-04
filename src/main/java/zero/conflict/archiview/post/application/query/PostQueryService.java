@@ -47,17 +47,14 @@ public class PostQueryService {
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceIds(placeIds);
 
                 Map<Long, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
-                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()))
-                                .entrySet()
-                                .stream()
+                                .sorted(Comparator.comparing(
+                                                this::getLastUpdatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder()))
+                                                .reversed())
                                 .collect(Collectors.toMap(
-                                                Map.Entry::getKey,
-                                                entry -> entry.getValue().stream()
-                                                                .max(Comparator.comparing(
-                                                                                this::getLastUpdatedAt,
-                                                                                Comparator.nullsLast(
-                                                                                                Comparator.naturalOrder())))
-                                                                .orElse(null)));
+                                                pp -> pp.getPlace().getId(),
+                                                Function.identity(),
+                                                (existing, ignored) -> existing));
 
                 List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
                                 .map(place -> ArchiverHotPlaceDto.PlaceCardResponse.from(
