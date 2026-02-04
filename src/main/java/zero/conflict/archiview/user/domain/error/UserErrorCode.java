@@ -17,7 +17,11 @@ public enum UserErrorCode implements DomainErrorCode {
     ARCHIVER_PROFILE_NOT_FOUND("USER_005A", "아카이버 프로필을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_HASHTAG("USER_006", "해시태그는 비어있을 수 없습니다.", HttpStatus.BAD_REQUEST),
     INVALID_ROLE_FOR_EDITOR_PROFILE("USER_007", "에디터만 프로필을 등록할 수 있습니다.", HttpStatus.BAD_REQUEST),
-    DUPLICATE_INSTAGRAM_ID("USER_008", "이미 사용 중인 인스타그램 아이디입니다.", HttpStatus.CONFLICT);
+    DUPLICATE_INSTAGRAM_ID("USER_008", "이미 사용 중인 인스타그램 아이디입니다.", HttpStatus.CONFLICT),
+    FOLLOW_ALREADY_EXISTS("USER_009", "이미 팔로우하고 있습니다.", HttpStatus.CONFLICT),
+    FOLLOW_NOT_FOUND("USER_010", "팔로우 관계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
+    INVALID_FOLLOWER_ROLE("USER_011", "아카이버만 팔로우할 수 있습니다.", HttpStatus.BAD_REQUEST),
+    INVALID_FOLLOWEE_ROLE("USER_012", "에디터만 팔로잉 대상이 될 수 있습니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
 import zero.conflict.archiview.user.domain.EditorProfile;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,6 +23,11 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
     @Override
     public Optional<EditorProfile> findByUserId(UUID userId) {
         return editorProfileJpaRepository.findByUserId(userId);
+    }
+
+    @Override
+    public List<EditorProfile> findAllByUserIds(List<UUID> userIds) {
+        return editorProfileJpaRepository.findAllByUserIdIn(userIds);
     }
 
     @Override
