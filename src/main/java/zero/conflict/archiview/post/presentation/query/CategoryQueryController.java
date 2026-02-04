@@ -12,7 +12,7 @@ import zero.conflict.archiview.post.application.query.CategoryQueryService;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 @Tag(name = "Category Query", description = "카테고리 조회 API")
 public class CategoryQueryController {
