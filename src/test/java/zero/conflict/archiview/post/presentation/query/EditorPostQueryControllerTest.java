@@ -14,6 +14,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 class EditorPostQueryControllerTest extends ControllerTestSupport {
@@ -30,12 +32,34 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .willReturn(EditorInsightDto.PlaceCardListResponse.empty(EditorInsightDto.PlaceSort.RECENT));
 
         mockMvc.perform(get("/api/v1/editors/me/insights/places")
-                        .with(authenticatedUser()))
+                .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.sort").value("RECENT"))
                 .andExpect(jsonPath("$.data.period").doesNotExist())
                 .andExpect(jsonPath("$.data.places").isArray())
                 .andExpect(jsonPath("$.data.places").isEmpty());
+    }
+
+    @Test
+    @DisplayName("에디터 인사이트 장소 상세 조회 - 성공")
+    void getInsightPlaceDetail_Success() throws Exception {
+        Long placeId = 1L;
+        EditorInsightDto.PostPlaceDetailResponse postPlaceDetail = EditorInsightDto.PostPlaceDetailResponse.of(
+                100L, "에디터", "editor_insta", "https://www.instagram.com/post", List.of("#태그", "#맛집"), "설명", List.of("카테고리"));
+        EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.of(placeId,
+                List.of(postPlaceDetail));
+
+        given(postQueryService.getInsightPlaceDetail(org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(placeId)))
+                .willReturn(response);
+
+        mockMvc.perform(get("/api/v1/editors/me/insights/places/{placeId}", placeId)
+                .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.placeId").value(placeId))
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
+                .andExpect(jsonPath("$.data.postPlaces[0].editorName").value("에디터"));
     }
 }

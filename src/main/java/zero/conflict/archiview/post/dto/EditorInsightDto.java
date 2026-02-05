@@ -16,6 +16,7 @@ import zero.conflict.archiview.user.domain.EditorProfile;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+
 public class EditorInsightDto {
 
     public enum Period {
@@ -57,7 +58,7 @@ public class EditorInsightDto {
         }
 
         public static SummaryResponse from(EditorProfile editorProfile,
-                                           long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
+                long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
             return SummaryResponse.builder()
                     .editorNickname(editorProfile.getNickname())
                     .totalPlaceCount(totalCount)
@@ -159,7 +160,7 @@ public class EditorInsightDto {
         private LocalDateTime updatedAt;
 
         public static PlaceCardResponse of(Place place, String summary,
-                                           String imageUrl, Stats stats, LocalDateTime updatedAt) {
+                String imageUrl, Stats stats, LocalDateTime updatedAt) {
             return PlaceCardResponse.builder()
                     .placeId(place.getId())
                     .placeName(place.getName())
@@ -255,6 +256,8 @@ public class EditorInsightDto {
     @AllArgsConstructor
     @Builder
     public static class PostPlaceDetailResponse {
+        @Schema(description = "장소-게시글 매핑 ID", example = "1")
+        private Long postPlaceId;
         @Schema(description = "에디터 이름", example = "아카이브 마스터")
         private String editorName;
         @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
@@ -268,9 +271,11 @@ public class EditorInsightDto {
         @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
         private List<String> categories;
 
-        public static PostPlaceDetailResponse of(String editorName, String editorInstagramId, String postUrl,
+        public static PostPlaceDetailResponse of(Long postPlaceId, String editorName, String editorInstagramId,
+                String postUrl,
                 List<String> postHashTags, String description, List<String> categories) {
             return PostPlaceDetailResponse.builder()
+                    .postPlaceId(postPlaceId)
                     .editorName(editorName)
                     .editorInstagramId(editorInstagramId)
                     .postUrl(postUrl)
@@ -290,6 +295,7 @@ public class EditorInsightDto {
                     .map(category -> category.getName())
                     .toList();
             return PostPlaceDetailResponse.builder()
+                    .postPlaceId(postPlace.getId())
                     .editorName(editorProfile.getNickname())
                     .editorInstagramId(editorProfile.getInstagramId())
                     .postUrl(post != null ? post.getUrl() : null)

@@ -137,4 +137,58 @@ class PostQueryServiceTest {
                 assertThat(response.getPins()).extracting("name")
                                 .containsExactlyInAnyOrder("가까운곳", "먼곳");
         }
+
+        @Test
+        @DisplayName("에디터의 특정 장소 인사이트 상세를 조회한다")
+        void getInsightPlaceDetail_success() {
+                // given
+                java.util.UUID editorId = java.util.UUID.randomUUID();
+                Long placeId = 1L;
+
+                zero.conflict.archiview.user.domain.EditorProfile editorProfile = zero.conflict.archiview.user.domain.EditorProfile
+                                .builder()
+                                .nickname("에디터")
+                                .instagramId("editor_insta")
+                                .build();
+
+                Place place = Place.builder()
+                                .id(placeId)
+                                .name("인사이트 장소")
+                                .build();
+
+                Post post = Post.createOf(editorId, "https://www.instagram.com/post/",
+                                java.util.Collections.emptyList());
+
+                PostPlace postPlace = PostPlace.createOf(post, place, "설명", "https://url.com", editorId);
+                try {
+                        java.lang.reflect.Field idField = PostPlace.class.getDeclaredField("id");
+                        idField.setAccessible(true);
+                        idField.set(postPlace, 100L);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                }
+                Category category = Category.createOf("카페");
+                try {
+                        java.lang.reflect.Field catIdField = Category.class.getDeclaredField("id");
+                        catIdField.setAccessible(true);
+                        catIdField.set(category, 1L);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                }
+                postPlace.addCategory(category);
+
+                given(postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId))
+                                .willReturn(List.of(postPlace));
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(java.util.Optional.of(editorProfile));
+
+                // when
+                zero.conflict.archiview.post.dto.EditorInsightDto.PlaceDetailResponse response = postQueryService
+                                .getInsightPlaceDetail(editorId, placeId);
+
+                // then
+                assertThat(response.getPostPlaces()).hasSize(1);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
+                assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
+        }
 }
