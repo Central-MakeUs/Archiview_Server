@@ -60,7 +60,6 @@ public class Place extends BaseTimeEntity {
         this.viewCount = (this.viewCount == null ? 0L : this.viewCount) + 1L;
     }
 
-
     public boolean isSameLocation(Place other) {
         return this.position.equals(other.getPosition());
     }

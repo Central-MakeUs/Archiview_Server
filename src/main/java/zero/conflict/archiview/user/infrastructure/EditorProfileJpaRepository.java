@@ -8,9 +8,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface EditorProfileJpaRepository extends JpaRepository<EditorProfile, Long> {
-    Optional<EditorProfile> findByUserId(UUID userId);
-    List<EditorProfile> findAllByUserIdIn(List<UUID> userIds);
-    boolean existsByUserId(UUID userId);
+    Optional<EditorProfile> findByUser_Id(UUID userId);
+
+    List<EditorProfile> findAllByUser_IdIn(List<UUID> userIds);
+
+    boolean existsByUser_Id(UUID userId);
+
     boolean existsByNickname(String nickname);
+
     boolean existsByInstagramId(String instagramId);
 }

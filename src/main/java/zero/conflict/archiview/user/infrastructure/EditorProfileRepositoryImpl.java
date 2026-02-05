@@ -22,12 +22,12 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
 
     @Override
     public Optional<EditorProfile> findByUserId(UUID userId) {
-        return editorProfileJpaRepository.findByUserId(userId);
+        return editorProfileJpaRepository.findByUser_Id(userId);
     }
 
     @Override
     public List<EditorProfile> findAllByUserIds(List<UUID> userIds) {
-        return editorProfileJpaRepository.findAllByUserIdIn(userIds);
+        return editorProfileJpaRepository.findAllByUser_IdIn(userIds);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
 
     @Override
     public boolean existsByUserId(UUID userId) {
-        return editorProfileJpaRepository.existsByUserId(userId);
+        return editorProfileJpaRepository.existsByUser_Id(userId);
     }
 
     @Override
