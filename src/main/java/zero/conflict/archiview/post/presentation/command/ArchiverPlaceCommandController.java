@@ -22,12 +22,5 @@ public class ArchiverPlaceCommandController {
 
     private final PostCommandService postCommandService;
 
-    @Operation(summary = "장소 조회수 증가", description = "아카이버가 장소 상세를 조회할 때 조회수를 증가시킵니다.")
-    @PostMapping("/post-places/{postPlaceId}/view")
-    public ResponseEntity<ApiResponse<Void>> increasePostPlaceViewCount(
-            @PathVariable Long postPlaceId,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        postCommandService.increasePostPlaceViewCount(postPlaceId, oAuth2User.getUserId());
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
+
 }

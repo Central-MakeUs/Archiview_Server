@@ -21,13 +21,5 @@ import zero.conflict.archiview.user.dto.ArchiverProfileDto;
 @RequestMapping("/api/v1/archivers/me")
 public class ArchiverPostCommandController {
 
-    @Operation(summary = "내 프로필 수정 (아카이버)", description = "로그인한 아카이버 자신의 프로필 정보를 수정합니다.")
-    @PutMapping("/profile")
-    public ResponseEntity<ApiResponse<Void>> updateMyProfile(
-            @RequestBody @Valid ArchiverProfileDto.UpdateRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
-        // TODO: Service 연동
-        return ResponseEntity.ok(ApiResponse.success(null));
-    }
 }
