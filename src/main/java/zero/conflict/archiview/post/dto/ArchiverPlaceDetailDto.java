@@ -41,7 +41,7 @@ public class ArchiverPlaceDetailDto {
 
         public static Response mock() {
             return Response.builder()
-                            .place(PlaceResponse.builder()
+                    .place(PlaceResponse.builder()
                             .placeId(301L)
                             .name("성수 핫플 카페")
                             .roadAddress("서울특별시 성동구 아차산로 123")
@@ -51,11 +51,16 @@ public class ArchiverPlaceDetailDto {
                             .longitude(127.0560)
                             .nearestStationWalkTime("성수역 도보 5분")
                             .viewCount(1200L)
+                            .saveCount(450L)
+                            .instagramInflowCount(800L)
+                            .directionCount(200L)
                             .build())
-                            .postPlaces(List.of(
+                    .postPlaces(List.of(
                             PostPlaceResponse.builder()
                                     .postPlaceId(401L)
                                     .postId(501L)
+                                    .editorName("아카이브 마스터")
+                                    .editorInstagramId("archiview_master")
                                     .description("분위기가 너무 좋고 커피가 맛있어요.")
                                     .imageUrl("https://picsum.photos/400/300?random=31")
                                     .categoryNames(List.of("카페", "디저트"))
@@ -63,6 +68,8 @@ public class ArchiverPlaceDetailDto {
                             PostPlaceResponse.builder()
                                     .postPlaceId(402L)
                                     .postId(502L)
+                                    .editorName("에디터A")
+                                    .editorInstagramId("editor_a")
                                     .description("조용해서 대화하기 좋아요.")
                                     .imageUrl("https://picsum.photos/400/300?random=32")
                                     .categoryNames(List.of("카페"))
@@ -95,8 +102,14 @@ public class ArchiverPlaceDetailDto {
         private String nearestStationWalkTime;
         @Schema(description = "조회수", example = "1200")
         private Long viewCount;
+        @Schema(description = "저장수", example = "450")
+        private Long saveCount;
+        @Schema(description = "인스타 유입수", example = "800")
+        private Long instagramInflowCount;
+        @Schema(description = "길찾기수", example = "200")
+        private Long directionCount;
 
-        public static PlaceResponse from(Place place) {
+        public static PlaceResponse from(Place place, long saveCount, long instagramInflowCount, long directionCount) {
             return PlaceResponse.builder()
                     .placeId(place.getId())
                     .name(place.getName())
@@ -107,6 +120,9 @@ public class ArchiverPlaceDetailDto {
                     .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
                     .nearestStationWalkTime(place.getNearestStationWalkTime())
                     .viewCount(place.getViewCount() == null ? 0L : place.getViewCount())
+                    .saveCount(saveCount)
+                    .instagramInflowCount(instagramInflowCount)
+                    .directionCount(directionCount)
                     .build();
         }
     }
@@ -131,8 +147,13 @@ public class ArchiverPlaceDetailDto {
         private String imageUrl;
         @Schema(description = "카테고리명 목록")
         private List<String> categoryNames;
+        @Schema(description = "에디터 이름", example = "아카이브 마스터")
+        private String editorName;
+        @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
+        private String editorInstagramId;
 
-        public static PostPlaceResponse from(PostPlace postPlace) {
+        public static PostPlaceResponse from(PostPlace postPlace,
+                zero.conflict.archiview.user.domain.EditorProfile editorProfile) {
             Post post = postPlace.getPost();
             List<String> categories = postPlace.getPostPlaceCategories().stream()
                     .map(PostPlaceCategory::getCategory)
@@ -148,6 +169,8 @@ public class ArchiverPlaceDetailDto {
                     .description(postPlace.getDescription())
                     .imageUrl(postPlace.getImageUrl())
                     .categoryNames(categories)
+                    .editorName(editorProfile != null ? editorProfile.getNickname() : null)
+                    .editorInstagramId(editorProfile != null ? editorProfile.getInstagramId() : null)
                     .build();
         }
     }

@@ -73,4 +73,8 @@ public class EditorProfile extends BaseTimeEntity {
         this.profileImageUrl = profileImageUrl;
         this.hashtags = hashtags;
     }
+
+    public java.util.UUID getUserId() {
+        return user != null ? user.getId() : null;
+    }
 }

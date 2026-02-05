@@ -49,8 +49,8 @@ public class EditorPostQueryController {
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getInsightPlaces(user.getUserId(), sort)));
     }
 
-    @Operation(summary = "에디터 장소 상세 조회", description = "에디터 인사이트 장소 상세를 조회합니다.")
-    @GetMapping("/me/insights/places/{placeId}")
+    @Operation(summary = "에디터 장소 상세 조회 (작업중)", description = "에디터 장소 상세를 조회합니다.")
+    @GetMapping("/me/places/{placeId}")
     public ResponseEntity<ApiResponse<EditorInsightDto.PlaceDetailResponse>> getInsightPlaceDetail(
             @PathVariable Long placeId,
             @RequestParam(defaultValue = "false") boolean useMock,

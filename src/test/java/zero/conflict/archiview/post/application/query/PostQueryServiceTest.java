@@ -147,6 +147,9 @@ class PostQueryServiceTest {
 
                 zero.conflict.archiview.user.domain.EditorProfile editorProfile = zero.conflict.archiview.user.domain.EditorProfile
                                 .builder()
+                                .user(zero.conflict.archiview.user.domain.User.builder().id(editorId).build())
+                                .introduction("소개")
+                                .instagramUrl("https://www.instagram.com/editor_insta")
                                 .nickname("에디터")
                                 .instagramId("editor_insta")
                                 .build();
@@ -156,8 +159,7 @@ class PostQueryServiceTest {
                                 .name("인사이트 장소")
                                 .build();
 
-                Post post = Post.createOf(editorId, "https://www.instagram.com/post/",
-                                java.util.Collections.emptyList());
+                Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
 
                 PostPlace postPlace = PostPlace.createOf(post, place, "설명", "https://url.com", editorId);
                 try {
@@ -190,5 +192,53 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces()).hasSize(1);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
+        }
+
+        @Test
+        @DisplayName("아카이버용 특정 장소 상세를 조회한다")
+        void getArchiverPlaceDetail_success() {
+                // given
+                java.util.UUID editorId = java.util.UUID.randomUUID();
+                Long placeId = 1L;
+
+                zero.conflict.archiview.user.domain.EditorProfile editorProfile = zero.conflict.archiview.user.domain.EditorProfile
+                                .builder()
+                                .user(zero.conflict.archiview.user.domain.User.builder().id(editorId).build())
+                                .introduction("소개")
+                                .instagramUrl("https://www.instagram.com/editor_insta")
+                                .nickname("에디터")
+                                .instagramId("editor_insta")
+                                .build();
+
+                Place place = Place.builder()
+                                .id(placeId)
+                                .name("성수 핫플")
+                                .build();
+
+                Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
+
+                PostPlace postPlace = PostPlace.createOf(post, place, "설명", "https://url.com", editorId);
+                try {
+                        java.lang.reflect.Field idField = PostPlace.class.getDeclaredField("id");
+                        idField.setAccessible(true);
+                        idField.set(postPlace, 100L);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                }
+
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place));
+                given(postPlaceRepository.findAllByPlaceId(placeId)).willReturn(List.of(postPlace));
+                given(editorProfileRepository.findAllByUserIds(List.of(editorId))).willReturn(List.of(editorProfile));
+
+                // when
+                zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto.Response response = postQueryService
+                                .getArchiverPlaceDetail(placeId);
+
+                // then
+                assertThat(response.getPlace().getPlaceId()).isEqualTo(placeId);
+                assertThat(response.getPostPlaces()).hasSize(1);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
+                assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
+                assertThat(response.getPostPlaces().get(0).getEditorInstagramId()).isEqualTo("editor_insta");
         }
 }

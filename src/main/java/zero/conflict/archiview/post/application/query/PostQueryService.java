@@ -133,14 +133,28 @@ public class PostQueryService {
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceId(placeId);
 
-                ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(place);
+                EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
+                ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(
+                                place,
+                                summedStats.getSaveCount(),
+                                summedStats.getInstagramInflowCount(),
+                                summedStats.getDirectionCount());
 
                 if (postPlaces.isEmpty()) {
                         return ArchiverPlaceDetailDto.Response.empty(placeResponse);
                 }
 
+                List<UUID> editorIds = postPlaces.stream()
+                                .map(PostPlace::getEditorId)
+                                .distinct()
+                                .toList();
+
+                Map<UUID, EditorProfile> editorProfileMap = editorProfileRepository.findAllByUserIds(editorIds).stream()
+                                .collect(Collectors.toMap(EditorProfile::getUserId, Function.identity()));
+
                 List<ArchiverPlaceDetailDto.PostPlaceResponse> postPlaceResponses = postPlaces.stream()
-                                .map(ArchiverPlaceDetailDto.PostPlaceResponse::from)
+                                .map(pp -> ArchiverPlaceDetailDto.PostPlaceResponse.from(
+                                                pp, editorProfileMap.get(pp.getEditorId())))
                                 .toList();
 
                 return ArchiverPlaceDetailDto.Response.from(placeResponse, postPlaceResponses);
