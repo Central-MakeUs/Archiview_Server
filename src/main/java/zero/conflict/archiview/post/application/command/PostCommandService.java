@@ -118,15 +118,11 @@ public class PostCommandService {
                     imageUrl,
                     editorId);
 
-            if (placeInfo.getCategoryIds() != null) {
-                for (Long categoryId : placeInfo.getCategoryIds()) {
-                    if (categoryId == null) {
-                        throw new DomainException(PostErrorCode.INVALID_CATEGORY_ID);
-                    }
-                    Category category = categoryRepository.findById(categoryId)
-                            .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
-                    postPlace.addCategory(category);
-                }
+            Long categoryId = placeInfo.getCategoryId();
+            if (categoryId != null) {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
+                postPlace.addCategory(category);
             }
             postPlacesRepository.save(postPlace);
 

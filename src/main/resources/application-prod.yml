@@ -11,6 +11,12 @@ spring:
       ddl-auto: update
     show-sql: false
 
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+
   # OAuth2
   security:
     oauth2:
@@ -69,3 +75,4 @@ logging:
   level:
     zero.conflict.archiview: INFO
     org.springframework.security: WARN
+
