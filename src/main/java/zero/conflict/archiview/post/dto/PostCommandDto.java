@@ -62,8 +62,8 @@ public class PostCommandDto {
             @Schema(description = "경도", example = "127.0560")
             private Double longitude;
 
-            @Schema(description = "카테고리 ID", example = "1")
-            private Long categoryId;
+            @Schema(description = "카테고리 ID 목록", example = "[1, 2]")
+            private List<Long> categoryIds;
             @Schema(description = "가까운 역에서 도보 시간", example = "성수역 도보 5분")
             private String nearestStationWalkTime;
 
