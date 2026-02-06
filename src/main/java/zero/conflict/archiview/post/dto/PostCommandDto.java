@@ -46,15 +46,12 @@ public class PostCommandDto {
             @NotBlank(message = "장소 설명은 필수입니다.")
             @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
             private String description;
+            @NotBlank(message = "지번 주소는 필수입니다.")
+            @Schema(description = "지번 주소", example = "서울 노원구 공릉동 596-12")
+            private String addressName;
             @NotBlank(message = "도로명 주소는 필수입니다.")
-            @Schema(description = "도로명 주소", example = "서울특별시 성동구 아차산로 123")
-            private String roadAddress;
-            @NotBlank
-            @Schema(description = "상세 주소", example = "2층 201호")
-            private String detailAddress;
-            @NotBlank
-            @Schema(description = "우편번호", example = "04782")
-            private String zipCode;
+            @Schema(description = "도로명 주소", example = "인천 중구 백운로228번길 81-10")
+            private String roadAddressName;
             @NotNull(message = "위도는 필수입니다.")
             @Schema(description = "위도", example = "37.5445")
             private Double latitude;
@@ -104,12 +101,10 @@ public class PostCommandDto {
             private Long placeId;
             @Schema(description = "장소명", example = "아카이브 성수")
             private String name;
-            @Schema(description = "도로명 주소", example = "서울특별시 성동구 아차산로 123")
-            private String roadAddress;
-            @Schema(description = "상세 주소", example = "2층 201호")
-            private String detailAddress;
-            @Schema(description = "우편번호", example = "04782")
-            private String zipCode;
+            @Schema(description = "지번 주소", example = "서울 노원구 공릉동 596-12")
+            private String addressName;
+            @Schema(description = "도로명 주소", example = "인천 중구 백운로228번길 81-10")
+            private String roadAddressName;
             @Schema(description = "위도", example = "37.5445")
             private Double latitude;
             @Schema(description = "경도", example = "127.0560")
@@ -119,24 +114,22 @@ public class PostCommandDto {
                 return PlaceInfoResponse.builder()
                         .placeId(place.getId())
                         .name(place.getName())
-                        .roadAddress(place.getAddress().getRoadAddress())
-                        .detailAddress(place.getAddress().getDetailAddress())
-                        .zipCode(place.getAddress().getZipCode())
+                        .addressName(place.getAddress().getAddressName())
+                        .roadAddressName(place.getAddress().getRoadAddressName())
                         .latitude(place.getPosition().getLatitude())
                         .longitude(place.getPosition().getLongitude())
                         .build();
             }
 
             public static PlaceInfoResponse of(Long placeId, String name,
-                    String roadAddress, String detailAddress,
-                    String zipCode, Double latitude,
+                    String addressName, String roadAddressName,
+                    Double latitude,
                     Double longitude) {
                 return PlaceInfoResponse.builder()
                         .placeId(placeId)
                         .name(name)
-                        .roadAddress(roadAddress)
-                        .detailAddress(detailAddress)
-                        .zipCode(zipCode)
+                        .addressName(addressName)
+                        .roadAddressName(roadAddressName)
                         .latitude(latitude)
                         .longitude(longitude)
                         .build();

@@ -100,7 +100,7 @@ public class ArchiverHotPlaceDto {
                                         .imageUrl(latestPostPlace != null ? latestPostPlace.getImageUrl() : null)
                                         .categoryNames(categories)
                                         .hashTags(post != null ? post.getHashTags() : null)
-                                        .address(place.getAddress() != null ? place.getAddress().getRoadAddress()
+                                        .address(place.getAddress() != null ? place.getAddress().getRoadAddressName()
                                                         : null)
                                         .viewCount(place.getViewCount() == null ? 0L : place.getViewCount())
                                         .build();

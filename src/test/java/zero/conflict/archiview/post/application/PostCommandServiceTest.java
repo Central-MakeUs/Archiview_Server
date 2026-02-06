@@ -59,9 +59,8 @@ class PostCommandServiceTest {
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
                                 .name("테스트 장소")
-                                .roadAddress("서울시 강남구")
-                                .detailAddress("101호")
-                                .zipCode("12345")
+                                .addressName("서울 노원구 공릉동 596-12")
+                                .roadAddressName("인천 중구 백운로228번길 81-10")
                                 .description("멋진 장소")
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
@@ -79,8 +78,7 @@ class PostCommandServiceTest {
 
                 Place newPlace = Place.createOf(
                                 placeInfoRequest.getName(),
-                                Address.of(placeInfoRequest.getRoadAddress(), placeInfoRequest.getDetailAddress(),
-                                                placeInfoRequest.getZipCode()),
+                                Address.of(placeInfoRequest.getAddressName(), placeInfoRequest.getRoadAddressName()),
                                 Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()),
                                 placeInfoRequest.getNearestStationWalkTime());
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
@@ -121,9 +119,8 @@ class PostCommandServiceTest {
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
                                 .name("기존 장소")
-                                .roadAddress("서울시 종로구")
-                                .detailAddress("201호")
-                                .zipCode("54321")
+                                .addressName("서울시 종로구 묘동 123-45")
+                                .roadAddressName("서울시 종로구 묘동길 1")
                                 .description("이미 존재하는 장소")
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
@@ -145,7 +142,7 @@ class PostCommandServiceTest {
 
                 Place existingPlace = Place.createOf(
                                 "기존 장소",
-                                Address.of("서울시 종로구", "201호", "54321"),
+                                Address.of("서울시 종로구 묘동 123-45", "서울시 종로구 묘동길 1"),
                                 Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
                                 "도보 3분");
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
@@ -177,9 +174,8 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
                                 .name("장소1")
-                                .roadAddress("주소1")
-                                .detailAddress("상세주소1")
-                                .zipCode("11111")
+                                .addressName("주소1")
+                                .roadAddressName("도로명주소1")
                                 .description("설명1")
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
@@ -188,9 +184,8 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
                                 .name("장소2")
-                                .roadAddress("주소2")
-                                .detailAddress("상세주소2")
-                                .zipCode("22222")
+                                .addressName("주소2")
+                                .roadAddressName("도로명주소2")
                                 .description("설명2")
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))

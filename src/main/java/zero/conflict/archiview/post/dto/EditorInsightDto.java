@@ -231,7 +231,7 @@ public class EditorInsightDto {
                     .placeName("모의 장소 상세")
                     .placeImageUrl("https://picsum.photos/800/600?random=10")
                     .editorTotal(5L)
-                    .address(Address.of("서울특별시 성동구 아차산로 123", "2층 201호", "04782"))
+                    .address(Address.of("서울특별시 성동구 성수동 123-45", "서울특별시 성동구 아차산로 123"))
                     .nearestStationWalkTime("성수역 도보 5분")
                     .stats(Stats.builder()
                             .viewCount(1500L)

@@ -138,9 +138,8 @@ public class PostCommandService {
         return Place.createOf(
                 placeInfo.getName(),
                 Address.of(
-                        placeInfo.getRoadAddress(),
-                        placeInfo.getDetailAddress(),
-                        placeInfo.getZipCode()),
+                        placeInfo.getAddressName(),
+                        placeInfo.getRoadAddressName()),
                 Position.of(
                         placeInfo.getLatitude(),
                         placeInfo.getLongitude()),

@@ -12,11 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class Address {
 
-    private String roadAddress;      // 도로명 주소
-    private String detailAddress;    // 상세 주소
-    private String zipCode;          // 우편번호
+    private String addressName; // 지번 주소
+    private String roadAddressName; // 도로명 주소
 
-    public static Address of(String roadAddress, String detailAddress, String zipCode) {
-        return new Address(roadAddress, detailAddress, zipCode);
+    public static Address of(String addressName, String roadAddressName) {
+        return new Address(addressName, roadAddressName);
     }
 }
