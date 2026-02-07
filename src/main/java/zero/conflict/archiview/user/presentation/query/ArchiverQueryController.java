@@ -19,7 +19,7 @@ import zero.conflict.archiview.user.dto.ArchiverProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 import zero.conflict.archiview.user.dto.TrustedEditorDto;
 
-@Tag(name = "Archiver Query", description = "아카이버 전용 조회 API")
+@Tag(name = "Archiver User Query", description = "아카이버 전용 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers")

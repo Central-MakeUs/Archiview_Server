@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,5 +29,17 @@ public class CategoryQueryController {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(categoryQueryService.getCategories()));
+    }
+
+    @Operation(summary = "카테고리별 장소 목록 조회",
+            description = "categoryId를 가진 postPlace가 연결된 place 목록을 조회합니다. 최신 설명/조회수/저장수를 반환합니다.")
+    @GetMapping("/{categoryId}/places")
+    public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryPlaceListResponse>> getPlacesByCategoryId(
+            @PathVariable Long categoryId,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(categoryQueryService.getPlacesByCategoryId(categoryId)));
     }
 }

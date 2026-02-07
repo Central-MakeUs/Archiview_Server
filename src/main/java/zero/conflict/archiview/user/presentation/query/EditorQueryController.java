@@ -17,7 +17,7 @@ import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
-@Tag(name = "Editor Query", description = "에디터 전용 조회 API")
+@Tag(name = "Editor User Query", description = "에디터 전용 조회 API")
 @RestController
 @RequestMapping("/api/v1/editors")
 @RequiredArgsConstructor
