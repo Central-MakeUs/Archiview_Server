@@ -23,26 +23,31 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtTokenProvider jwtTokenProvider;
     private final ObjectMapper objectMapper;
 
+    @org.springframework.beans.factory.annotation.Value("${auth.frontend-url}")
+    private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+            Authentication authentication) throws IOException, ServletException {
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
 
         String accessToken = jwtTokenProvider.createAccessToken(oAuth2User);
         String refreshToken = jwtTokenProvider.createRefreshToken(oAuth2User.getUserId());
 
-        log.info("OAuth2 로그인 성공 - 사용자 ID: {}, 이메일: {}",
-                oAuth2User.getUserId(), oAuth2User.getUsername());
+        log.info("OAuth2 로그인 성공 - 사용자 ID: {}, 이메일: {}, Role: {}",
+                oAuth2User.getUserId(), oAuth2User.getUsername(), oAuth2User.getUser().getRole());
 
-        Map<String, Object> tokenResponse = new HashMap<>();
-        tokenResponse.put("accessToken", accessToken);
-        tokenResponse.put("refreshToken", refreshToken);
-        tokenResponse.put("userId", oAuth2User.getUserId());
-        tokenResponse.put("email", oAuth2User.getUsername());
-        tokenResponse.put("name", oAuth2User.getName());
+        String targetPath = switch (oAuth2User.getUser().getRole()) {
+            case EDITOR -> "/editor/home";
+            case ARCHIVER -> "/archiver/home";
+            case GUEST -> "/login";
+        };
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(objectMapper.writeValueAsString(tokenResponse));
+        String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(frontendUrl + targetPath)
+                .queryParam("accessToken", accessToken)
+                .queryParam("refreshToken", refreshToken)
+                .build().toUriString();
+
+        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 }

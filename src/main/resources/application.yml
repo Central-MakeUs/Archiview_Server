@@ -60,6 +60,7 @@ auth:
     kakao:
       issuer: https://kauth.kakao.com
       audience: ${KAKAO_MOBILE_CLIENT_ID:}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
 
 springdoc:
   swagger-ui:
