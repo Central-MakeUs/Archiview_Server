@@ -78,6 +78,8 @@ jobs:
               -e APPLE_APP_BUNDLE_ID="${{ secrets.APPLE_APP_BUNDLE_ID }}" \
               -e KAKAO_MOBILE_CLIENT_ID="${{ secrets.KAKAO_MOBILE_CLIENT_ID }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
+              -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
               ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
 
             # 컨테이너 로그 확인
