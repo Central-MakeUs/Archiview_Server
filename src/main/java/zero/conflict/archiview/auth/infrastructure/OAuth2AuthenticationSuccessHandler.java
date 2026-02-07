@@ -1,6 +1,5 @@
 package zero.conflict.archiview.auth.infrastructure;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -12,8 +11,6 @@ import org.springframework.stereotype.Component;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -21,7 +18,6 @@ import java.util.Map;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
 
     @org.springframework.beans.factory.annotation.Value("${auth.frontend-url}")
     private String frontendUrl;
@@ -38,9 +34,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 oAuth2User.getUserId(), oAuth2User.getUsername(), oAuth2User.getUser().getRole());
 
         String targetPath = switch (oAuth2User.getUser().getRole()) {
-            case EDITOR -> "/editor/home";
-            case ARCHIVER -> "/archiver/home";
-            case GUEST -> "/login";
+            case EDITOR -> "editor/home/";
+            case ARCHIVER -> "archiver/home/";
+            case GUEST -> "term-agree/";
         };
 
         String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(frontendUrl + targetPath)
