@@ -81,32 +81,37 @@ public class CategoryQueryDto {
     @AllArgsConstructor
     @Builder
     public static class CategoryPlaceListResponse {
+        private Long totalCount;
         private List<CategoryPlaceResponse> places;
 
         public static CategoryPlaceListResponse from(
                 List<CategoryPlaceReadRepository.CategoryPlaceSummaryProjection> projections) {
+            List<CategoryPlaceResponse> places = projections.stream().map(CategoryPlaceResponse::from).toList();
             return CategoryPlaceListResponse.builder()
-                    .places(projections.stream().map(CategoryPlaceResponse::from).toList())
+                    .totalCount((long) places.size())
+                    .places(places)
                     .build();
         }
 
         public static CategoryPlaceListResponse mock() {
+            List<CategoryPlaceResponse> places = List.of(
+                    CategoryPlaceResponse.builder()
+                            .placeId(101L)
+                            .placeName("성수 감성 카페")
+                            .latestDescription("채광이 좋고 디저트가 맛있어요.")
+                            .viewCount(1240L)
+                            .saveCount(385L)
+                            .build(),
+                    CategoryPlaceResponse.builder()
+                            .placeId(102L)
+                            .placeName("연남 브런치 하우스")
+                            .latestDescription("주말 오픈런 필수인 브런치 맛집.")
+                            .viewCount(980L)
+                            .saveCount(274L)
+                            .build());
             return CategoryPlaceListResponse.builder()
-                    .places(List.of(
-                            CategoryPlaceResponse.builder()
-                                    .placeId(101L)
-                                    .placeName("성수 감성 카페")
-                                    .latestDescription("채광이 좋고 디저트가 맛있어요.")
-                                    .viewCount(1240L)
-                                    .saveCount(385L)
-                                    .build(),
-                            CategoryPlaceResponse.builder()
-                                    .placeId(102L)
-                                    .placeName("연남 브런치 하우스")
-                                    .latestDescription("주말 오픈런 필수인 브런치 맛집.")
-                                    .viewCount(980L)
-                                    .saveCount(274L)
-                                    .build()))
+                    .totalCount((long) places.size())
+                    .places(places)
                     .build();
         }
     }

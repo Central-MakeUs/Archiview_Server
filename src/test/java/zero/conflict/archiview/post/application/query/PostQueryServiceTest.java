@@ -68,6 +68,7 @@ class PostQueryServiceTest {
 
                 // then
                 assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getTotalCount()).isEqualTo(1L);
                 assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
                 assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
                 assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(20L);

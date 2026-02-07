@@ -34,15 +34,17 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .saveCount(45L)
                 .build();
         CategoryQueryDto.CategoryPlaceListResponse response = CategoryQueryDto.CategoryPlaceListResponse.builder()
+                .totalCount(1L)
                 .places(List.of(place))
                 .build();
         given(postQueryService.getNearbyPlacesWithin1km(37.5445, 127.0560)).willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/places/nearby")
                         .queryParam("latitude", "37.5445")
-                        .queryParam("longitude", "127.0560"))
+                .queryParam("longitude", "127.0560"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
                 .andExpect(jsonPath("$.data.places[0].placeName").value("성수 감성 카페"))
                 .andExpect(jsonPath("$.data.places[0].saveCount").value(45));
     }
@@ -53,9 +55,10 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         mockMvc.perform(get("/api/v1/archivers/places/nearby")
                         .queryParam("latitude", "37.5445")
                         .queryParam("longitude", "127.0560")
-                        .queryParam("useMock", "true"))
+                .queryParam("useMock", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(2))
                 .andExpect(jsonPath("$.data.places").isArray());
     }
 }

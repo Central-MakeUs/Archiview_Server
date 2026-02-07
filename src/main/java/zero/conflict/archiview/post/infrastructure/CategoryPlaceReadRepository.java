@@ -34,7 +34,13 @@ public interface CategoryPlaceReadRepository extends Repository<Place, Long> {
                 WHERE pp.place_id = p.id
                   AND ppc.category_id = :categoryId
             )
-            ORDER BY p.view_count DESC, p.id DESC
+            ORDER BY (
+                SELECT pp4.created_at
+                FROM post_place pp4
+                WHERE pp4.place_id = p.id
+                ORDER BY pp4.created_at DESC, pp4.id DESC
+                LIMIT 1
+            ) DESC, p.id DESC
             """, nativeQuery = true)
     List<CategoryPlaceSummaryProjection> findPlaceSummariesByCategoryId(@Param("categoryId") Long categoryId);
 
@@ -60,7 +66,13 @@ public interface CategoryPlaceReadRepository extends Repository<Place, Long> {
                 POINT(p.position_longitude, p.position_latitude),
                 POINT(:longitude, :latitude)
             ) <= :radiusMeter
-            ORDER BY p.view_count DESC, p.id DESC
+            ORDER BY (
+                SELECT pp4.created_at
+                FROM post_place pp4
+                WHERE pp4.place_id = p.id
+                ORDER BY pp4.created_at DESC, pp4.id DESC
+                LIMIT 1
+            ) DESC, p.id DESC
             """, nativeQuery = true)
     List<CategoryPlaceSummaryProjection> findPlaceSummariesNearby(
             @Param("latitude") Double latitude,

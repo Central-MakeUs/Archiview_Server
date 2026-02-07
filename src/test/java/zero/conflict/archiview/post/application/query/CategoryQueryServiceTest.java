@@ -53,6 +53,7 @@ class CategoryQueryServiceTest {
 
         // then
         assertThat(response.getPlaces()).hasSize(1);
+        assertThat(response.getTotalCount()).isEqualTo(1L);
         assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
         assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("최근 설명");
         assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(120L);

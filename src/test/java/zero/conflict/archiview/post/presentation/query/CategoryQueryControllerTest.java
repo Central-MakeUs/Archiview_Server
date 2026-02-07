@@ -35,6 +35,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .saveCount(340L)
                 .build();
         CategoryQueryDto.CategoryPlaceListResponse response = CategoryQueryDto.CategoryPlaceListResponse.builder()
+                .totalCount(1L)
                 .places(List.of(place))
                 .build();
 
@@ -44,6 +45,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(1))
                 .andExpect(jsonPath("$.data.places[0].placeName").value("성수 핫플"))
                 .andExpect(jsonPath("$.data.places[0].latestDescription").value("가장 최근 설명"))
                 .andExpect(jsonPath("$.data.places[0].viewCount").value(1200))
@@ -58,6 +60,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.totalCount").value(2))
                 .andExpect(jsonPath("$.data.places").isArray())
                 .andExpect(jsonPath("$.data.places[0].placeName").value("성수 감성 카페"));
     }
