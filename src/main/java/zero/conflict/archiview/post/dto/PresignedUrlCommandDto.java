@@ -38,9 +38,17 @@ public class PresignedUrlCommandDto {
         @Schema(description = "업로드용 presigned URL")
         private String uploadUrl;
 
-        public static Response of(String uploadUrl) {
+        @Schema(description = "업로드 완료 후 최종 이미지 URL")
+        private String imageUrl;
+
+        @Schema(description = "S3 객체 키 (DB 저장용)")
+        private String imageKey;
+
+        public static Response of(String uploadUrl, String imageUrl, String imageKey) {
             return Response.builder()
                     .uploadUrl(uploadUrl)
+                    .imageUrl(imageUrl)
+                    .imageKey(imageKey)
                     .build();
         }
     }

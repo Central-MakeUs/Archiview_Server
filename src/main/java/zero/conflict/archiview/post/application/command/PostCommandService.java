@@ -57,7 +57,12 @@ public class PostCommandService {
                 request.getFilename(),
                 request.getContentType());
 
-        return PresignedUrlCommandDto.Response.of(presignedUrl.uploadUrl());
+        String imageUrl = s3Service.getFileUrl(presignedUrl.key());
+
+        return PresignedUrlCommandDto.Response.of(
+                presignedUrl.uploadUrl(),
+                imageUrl,
+                presignedUrl.key());
     }
 
     @Transactional

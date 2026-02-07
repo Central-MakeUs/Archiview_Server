@@ -65,10 +65,11 @@ public class S3Service {
         String safeFilename = originalFilename == null ? "file" : originalFilename;
         String key = dirName + "/" + UUID.randomUUID() + "_" + safeFilename;
 
+        log.info("Generating presigned URL for bucket: {}, key: {}, contentType: {}", bucket, key, contentType);
+
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
-                .contentType(contentType)
                 .build();
 
         PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
