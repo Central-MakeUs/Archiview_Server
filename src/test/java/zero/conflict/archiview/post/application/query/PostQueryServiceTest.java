@@ -10,9 +10,11 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.*;
+import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
+import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
 
 import java.util.List;
@@ -39,6 +41,37 @@ class PostQueryServiceTest {
 
         @Mock
         private EditorProfileRepository editorProfileRepository;
+
+        @Mock
+        private CategoryPlaceReadRepository categoryPlaceReadRepository;
+
+        @Mock
+        private CategoryPlaceReadRepository.CategoryPlaceSummaryProjection categoryPlaceSummaryProjection;
+
+        @Test
+        @DisplayName("좌표 기준 1km 내 장소 목록을 조회한다")
+        void getNearbyPlacesWithin1km_success() {
+                // given
+                Double latitude = 37.5445;
+                Double longitude = 127.0560;
+                given(categoryPlaceReadRepository.findPlaceSummariesNearby(latitude, longitude, 1000))
+                                .willReturn(List.of(categoryPlaceSummaryProjection));
+                given(categoryPlaceSummaryProjection.getPlaceId()).willReturn(11L);
+                given(categoryPlaceSummaryProjection.getPlaceName()).willReturn("성수 카페");
+                given(categoryPlaceSummaryProjection.getLatestDescription()).willReturn("최근 설명");
+                given(categoryPlaceSummaryProjection.getViewCount()).willReturn(100L);
+                given(categoryPlaceSummaryProjection.getSaveCount()).willReturn(20L);
+
+                // when
+                CategoryQueryDto.CategoryPlaceListResponse response = postQueryService
+                                .getNearbyPlacesWithin1km(latitude, longitude);
+
+                // then
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
+                assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(20L);
+        }
 
         @Test
         @DisplayName("postPlaceId로 게시글과 게시글 내 장소 목록을 조회한다")

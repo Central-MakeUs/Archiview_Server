@@ -13,6 +13,7 @@ import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
+import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 @Tag(name = "Archiver Place Query", description = "아카이버용 핫플레이스 조회 API")
 @RestController
@@ -42,5 +43,17 @@ public class ArchiverPlaceQueryController {
             return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getArchiverPlaceDetail(placeId)));
+    }
+
+    @Operation(summary = "내 주변 1km 장소 조회", description = "현재 좌표 기준 1km 내 장소 목록을 조회합니다.")
+    @GetMapping("/places/nearby")
+    public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryPlaceListResponse>> getNearbyPlaces(
+            @RequestParam Double latitude,
+            @RequestParam Double longitude,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(postQueryService.getNearbyPlacesWithin1km(latitude, longitude)));
     }
 }
