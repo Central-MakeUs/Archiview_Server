@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,8 +28,8 @@ public class PostCommandDto {
         private String url;
 
         @NotNull(message = "해시태그는 필수입니다.")
-        @jakarta.validation.constraints.Size(min = 2, max = 2, message = "해시태그는 2개여야 합니다.")
-        @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        @jakarta.validation.constraints.Size(min = 1, max = 3, message = "해시태그는 1~3개여야 합니다.")
+        @Schema(description = "게시글 해시태그 1~3개", example = "[\"#성수카페\", \"#감성레벨\", \"#데이트코스\"]")
         private List<@NotBlank String> hashTags;
 
         @Valid
@@ -42,7 +43,11 @@ public class PostCommandDto {
         @Builder
         public static class PlaceInfoRequest {
             @Schema(description = "장소명", example = "아카이브 성수")
+            private String placeName;
+
+            @Schema(description = "장소명", example = "아카이브 성수")
             private String name;
+
             @NotBlank(message = "장소 설명은 필수입니다.")
             @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
             private String description;
@@ -64,8 +69,22 @@ public class PostCommandDto {
             @Schema(description = "가까운 역에서 도보 시간", example = "성수역 도보 5분")
             private String nearestStationWalkTime;
 
+            @Schema(description = "장소 URL", example = "https://place.map.kakao.com/123456")
+            private String placeUrl;
+
+            @Schema(description = "전화번호", example = "02-1234-5678")
+            private String phoneNumber;
+
             @Schema(description = "업로드된 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/uuid_photo.png")
             private String imageUrl;
+
+            @JsonIgnore
+            public String getResolvedPlaceName() {
+                if (placeName != null && !placeName.trim().isEmpty()) {
+                    return placeName;
+                }
+                return name;
+            }
         }
     }
 
@@ -78,7 +97,7 @@ public class PostCommandDto {
         private Long postId;
         @Schema(description = "등록된 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String url;
-        @Schema(description = "등록된 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        @Schema(description = "등록된 해시태그 1~3개", example = "[\"#성수카페\", \"#감성레벨\", \"#데이트코스\"]")
         private List<String> hashTags;
         private List<PlaceInfoResponse> placeInfoResponseList;
 
@@ -100,6 +119,8 @@ public class PostCommandDto {
             @Schema(description = "장소 ID", example = "00000000-0000-0000-0000-000000000101")
             private Long placeId;
             @Schema(description = "장소명", example = "아카이브 성수")
+            private String placeName;
+            @Schema(description = "장소명(하위호환)", example = "아카이브 성수")
             private String name;
             @Schema(description = "지번 주소", example = "서울 노원구 공릉동 596-12")
             private String addressName;
@@ -109,15 +130,22 @@ public class PostCommandDto {
             private Double latitude;
             @Schema(description = "경도", example = "127.0560")
             private Double longitude;
+            @Schema(description = "장소 URL", example = "https://place.map.kakao.com/123456")
+            private String placeUrl;
+            @Schema(description = "전화번호", example = "02-1234-5678")
+            private String phoneNumber;
 
             public static PlaceInfoResponse from(Place place) {
                 return PlaceInfoResponse.builder()
                         .placeId(place.getId())
+                        .placeName(place.getName())
                         .name(place.getName())
                         .addressName(place.getAddress().getAddressName())
                         .roadAddressName(place.getAddress().getRoadAddressName())
                         .latitude(place.getPosition().getLatitude())
                         .longitude(place.getPosition().getLongitude())
+                        .placeUrl(place.getPlaceUrl())
+                        .phoneNumber(place.getPhoneNumber())
                         .build();
             }
 
@@ -127,6 +155,7 @@ public class PostCommandDto {
                     Double longitude) {
                 return PlaceInfoResponse.builder()
                         .placeId(placeId)
+                        .placeName(name)
                         .name(name)
                         .addressName(addressName)
                         .roadAddressName(roadAddressName)

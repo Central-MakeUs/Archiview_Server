@@ -146,13 +146,17 @@ public class EditorInsightDto {
         private Long placeId;
         @Schema(description = "장소명", example = "아카이브 성수")
         private String placeName;
+        @Schema(description = "장소 URL")
+        private String placeUrl;
+        @Schema(description = "전화번호")
+        private String phoneNumber;
         @Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300")
         private String placeImageUrl;
         @Schema(description = "에디터 요약", example = "성수동 감성 카페의 정석")
         private String editorSummary;
         @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"디저트\"]")
         private List<String> categories;
-        @Schema(description = "장소 해시태그 2개", example = "[\"#성수카페\", \"#감성\"]")
+        @Schema(description = "장소 해시태그 1~3개", example = "[\"#성수카페\", \"#감성\", \"#데이트코스\"]")
         private List<String> hashTags;
         private Stats stats;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -164,6 +168,8 @@ public class EditorInsightDto {
             return PlaceCardResponse.builder()
                     .placeId(place.getId())
                     .placeName(place.getName())
+                    .placeUrl(place.getPlaceUrl())
+                    .phoneNumber(place.getPhoneNumber())
                     .placeImageUrl(imageUrl)
                     .editorSummary(summary)
                     .stats(stats)
@@ -186,6 +192,8 @@ public class EditorInsightDto {
             return PlaceCardResponse.builder()
                     .placeId(place.getId())
                     .placeName(place.getName())
+                    .placeUrl(place.getPlaceUrl())
+                    .phoneNumber(place.getPhoneNumber())
                     .placeImageUrl(postPlace.getImageUrl())
                     .editorSummary(postPlace.getDescription())
                     .categories(categories)
@@ -264,7 +272,7 @@ public class EditorInsightDto {
         private String editorInstagramId;
         @Schema(description = "인스타그램 게시글 URL", example = "https://www.instagram.com/p/DBU0yXOz_A-/")
         private String postUrl;
-        @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+        @Schema(description = "게시글 해시태그 1~3개", example = "[\"#성수카페\", \"#감성레벨\", \"#데이트코스\"]")
         private List<String> postHashTags;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;

@@ -32,19 +32,35 @@ public class Place extends BaseTimeEntity {
 
     private String nearestStationWalkTime;
 
+    private String placeUrl;
+
+    private String phoneNumber;
+
     @Builder.Default
     private Long viewCount = 0L;
 
     public static Place createOf(String name, Address address, Position position) {
-        return createOf(name, address, position, null);
+        return createOf(name, address, position, null, null, null);
     }
 
     public static Place createOf(String name, Address address, Position position, String nearestStationWalkTime) {
+        return createOf(name, address, position, nearestStationWalkTime, null, null);
+    }
+
+    public static Place createOf(
+            String name,
+            Address address,
+            Position position,
+            String nearestStationWalkTime,
+            String placeUrl,
+            String phoneNumber) {
         return Place.builder()
                 .name(name)
                 .address(address)
                 .position(position)
                 .nearestStationWalkTime(nearestStationWalkTime)
+                .placeUrl(placeUrl)
+                .phoneNumber(phoneNumber)
                 .build();
     }
 

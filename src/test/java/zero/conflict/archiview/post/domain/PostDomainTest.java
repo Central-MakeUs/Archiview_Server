@@ -46,7 +46,7 @@ class PostDomainTest {
         // given
         java.util.UUID editorId = java.util.UUID.randomUUID();
         String url = "https://www.instagram.com/p/DBU0yXOz_A-/";
-        java.util.List<String> tooManyTags = java.util.List.of("#하나", "#둘", "#셋");
+        java.util.List<String> tooManyTags = java.util.List.of("#하나", "#둘", "#셋", "#넷");
 
         // when & then
         assertThatThrownBy(() -> Post.createOf(editorId, url, tooManyTags))

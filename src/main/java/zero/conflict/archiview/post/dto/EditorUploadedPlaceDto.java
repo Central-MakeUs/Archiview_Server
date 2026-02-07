@@ -69,6 +69,8 @@ public class EditorUploadedPlaceDto {
     public static class PlaceCardResponse {
         private Long placeId;
         private String placeName;
+        private String placeUrl;
+        private String phoneNumber;
         private String placeImageUrl;
         private String editorSummary;
         private Stats stats;
@@ -93,6 +95,8 @@ public class EditorUploadedPlaceDto {
             return PlaceCardResponse.builder()
                     .placeId(resolvedPlace.getId())
                     .placeName(resolvedPlace.getName())
+                    .placeUrl(resolvedPlace.getPlaceUrl())
+                    .phoneNumber(resolvedPlace.getPhoneNumber())
                     .placeImageUrl(latestPostPlace.getImageUrl())
                     .editorSummary(latestPostPlace.getDescription())
                     .stats(stats)

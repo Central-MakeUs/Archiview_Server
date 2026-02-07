@@ -7,8 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.post.domain.Place;
-import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 
 import java.util.List;
@@ -29,6 +27,10 @@ public class EditorMapDto {
         private Long placeId;
         @Schema(description = "장소명")
         private String name;
+        @Schema(description = "장소 URL")
+        private String placeUrl;
+        @Schema(description = "전화번호")
+        private String phoneNumber;
         @Schema(description = "위도")
         private Double latitude;
         @Schema(description = "경도")
@@ -49,6 +51,8 @@ public class EditorMapDto {
             return PlacePinResponse.builder()
                     .placeId(place.getId())
                     .name(place.getName())
+                    .placeUrl(place.getPlaceUrl())
+                    .phoneNumber(place.getPhoneNumber())
                     .latitude(place.getPosition().getLatitude())
                     .longitude(place.getPosition().getLongitude())
                     .categories(categoryNames)

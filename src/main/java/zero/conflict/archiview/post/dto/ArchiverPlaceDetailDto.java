@@ -87,6 +87,10 @@ public class ArchiverPlaceDetailDto {
                 private Long placeId;
                 @Schema(description = "장소명", example = "성수 핫플 카페")
                 private String name;
+                @Schema(description = "장소 URL")
+                private String placeUrl;
+                @Schema(description = "전화번호")
+                private String phoneNumber;
                 @Schema(description = "지번 주소", example = "서울특별시 성동구 성수동 123-45")
                 private String addressName;
                 @Schema(description = "도로명 주소", example = "서울특별시 성동구 아차산로 123")
@@ -111,6 +115,8 @@ public class ArchiverPlaceDetailDto {
                         return PlaceResponse.builder()
                                         .placeId(place.getId())
                                         .name(place.getName())
+                                        .placeUrl(place.getPlaceUrl())
+                                        .phoneNumber(place.getPhoneNumber())
                                         .addressName(place.getAddress() != null ? place.getAddress().getAddressName()
                                                         : null)
                                         .roadAddressName(place.getAddress() != null
@@ -141,7 +147,7 @@ public class ArchiverPlaceDetailDto {
                 private Long postId;
                 @Schema(description = "인스타그램 게시글 URL")
                 private String instagramUrl;
-                @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+                @Schema(description = "게시글 해시태그 1~3개", example = "[\"#성수카페\", \"#감성레벨\", \"#데이트코스\"]")
                 private List<String> hashTags;
                 @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
                 private String description;

@@ -71,11 +71,15 @@ public class ArchiverHotPlaceDto {
                 private Long placeId;
                 @Schema(description = "장소명", example = "성수 핫플 카페")
                 private String name;
+                @Schema(description = "장소 URL")
+                private String placeUrl;
+                @Schema(description = "전화번호")
+                private String phoneNumber;
                 @Schema(description = "대표 이미지 URL")
                 private String imageUrl;
                 @Schema(description = "카테고리명 목록")
                 private List<String> categoryNames;
-                @Schema(description = "게시글 해시태그 2개", example = "[\"#성수카페\", \"#감성레벨\"]")
+                @Schema(description = "게시글 해시태그 1~3개", example = "[\"#성수카페\", \"#감성레벨\", \"#데이트코스\"]")
                 private List<String> hashTags;
                 @Schema(description = "장소 주소", example = "서울특별시 성동구 아차산로 123")
                 private String address;
@@ -97,6 +101,8 @@ public class ArchiverHotPlaceDto {
                         return PlaceCardResponse.builder()
                                         .placeId(place.getId())
                                         .name(place.getName())
+                                        .placeUrl(place.getPlaceUrl())
+                                        .phoneNumber(place.getPhoneNumber())
                                         .imageUrl(latestPostPlace != null ? latestPostPlace.getImageUrl() : null)
                                         .categoryNames(categories)
                                         .hashTags(post != null ? post.getHashTags() : null)

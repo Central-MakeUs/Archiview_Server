@@ -136,14 +136,16 @@ public class PostCommandService {
 
     private Place createPlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
         return Place.createOf(
-                placeInfo.getName(),
+                placeInfo.getResolvedPlaceName(),
                 Address.of(
                         placeInfo.getAddressName(),
                         placeInfo.getRoadAddressName()),
                 Position.of(
                         placeInfo.getLatitude(),
                         placeInfo.getLongitude()),
-                placeInfo.getNearestStationWalkTime());
+                placeInfo.getNearestStationWalkTime(),
+                placeInfo.getPlaceUrl(),
+                placeInfo.getPhoneNumber());
     }
 
     private static PostCommandDto.Response mapPostToResponse(
