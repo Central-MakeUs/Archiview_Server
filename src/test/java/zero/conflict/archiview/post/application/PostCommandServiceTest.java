@@ -58,7 +58,7 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .addressName("서울 노원구 공릉동 596-12")
                                 .roadAddressName("인천 중구 백운로228번길 81-10")
                                 .description("멋진 장소")
@@ -77,7 +77,7 @@ class PostCommandServiceTest {
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
                 Place newPlace = Place.createOf(
-                                placeInfoRequest.getName(),
+                                placeInfoRequest.getPlaceName(),
                                 Address.of(placeInfoRequest.getAddressName(), placeInfoRequest.getRoadAddressName()),
                                 Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()),
                                 placeInfoRequest.getNearestStationWalkTime());
@@ -118,7 +118,7 @@ class PostCommandServiceTest {
 
                 PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
                                 .builder()
-                                .name("기존 장소")
+                                .placeName("기존 장소")
                                 .addressName("서울시 종로구 묘동 123-45")
                                 .roadAddressName("서울시 종로구 묘동길 1")
                                 .description("이미 존재하는 장소")
@@ -173,7 +173,7 @@ class PostCommandServiceTest {
                 java.util.List<String> hashTags = java.util.List.of("#여행", "#카페");
 
                 PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("장소1")
+                                .placeName("장소1")
                                 .addressName("주소1")
                                 .roadAddressName("도로명주소1")
                                 .description("설명1")
@@ -183,7 +183,7 @@ class PostCommandServiceTest {
                                 .build();
 
                 PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("장소2")
+                                .placeName("장소2")
                                 .addressName("주소2")
                                 .roadAddressName("도로명주소2")
                                 .description("설명2")

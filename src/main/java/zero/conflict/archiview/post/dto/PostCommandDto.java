@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,11 +41,9 @@ public class PostCommandDto {
         @AllArgsConstructor
         @Builder
         public static class PlaceInfoRequest {
+            @NotBlank(message = "장소명은 필수입니다.")
             @Schema(description = "장소명", example = "아카이브 성수")
             private String placeName;
-
-            @Schema(description = "장소명", example = "아카이브 성수")
-            private String name;
 
             @NotBlank(message = "장소 설명은 필수입니다.")
             @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
@@ -77,14 +74,6 @@ public class PostCommandDto {
 
             @Schema(description = "업로드된 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/uuid_photo.png")
             private String imageUrl;
-
-            @JsonIgnore
-            public String getResolvedPlaceName() {
-                if (placeName != null && !placeName.trim().isEmpty()) {
-                    return placeName;
-                }
-                return name;
-            }
         }
     }
 

@@ -141,7 +141,7 @@ public class PostCommandService {
 
     private Place createPlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
         return Place.createOf(
-                placeInfo.getResolvedPlaceName(),
+                placeInfo.getPlaceName(),
                 Address.of(
                         placeInfo.getAddressName(),
                         placeInfo.getRoadAddressName()),

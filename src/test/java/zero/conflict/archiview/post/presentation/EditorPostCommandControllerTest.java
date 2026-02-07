@@ -32,7 +32,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
         void createPost_Success() throws Exception {
                 // given
                 PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .description("테스트 설명")
                                 .addressName("서울 노원구 공릉동 596-12")
                                 .roadAddressName("인천 중구 백운로228번길 81-10")
@@ -50,7 +50,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 PostCommandDto.Response.PlaceInfoResponse placeInfoResponse = PostCommandDto.Response.PlaceInfoResponse
                                 .builder()
                                 .placeId(101L)
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .addressName("서울 노원구 공릉동 596-12")
                                 .roadAddressName("인천 중구 백운로228번길 81-10")
                                 .latitude(Double.valueOf("37.5665"))
@@ -87,7 +87,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
         void createPost_Fail_NoUrl() throws Exception {
                 // given
                 PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .description("테스트 설명")
                                 .addressName("주소1")
                                 .roadAddressName("도로명주소1")
@@ -116,7 +116,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
         void createPost_Fail_NoHashTag() throws Exception {
                 // given
                 PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .description("테스트 설명")
                                 .addressName("주소1")
                                 .roadAddressName("도로명주소1")
@@ -164,7 +164,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
         void createPost_Fail_NoPlaceDescription() throws Exception {
                 // given
                 PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
-                                .name("테스트 장소")
+                                .placeName("테스트 장소")
                                 .description("") // 장소 설명 누락
                                 .addressName("주소1")
                                 .roadAddressName("도로명주소1")
