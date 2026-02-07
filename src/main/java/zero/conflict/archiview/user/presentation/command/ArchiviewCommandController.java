@@ -24,7 +24,7 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers/follows")
-public class ArchiverFollowCommandController {
+public class ArchiviewCommandController {
 
     private final FollowCommandService followCommandService;
 
