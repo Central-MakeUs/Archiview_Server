@@ -7,7 +7,35 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import zero.conflict.archiview.user.domain.EditorProfile;
 
+import java.util.UUID;
+
 public class EditorProfileDto {
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Schema(description = "아카이버가 보는 에디터 화면 응답")
+    public static class ArchiverViewResponse {
+        @Schema(description = "에디터 유저 ID")
+        private UUID userId;
+        @Schema(description = "에디터 프로필")
+        private Response editorProfile;
+
+        public static ArchiverViewResponse from(UUID userId, EditorProfile profile) {
+            return ArchiverViewResponse.builder()
+                    .userId(userId)
+                    .editorProfile(Response.from(profile))
+                    .build();
+        }
+
+        public static ArchiverViewResponse mock() {
+            return ArchiverViewResponse.builder()
+                    .userId(UUID.fromString("00000000-0000-0000-0000-000000000201"))
+                    .editorProfile(Response.mock())
+                    .build();
+        }
+    }
 
     @Getter
     @NoArgsConstructor

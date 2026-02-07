@@ -19,7 +19,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    @org.springframework.beans.factory.annotation.Value("${auth.frontend-url}")
+    @org.springframework.beans.factory.annotation.Value("${auth.frontend-url:http://localhost:3000/}")
     private String frontendUrl;
 
     @Override

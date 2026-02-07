@@ -33,6 +33,14 @@ public class EditorProfileQueryService {
     }
 
     @Transactional(readOnly = true)
+    public EditorProfileDto.ArchiverViewResponse getEditorProfileForArchiver(java.util.UUID editorId) {
+        EditorProfile profile = editorProfileRepository.findByUserId(editorId)
+                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+
+        return EditorProfileDto.ArchiverViewResponse.from(editorId, profile);
+    }
+
+    @Transactional(readOnly = true)
     public boolean existsInstagramId(String instagramId) {
         return editorProfileRepository.existsByInstagramId(instagramId);
     }
