@@ -15,6 +15,8 @@ public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
 
     List<PostPlace> findAllByPlace_Id(Long placeId);
 
+    List<PostPlace> findAllByPost_Id(Long postId);
+
     List<PostPlace> findAllByEditorIdAndPlaceId(UUID editorId, Long placeId);
 
     List<PostPlace> findAllByEditorIdIn(List<UUID> editorIds);

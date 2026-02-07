@@ -11,6 +11,7 @@ import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.EditorMapDto;
+import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
 
@@ -38,6 +39,39 @@ class PostQueryServiceTest {
 
         @Mock
         private EditorProfileRepository editorProfileRepository;
+
+        @Test
+        @DisplayName("postPlaceId로 게시글과 게시글 내 장소 목록을 조회한다")
+        void getPostByPostPlaceId_success() {
+                // given
+                java.util.UUID editorId = java.util.UUID.randomUUID();
+                Post post = Post.createOf(editorId, "https://www.instagram.com/p/test-post", List.of("#하나"));
+                Place place1 = Place.createOf("장소1", Address.of("주소1", "도로1"), Position.of(37.1, 127.1), "도보 3분",
+                                "https://place1.url", "02-1111-1111");
+                Place place2 = Place.createOf("장소2", Address.of("주소2", "도로2"), Position.of(37.2, 127.2), "도보 5분",
+                                "https://place2.url", "02-2222-2222");
+
+                PostPlace postPlace1 = PostPlace.createOf(post, place1, "설명1", "https://img1.url", editorId);
+                PostPlace postPlace2 = PostPlace.createOf(post, place2, "설명2", "https://img2.url", editorId);
+
+                setField(post, "id", 10L);
+                setField(postPlace1, "id", 100L);
+                setField(postPlace2, "id", 101L);
+
+                given(postPlaceRepository.findById(100L)).willReturn(java.util.Optional.of(postPlace1));
+                given(postPlaceRepository.findAllByPostId(10L)).willReturn(List.of(postPlace1, postPlace2));
+
+                // when
+                EditorPostByPostPlaceDto.Response response = postQueryService.getPostByPostPlaceId(100L);
+
+                // then
+                assertThat(response.getPostId()).isEqualTo(10L);
+                assertThat(response.getPostPlaces()).hasSize(2);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
+                assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(101L);
+                assertThat(response.getPostPlaces().get(0).getPlaceUrl()).isEqualTo("https://place1.url");
+                assertThat(response.getPostPlaces().get(0).getPhoneNumber()).isEqualTo("02-1111-1111");
+        }
 
         @Test
         @DisplayName("에디터의 모든 핀을 조회한다")
@@ -240,5 +274,15 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
                 assertThat(response.getPostPlaces().get(0).getEditorInstagramId()).isEqualTo("editor_insta");
+        }
+
+        private static void setField(Object target, String fieldName, Object value) {
+                try {
+                        java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+                        field.setAccessible(true);
+                        field.set(target, value);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                }
         }
 }

@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
+import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -63,5 +64,40 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                                 .andExpect(jsonPath("$.data.placeId").value(placeId))
                                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
                                 .andExpect(jsonPath("$.data.postPlaces[0].editorName").value("에디터"));
+        }
+
+        @Test
+        @DisplayName("postPlaceId로 게시글 상세 조회 - 성공")
+        void getPostByPostPlaceId_Success() throws Exception {
+                Long postPlaceId = 100L;
+                EditorPostByPostPlaceDto.PostPlaceResponse postPlace = EditorPostByPostPlaceDto.PostPlaceResponse
+                                .builder()
+                                .postPlaceId(postPlaceId)
+                                .description("설명")
+                                .imageUrl("https://img.url")
+                                .placeId(1L)
+                                .placeName("장소명")
+                                .placeUrl("https://place.url")
+                                .phoneNumber("02-1234-5678")
+                                .categoryIds(List.of(1L, 2L))
+                                .categoryNames(List.of("카페", "디저트"))
+                                .build();
+                EditorPostByPostPlaceDto.Response response = EditorPostByPostPlaceDto.Response.builder()
+                                .postId(10L)
+                                .url("https://www.instagram.com/p/test")
+                                .hashTags(List.of("#성수"))
+                                .postPlaces(List.of(postPlace))
+                                .build();
+
+                given(postQueryService.getPostByPostPlaceId(postPlaceId)).willReturn(response);
+
+                mockMvc.perform(get("/api/v1/editors/me/posts/by-post-place/{postPlaceId}", postPlaceId)
+                                .with(authenticatedUser()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.postId").value(10L))
+                                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
+                                .andExpect(jsonPath("$.data.postPlaces[0].placeUrl").value("https://place.url"))
+                                .andExpect(jsonPath("$.data.postPlaces[0].phoneNumber").value("02-1234-5678"));
         }
 }

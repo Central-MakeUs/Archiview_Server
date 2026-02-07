@@ -12,6 +12,7 @@ import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
+import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 
@@ -90,6 +91,13 @@ public class EditorPostQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorUploadedPlaceDto.ListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getUploadedPlaces(oAuth2User.getUserId())));
+    }
+
+    @Operation(summary = "postPlaceId로 게시글 상세 조회", description = "해당 postPlace가 속한 게시글과 게시글 내 모든 장소를 조회합니다.")
+    @GetMapping("/me/posts/by-post-place/{postPlaceId}")
+    public ResponseEntity<ApiResponse<EditorPostByPostPlaceDto.Response>> getPostByPostPlaceId(
+            @PathVariable Long postPlaceId) {
+        return ResponseEntity.ok(ApiResponse.success(postQueryService.getPostByPostPlaceId(postPlaceId)));
     }
 
 }

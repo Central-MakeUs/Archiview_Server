@@ -6,6 +6,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
@@ -13,6 +14,7 @@ import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
+import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
@@ -34,6 +36,28 @@ public class PostQueryService {
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
         private final EditorProfileRepository editorProfileRepository;
+
+        public EditorPostByPostPlaceDto.Response getPostByPostPlaceId(Long postPlaceId) {
+                PostPlace targetPostPlace = postPlaceRepository.findById(postPlaceId)
+                                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+                if (targetPostPlace.getPost() == null || targetPostPlace.getPost().getId() == null) {
+                        throw new DomainException(PostErrorCode.POST_NOT_FOUND);
+                }
+
+                Post post = targetPostPlace.getPost();
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByPostId(post.getId());
+                if (postPlaces.isEmpty()) {
+                        postPlaces = List.of(targetPostPlace);
+                }
+
+                return EditorPostByPostPlaceDto.Response.from(
+                                post,
+                                postPlaces.stream()
+                                                .sorted(Comparator.comparing(PostPlace::getId,
+                                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                                .toList());
+        }
 
         public ArchiverHotPlaceDto.ListResponse getHotPlaces(int limit) {
                 List<Place> places = placeRepository.findTopByViewCount(limit);
