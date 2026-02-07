@@ -39,7 +39,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             case GUEST -> "term-agree/";
         };
 
-        String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(frontendUrl + targetPath)
+        String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(frontendUrl)
+                .path(targetPath)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .build().toUriString();
