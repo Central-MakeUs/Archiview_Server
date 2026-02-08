@@ -21,7 +21,9 @@ public enum UserErrorCode implements DomainErrorCode {
     FOLLOW_ALREADY_EXISTS("USER_009", "이미 팔로우하고 있습니다.", HttpStatus.CONFLICT),
     FOLLOW_NOT_FOUND("USER_010", "팔로우 관계를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
     INVALID_FOLLOWER_ROLE("USER_011", "아카이버만 팔로우할 수 있습니다.", HttpStatus.BAD_REQUEST),
-    INVALID_FOLLOWEE_ROLE("USER_012", "에디터만 팔로잉 대상이 될 수 있습니다.", HttpStatus.BAD_REQUEST);
+    INVALID_FOLLOWEE_ROLE("USER_012", "에디터만 팔로잉 대상이 될 수 있습니다.", HttpStatus.BAD_REQUEST),
+    EDITOR_PROFILE_REQUIRED_FOR_SWITCH("USER_013", "에디터 전환을 위해 에디터 프로필 등록이 필요합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_ROLE_SWITCH_TARGET("USER_014", "전환 가능한 역할은 ARCHIVER 또는 EDITOR 입니다.", HttpStatus.BAD_REQUEST);
 
     private final String code;
     private final String message;
