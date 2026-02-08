@@ -50,9 +50,9 @@ public class SecurityConfig {
                                                                 "/swagger-ui/**",
                                                                 "/swagger-ui.html",
                                                                 "/auth/**",
-                                                                "/api/auth/mobile/**",
-                                                                "/api/auth/refresh",
-                                                                "/api/auth/test/**",
+                                                                "/api/v1/auth/mobile/**",
+                                                                "/api/v1/auth/refresh",
+                                                                "/api/v1/auth/test/**",
                                                                 "/oauth2/**",
                                                                 "/login/**")
                                                 .permitAll()
