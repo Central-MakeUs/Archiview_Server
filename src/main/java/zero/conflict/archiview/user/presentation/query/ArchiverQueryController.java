@@ -7,15 +7,18 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.query.ArchiverProfileQueryService;
+import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.query.FollowQueryService;
 import zero.conflict.archiview.user.application.query.TrustedEditorQueryService;
 import zero.conflict.archiview.user.dto.ArchiverProfileDto;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 import zero.conflict.archiview.user.dto.TrustedEditorDto;
 
@@ -28,6 +31,7 @@ public class ArchiverQueryController {
     private final ArchiverProfileQueryService archiverProfileQueryService;
     private final FollowQueryService followQueryService;
     private final TrustedEditorQueryService trustedEditorQueryService;
+    private final EditorProfileQueryService editorProfileQueryService;
 
     @Operation(summary = "내 프로필 조회 (아카이버)", description = "로그인한 아카이버 자신의 프로필 정보를 조회합니다.")
     @GetMapping("/me/profile")
@@ -61,5 +65,16 @@ public class ArchiverQueryController {
             return ResponseEntity.ok(ApiResponse.success(TrustedEditorDto.ListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(trustedEditorQueryService.getTrustedEditors()));
+    }
+
+    @Operation(summary = "에디터 프로필 조회 (아카이버)", description = "아카이버가 특정 에디터의 프로필 정보를 조회합니다.")
+    @GetMapping("/editors/{editorId}/profile")
+    public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getEditorProfile(
+            @PathVariable java.util.UUID editorId,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(editorProfileQueryService.getEditorProfile(editorId)));
     }
 }

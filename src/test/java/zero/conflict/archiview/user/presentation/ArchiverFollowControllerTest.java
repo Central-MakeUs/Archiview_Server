@@ -13,8 +13,10 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.user.application.command.FollowCommandService;
+import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.query.FollowQueryService;
 import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 
 import java.util.List;
@@ -43,6 +45,9 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
 
         @MockBean
         private FollowQueryService followQueryService;
+
+        @MockBean
+        private EditorProfileQueryService editorProfileQueryService;
 
         @Test
         @DisplayName("팔로우 등록 성공")
@@ -110,6 +115,29 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.totalCount").value(2))
                                 .andExpect(jsonPath("$.data.editors[0].editorId").exists())
+                                .andDo(print());
+        }
+
+        @Test
+        @DisplayName("아카이버가 에디터 프로필 조회 성공")
+        void getEditorProfile_Success() throws Exception {
+                EditorProfileDto.Response response = EditorProfileDto.Response.builder()
+                                .nickname("맛집탐방가")
+                                .instagramId("editor_insta")
+                                .instagramUrl("https://www.instagram.com/editor_insta")
+                                .introduction("서울의 숨은 맛집을 기록합니다.")
+                                .hashtags(List.of("#성수카페", "#디저트맛집"))
+                                .profileImageUrl("https://picsum.photos/200/200?random=41")
+                                .build();
+
+                given(editorProfileQueryService.getEditorProfile(EDITOR_ID)).willReturn(response);
+
+                mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/profile", EDITOR_ID)
+                                .with(authenticatedArchiver()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.nickname").value("맛집탐방가"))
+                                .andExpect(jsonPath("$.data.instagramId").value("editor_insta"))
                                 .andDo(print());
         }
 
