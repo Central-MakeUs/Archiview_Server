@@ -62,7 +62,7 @@ public class ArchiverPlaceQueryController {
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getNearbyPlacesWithin1km(latitude, longitude)));
     }
 
-    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
+    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버) (작업중)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
     @GetMapping("/editors/{userId}/post-places")
     public ResponseEntity<ApiResponse<ArchiverEditorPostPlaceDto.ListResponse>> getEditorUploadedPostPlaces(
             @PathVariable UUID userId,
@@ -74,7 +74,7 @@ public class ArchiverPlaceQueryController {
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getEditorUploadedPostPlaces(userId, sort)));
     }
 
-    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
+    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버) (작업중)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
     @GetMapping("/editors/{editorId}/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getEditorMapPins(
             @PathVariable UUID editorId,
