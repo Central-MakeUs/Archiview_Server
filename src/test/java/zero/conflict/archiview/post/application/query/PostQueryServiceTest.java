@@ -6,20 +6,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.*;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
 import zero.conflict.archiview.user.application.port.EditorProfileRepository;
+import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
@@ -310,11 +318,333 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getEditorInstagramId()).isEqualTo("editor_insta");
         }
 
+        @Test
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - LATEST 정렬")
+        void getEditorUploadedPostPlaces_latest_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                Place place1 = Place.builder().id(1L).name("최근 장소").build();
+                Place place2 = Place.builder().id(2L).name("오래된 장소").build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace latest = PostPlace.builder()
+                                .id(11L)
+                                .post(post)
+                                .place(place1)
+                                .editorId(editorId)
+                                .description("최근 설명")
+                                .saveCount(5L)
+                                .viewCount(50L)
+                                .imageUrl("https://img1")
+                                .build();
+                PostPlace oldest = PostPlace.builder()
+                                .id(12L)
+                                .post(post)
+                                .place(place2)
+                                .editorId(editorId)
+                                .description("오래된 설명")
+                                .saveCount(1L)
+                                .viewCount(10L)
+                                .imageUrl("https://img2")
+                                .build();
+
+                setField(latest, "lastModifiedAt", LocalDateTime.of(2026, 2, 9, 12, 0, 0));
+                setField(oldest, "lastModifiedAt", LocalDateTime.of(2026, 2, 1, 12, 0, 0));
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(oldest, latest));
+
+                ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
+                                editorId,
+                                ArchiverEditorPostPlaceDto.Sort.LATEST);
+
+                assertThat(response.getTotalCount()).isEqualTo(2L);
+                assertThat(response.getPostPlaces()).hasSize(2);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(11L);
+                assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(12L);
+        }
+
+        @Test
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - OLDEST 정렬")
+        void getEditorUploadedPostPlaces_oldest_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                Place place1 = Place.builder().id(1L).name("최근 장소").build();
+                Place place2 = Place.builder().id(2L).name("오래된 장소").build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace latest = PostPlace.builder().id(21L).post(post).place(place1).editorId(editorId).build();
+                PostPlace oldest = PostPlace.builder().id(22L).post(post).place(place2).editorId(editorId).build();
+                setField(latest, "lastModifiedAt", LocalDateTime.of(2026, 2, 9, 12, 0, 0));
+                setField(oldest, "lastModifiedAt", LocalDateTime.of(2026, 2, 1, 12, 0, 0));
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(latest, oldest));
+
+                ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
+                                editorId,
+                                ArchiverEditorPostPlaceDto.Sort.OLDEST);
+
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(22L);
+                assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(21L);
+        }
+
+        @Test
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 수정시각 없으면 생성시각 사용")
+        void getEditorUploadedPostPlaces_fallbackCreatedAt_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                Place place = Place.builder().id(1L).name("장소").build();
+                Post post = Post.builder().id(1L).build();
+                PostPlace postPlace = PostPlace.builder()
+                                .id(31L)
+                                .post(post)
+                                .place(place)
+                                .editorId(editorId)
+                                .saveCount(null)
+                                .viewCount(null)
+                                .build();
+                setField(postPlace, "createdAt", LocalDateTime.of(2026, 2, 3, 8, 30, 0));
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(postPlace));
+
+                ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
+                                editorId,
+                                ArchiverEditorPostPlaceDto.Sort.LATEST);
+
+                assertThat(response.getPostPlaces().get(0).getLastModifiedAt())
+                                .isEqualTo(LocalDateTime.of(2026, 2, 3, 8, 30, 0));
+                assertThat(response.getPostPlaces().get(0).getSaveCount()).isEqualTo(0L);
+                assertThat(response.getPostPlaces().get(0).getViewCount()).isEqualTo(0L);
+        }
+
+        @Test
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 에디터가 없으면 예외")
+        void getEditorUploadedPostPlaces_editorNotFound_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId)).willReturn(Optional.empty());
+
+                assertThatThrownBy(() -> postQueryService.getEditorUploadedPostPlaces(
+                                editorId,
+                                ArchiverEditorPostPlaceDto.Sort.LATEST))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(UserErrorCode.EDITOR_PROFILE_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 비어있으면 빈 응답")
+        void getEditorUploadedPostPlaces_empty_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
+
+                ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
+                                editorId,
+                                ArchiverEditorPostPlaceDto.Sort.LATEST);
+
+                assertThat(response.getTotalCount()).isEqualTo(0L);
+                assertThat(response.getPostPlaces()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - 카테고리 AND 필터")
+        void getMapPinsForArchiver_categoryAndFilter_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                Category korean = Category.builder().id(1L).name("한식").build();
+                Category western = Category.builder().id(2L).name("양식").build();
+                Category japanese = Category.builder().id(3L).name("일식").build();
+
+                Place bothCategoryPlace = Place.builder()
+                                .id(1L)
+                                .name("한양식당")
+                                .position(Position.of(37.5445, 127.0560))
+                                .build();
+                Place singleCategoryPlace = Place.builder()
+                                .id(2L)
+                                .name("일식당")
+                                .position(Position.of(37.5450, 127.0565))
+                                .build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace pp1 = PostPlace.builder().id(1L).post(post).place(bothCategoryPlace).editorId(editorId).build();
+                pp1.addCategory(korean);
+                pp1.addCategory(western);
+
+                PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(singleCategoryPlace).editorId(editorId).build();
+                pp2.addCategory(japanese);
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(bothCategoryPlace, singleCategoryPlace));
+
+                EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
+                                editorId,
+                                MapFilter.ALL,
+                                List.of(1L, 2L),
+                                null,
+                                null);
+
+                assertThat(response.getPins()).hasSize(1);
+                assertThat(response.getPins().get(0).getPlaceId()).isEqualTo(1L);
+                assertThat(response.getPins().get(0).getName()).isEqualTo("한양식당");
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY와 카테고리 동시 AND")
+        void getMapPinsForArchiver_nearbyAndCategory_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                Category korean = Category.builder().id(1L).name("한식").build();
+                Category western = Category.builder().id(2L).name("양식").build();
+
+                Place nearPlace = Place.builder()
+                                .id(10L)
+                                .name("근처 한양식")
+                                .position(Position.of(37.5449, 127.0562))
+                                .build();
+                Place farPlace = Place.builder()
+                                .id(11L)
+                                .name("먼 한양식")
+                                .position(Position.of(37.5649, 127.0762))
+                                .build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace nearPp = PostPlace.builder().id(10L).post(post).place(nearPlace).editorId(editorId).build();
+                nearPp.addCategory(korean);
+                nearPp.addCategory(western);
+
+                PostPlace farPp = PostPlace.builder().id(11L).post(post).place(farPlace).editorId(editorId).build();
+                farPp.addCategory(korean);
+                farPp.addCategory(western);
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(nearPp, farPp));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
+
+                EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
+                                editorId,
+                                MapFilter.NEARBY,
+                                List.of(1L, 2L),
+                                37.5445,
+                                127.0560);
+
+                assertThat(response.getPins()).hasSize(1);
+                assertThat(response.getPins().get(0).getPlaceId()).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - 에디터가 없으면 예외")
+        void getMapPinsForArchiver_editorNotFound_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId)).willReturn(Optional.empty());
+
+                assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
+                                editorId,
+                                MapFilter.ALL,
+                                null,
+                                null,
+                                null))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(UserErrorCode.EDITOR_PROFILE_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
+        void getMapPinsForArchiver_nearbyWithoutCoordinates_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+
+                assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
+                                editorId,
+                                MapFilter.NEARBY,
+                                null,
+                                null,
+                                127.0560))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.INVALID_POSITION_LATITUDE);
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - postPlace 없으면 빈 응답")
+        void getMapPinsForArchiver_empty_success() {
+                UUID editorId = UUID.randomUUID();
+                given(editorProfileRepository.findByUserId(editorId))
+                                .willReturn(Optional.of(
+                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
+                                                                .user(zero.conflict.archiview.user.domain.User.builder()
+                                                                                .id(editorId)
+                                                                                .build())
+                                                                .build()));
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
+
+                EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
+                                editorId,
+                                MapFilter.ALL,
+                                List.of(1L, 2L),
+                                null,
+                                null);
+
+                assertThat(response.getPins()).isEmpty();
+        }
+
         private static void setField(Object target, String fieldName, Object value) {
                 try {
-                        java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
-                        field.setAccessible(true);
-                        field.set(target, value);
+                        Class<?> type = target.getClass();
+                        while (type != null) {
+                                try {
+                                        java.lang.reflect.Field field = type.getDeclaredField(fieldName);
+                                        field.setAccessible(true);
+                                        field.set(target, value);
+                                        return;
+                                } catch (NoSuchFieldException ignored) {
+                                        type = type.getSuperclass();
+                                }
+                        }
+                        throw new NoSuchFieldException(fieldName);
                 } catch (NoSuchFieldException | IllegalAccessException e) {
                         throw new RuntimeException(e);
                 }

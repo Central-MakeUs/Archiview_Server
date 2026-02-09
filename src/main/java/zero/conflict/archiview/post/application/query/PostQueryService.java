@@ -13,6 +13,7 @@ import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
+import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
@@ -26,8 +27,10 @@ import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.UUID;
@@ -47,6 +50,34 @@ public class PostQueryService {
                 Position.of(latitude, longitude);
                 return CategoryQueryDto.CategoryPlaceListResponse.from(
                                 categoryPlaceReadRepository.findPlaceSummariesNearby(latitude, longitude, 1000));
+        }
+
+        public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
+                        UUID userId,
+                        ArchiverEditorPostPlaceDto.Sort sort) {
+                editorProfileRepository.findByUserId(userId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(userId);
+                if (postPlaces.isEmpty()) {
+                        return ArchiverEditorPostPlaceDto.ListResponse.empty();
+                }
+
+                Comparator<PostPlace> comparator = Comparator.comparing(
+                                this::getLastUpdatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder()));
+                if (sort == ArchiverEditorPostPlaceDto.Sort.LATEST) {
+                        comparator = comparator.reversed();
+                }
+
+                List<ArchiverEditorPostPlaceDto.PostPlaceResponse> responses = postPlaces.stream()
+                                .sorted(comparator)
+                                .map(postPlace -> ArchiverEditorPostPlaceDto.PostPlaceResponse.from(
+                                                postPlace,
+                                                getLastUpdatedAt(postPlace)))
+                                .toList();
+
+                return ArchiverEditorPostPlaceDto.ListResponse.from(responses);
         }
 
         public EditorPostByPostPlaceDto.Response getPostByPostPlaceId(Long postPlaceId) {
@@ -223,6 +254,40 @@ public class PostQueryService {
                 return EditorMapDto.Response.from(pins);
         }
 
+        public EditorMapDto.Response getMapPinsForArchiver(
+                        UUID editorId,
+                        MapFilter filter,
+                        List<Long> categoryIds,
+                        Double latitude,
+                        Double longitude) {
+                editorProfileRepository.findByUserId(editorId)
+                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+
+                validateNearbyCoordinates(filter, latitude, longitude);
+
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
+                if (postPlaces.isEmpty()) {
+                        return EditorMapDto.Response.empty();
+                }
+
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaces.stream()
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
+
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
+                                postPlacesByPlaceId.keySet().stream().toList())
+                                .stream()
+                                .collect(Collectors.toMap(Place::getId, Function.identity()));
+
+                List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
+                                .filter(entry -> matchAllCategories(entry.getValue(), categoryIds))
+                                .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
+                                .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
+                                .filter(pin -> pin != null)
+                                .toList();
+
+                return EditorMapDto.Response.from(pins);
+        }
+
         public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {
                 EditorProfile editorProfile = editorProfileRepository.findByUserId(editorId)
                                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
@@ -330,6 +395,56 @@ public class PostQueryService {
                                 .filter(category -> category != null)
                                 .map(category -> category.getId())
                                 .anyMatch(categoryIds::contains);
+        }
+
+        private boolean matchAllCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
+                if (categoryIds == null || categoryIds.isEmpty()) {
+                        return true;
+                }
+
+                Set<Long> ownedCategoryIds = postPlaces.stream()
+                                .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
+                                .map(PostPlaceCategory::getCategory)
+                                .filter(category -> category != null && category.getId() != null)
+                                .map(category -> category.getId())
+                                .collect(Collectors.toSet());
+
+                return ownedCategoryIds.containsAll(new HashSet<>(categoryIds));
+        }
+
+        private void validateNearbyCoordinates(MapFilter filter, Double latitude, Double longitude) {
+                if (filter != MapFilter.NEARBY) {
+                        return;
+                }
+                Position.of(latitude, longitude);
+        }
+
+        private boolean matchNearby(Place place, MapFilter filter, Double latitude, Double longitude) {
+                if (filter != MapFilter.NEARBY) {
+                        return true;
+                }
+                if (place == null || place.getPosition() == null) {
+                        return false;
+                }
+                return isWithin1km(place.getPosition(), latitude, longitude);
+        }
+
+        private boolean isWithin1km(Position target, Double latitude, Double longitude) {
+                final double earthRadiusM = 6371000.0d;
+                double lat1 = Math.toRadians(latitude);
+                double lon1 = Math.toRadians(longitude);
+                double lat2 = Math.toRadians(target.getLatitude());
+                double lon2 = Math.toRadians(target.getLongitude());
+
+                double deltaLat = lat2 - lat1;
+                double deltaLon = lon2 - lon1;
+
+                double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+                                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+                double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                double distanceM = earthRadiusM * c;
+
+                return distanceM <= 1000.0d;
         }
 
         private boolean matchesPeriod(PostPlace postPlace, EditorInsightDto.Period period, LocalDateTime now) {

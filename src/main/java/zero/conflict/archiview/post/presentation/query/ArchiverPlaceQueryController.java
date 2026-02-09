@@ -10,10 +10,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
+import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
+import zero.conflict.archiview.post.dto.EditorMapDto;
+
+import java.util.List;
+import java.util.UUID;
 
 @Tag(name = "Archiver Place Query", description = "아카이버용 핫플레이스 조회 API")
 @RestController
@@ -55,5 +60,33 @@ public class ArchiverPlaceQueryController {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(postQueryService.getNearbyPlacesWithin1km(latitude, longitude)));
+    }
+
+    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
+    @GetMapping("/editors/{userId}/post-places")
+    public ResponseEntity<ApiResponse<ArchiverEditorPostPlaceDto.ListResponse>> getEditorUploadedPostPlaces(
+            @PathVariable UUID userId,
+            @RequestParam(defaultValue = "LATEST") ArchiverEditorPostPlaceDto.Sort sort,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(ArchiverEditorPostPlaceDto.ListResponse.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(postQueryService.getEditorUploadedPostPlaces(userId, sort)));
+    }
+
+    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
+    @GetMapping("/editors/{editorId}/map/places")
+    public ResponseEntity<ApiResponse<EditorMapDto.Response>> getEditorMapPins(
+            @PathVariable UUID editorId,
+            @RequestParam(defaultValue = "ALL") EditorMapDto.MapFilter filter,
+            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorMapDto.Response.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(
+                postQueryService.getMapPinsForArchiver(editorId, filter, categoryIds, latitude, longitude)));
     }
 }
