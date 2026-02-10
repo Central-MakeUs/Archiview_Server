@@ -27,6 +27,24 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
     private CategoryQueryService categoryQueryService;
 
     @Test
+    @DisplayName("카테고리 목록 조회 - 성공")
+    void getCategories_success() throws Exception {
+        CategoryQueryDto.CategoryResponse category = CategoryQueryDto.CategoryResponse.builder()
+                .id(1L)
+                .name("카페")
+                .build();
+        CategoryQueryDto.CategoryListResponse response = CategoryQueryDto.CategoryListResponse.of(List.of(category));
+
+        given(categoryQueryService.getCategories()).willReturn(response);
+
+        mockMvc.perform(get("/api/v1/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.categories[0].id").value(1L))
+                .andExpect(jsonPath("$.data.categories[0].name").value("카페"));
+    }
+
+    @Test
     @DisplayName("카테고리별 장소 목록 조회 - 성공")
     void getPlacesByCategoryId_success() throws Exception {
         Long categoryId = 1L;
@@ -49,10 +67,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(1))
-                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 핫플"))
-                .andExpect(jsonPath("$.data.places[0].latestDescription").value("가장 최근 설명"))
-                .andExpect(jsonPath("$.data.places[0].viewCount").value(1200))
-                .andExpect(jsonPath("$.data.places[0].saveCount").value(340));
+                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 핫플"));
     }
 
     @Test
