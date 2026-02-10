@@ -17,7 +17,7 @@ import zero.conflict.archiview.user.application.command.EditorBlockCommandServic
 
 import java.util.UUID;
 
-@Tag(name = "Archiver Block", description = "아카이버 사용자 차단 API")
+@Tag(name = "Archiver User Command", description = "아카이버 사용자 차단 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers/blocks/editors")

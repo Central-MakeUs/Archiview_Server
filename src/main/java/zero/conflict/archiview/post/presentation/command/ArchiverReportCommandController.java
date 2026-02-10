@@ -15,7 +15,7 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.command.PostReportCommandService;
 
-@Tag(name = "Archiver Report", description = "아카이버 게시글 신고 API")
+@Tag(name = "Archiver Place Command", description = "아카이버 게시글 신고 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers/reports/post-places")

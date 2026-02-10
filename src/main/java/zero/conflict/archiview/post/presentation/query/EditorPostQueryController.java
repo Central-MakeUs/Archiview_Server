@@ -20,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/editors")
-@Tag(name = "Editor Post Query", description = "에디터용 장소 정보 관련 조회 API")
+@Tag(name = "Editor Place Query", description = "에디터용 장소 정보 관련 조회 API")
 @RequiredArgsConstructor
 public class EditorPostQueryController {
 

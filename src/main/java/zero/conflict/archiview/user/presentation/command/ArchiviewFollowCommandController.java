@@ -20,7 +20,7 @@ import zero.conflict.archiview.user.dto.FollowDto;
 
 import java.util.UUID;
 
-@Tag(name = "Follow", description = "아카이버 팔로우 API")
+@Tag(name = "Archiver User Command", description = "아카이버 팔로우 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers/follows")
