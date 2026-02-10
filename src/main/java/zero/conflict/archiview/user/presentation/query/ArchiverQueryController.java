@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.query.ArchiverProfileQueryService;
+import zero.conflict.archiview.user.application.query.BlockQueryService;
 import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.query.FollowQueryService;
 import zero.conflict.archiview.user.application.query.TrustedEditorQueryService;
 import zero.conflict.archiview.user.dto.ArchiverProfileDto;
+import zero.conflict.archiview.user.dto.BlockDto;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 import zero.conflict.archiview.user.dto.TrustedEditorDto;
@@ -30,6 +32,7 @@ public class ArchiverQueryController {
 
     private final ArchiverProfileQueryService archiverProfileQueryService;
     private final FollowQueryService followQueryService;
+    private final BlockQueryService blockQueryService;
     private final TrustedEditorQueryService trustedEditorQueryService;
     private final EditorProfileQueryService editorProfileQueryService;
 
@@ -55,6 +58,18 @@ public class ArchiverQueryController {
         }
         return ResponseEntity.ok(ApiResponse.success(
                 followQueryService.getMyFollowings(oAuth2User.getUserId())));
+    }
+
+    @Operation(summary = "내 차단 에디터 목록", description = "아카이버가 차단한 에디터 목록을 조회합니다.")
+    @GetMapping("/blocks")
+    public ResponseEntity<ApiResponse<BlockDto.ListResponse>> getMyBlockedEditors(
+            @RequestParam(defaultValue = "false") boolean useMock,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(BlockDto.ListResponse.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(
+                blockQueryService.getMyBlockedEditors(oAuth2User.getUserId())));
     }
 
     @Operation(summary = "믿고 먹는 에디터 조회", description = "팔로워 수와 등록한 포스트 장소 수를 기준으로 상위 에디터를 조회합니다.")

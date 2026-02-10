@@ -13,9 +13,11 @@ import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.user.application.command.FollowCommandService;
+import zero.conflict.archiview.user.application.query.BlockQueryService;
 import zero.conflict.archiview.user.application.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.query.FollowQueryService;
 import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.dto.BlockDto;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 
@@ -45,6 +47,9 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
 
         @MockBean
         private FollowQueryService followQueryService;
+
+        @MockBean
+        private BlockQueryService blockQueryService;
 
         @MockBean
         private EditorProfileQueryService editorProfileQueryService;
@@ -109,6 +114,46 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
         @DisplayName("내 팔로우 목록 조회 - mock 사용")
         void getMyFollowings_Mock() throws Exception {
                 mockMvc.perform(get("/api/v1/archivers/follows")
+                                .param("useMock", "true")
+                                .with(authenticatedArchiver()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.totalCount").value(2))
+                                .andExpect(jsonPath("$.data.editors[0].editorId").exists())
+                                .andDo(print());
+        }
+
+        @Test
+        @DisplayName("내 차단 에디터 목록 조회 성공")
+        void getMyBlockedEditors_Success() throws Exception {
+                BlockDto.BlockedEditorResponse blockedEditor = BlockDto.BlockedEditorResponse.builder()
+                                .editorId(EDITOR_ID)
+                                .nickname("차단된에디터")
+                                .instagramId("blocked_editor")
+                                .instagramUrl("https://www.instagram.com/blocked_editor")
+                                .introduction("소개")
+                                .hashtags(List.of("#한식", "#맛집"))
+                                .profileImageUrl("https://picsum.photos/200/200?random=91")
+                                .blockedAt(java.time.LocalDateTime.of(2026, 2, 10, 10, 0, 0))
+                                .build();
+                BlockDto.ListResponse response = BlockDto.ListResponse.from(List.of(blockedEditor));
+
+                given(blockQueryService.getMyBlockedEditors(org.mockito.ArgumentMatchers.any())).willReturn(response);
+
+                mockMvc.perform(get("/api/v1/archivers/blocks")
+                                .with(authenticatedArchiver()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.success").value(true))
+                                .andExpect(jsonPath("$.data.totalCount").value(1))
+                                .andExpect(jsonPath("$.data.editors[0].editorId").value(EDITOR_ID.toString()))
+                                .andExpect(jsonPath("$.data.editors[0].blockedAt").value("2026-02-10 10:00:00"))
+                                .andDo(print());
+        }
+
+        @Test
+        @DisplayName("내 차단 에디터 목록 조회 - mock 사용")
+        void getMyBlockedEditors_Mock() throws Exception {
+                mockMvc.perform(get("/api/v1/archivers/blocks")
                                 .param("useMock", "true")
                                 .with(authenticatedArchiver()))
                                 .andExpect(status().isOk())
