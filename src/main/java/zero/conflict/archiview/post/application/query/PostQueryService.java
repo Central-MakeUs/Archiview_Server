@@ -43,6 +43,7 @@ public class PostQueryService {
         private final PlaceRepository placeRepository;
         private final EditorProfileRepository editorProfileRepository;
         private final CategoryPlaceReadRepository categoryPlaceReadRepository;
+        private final ArchiverVisibilityService archiverVisibilityService;
 
         public CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(
                         Double latitude,
@@ -52,13 +53,69 @@ public class PostQueryService {
                                 categoryPlaceReadRepository.findPlaceSummariesNearby(latitude, longitude, 1000));
         }
 
+        public CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId) {
+                Position.of(latitude, longitude);
+
+                List<CategoryPlaceReadRepository.CategoryPlaceSummaryProjection> nearby = categoryPlaceReadRepository
+                                .findPlaceSummariesNearby(latitude, longitude, 1000);
+                if (nearby.isEmpty()) {
+                        return CategoryQueryDto.CategoryPlaceListResponse.builder()
+                                        .totalCount(0L)
+                                        .places(List.of())
+                                        .build();
+                }
+
+                List<Long> placeIds = nearby.stream()
+                                .map(CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceId)
+                                .toList();
+                Map<Long, String> placeNameById = nearby.stream()
+                                .collect(Collectors.toMap(
+                                                CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceId,
+                                                CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceName,
+                                                (existing, ignored) -> existing));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService
+                                .getVisibilityFilter(archiverId);
+                List<PostPlace> visiblePostPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                postPlaceRepository.findAllByPlaceIds(placeIds),
+                                visibilityFilter);
+                Map<Long, List<PostPlace>> visibleByPlaceId = visiblePostPlaces.stream()
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
+
+                List<CategoryQueryDto.CategoryPlaceResponse> places = placeIds.stream()
+                                .map(placeId -> toCategoryPlaceResponse(placeId, placeNameById.get(placeId),
+                                                visibleByPlaceId.get(placeId)))
+                                .filter(response -> response != null)
+                                .toList();
+
+                return CategoryQueryDto.CategoryPlaceListResponse.builder()
+                                .totalCount((long) places.size())
+                                .places(places)
+                                .build();
+        }
+
         public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
                         UUID userId,
                         ArchiverEditorPostPlaceDto.Sort sort) {
+                return getEditorUploadedPostPlaces(userId, sort, null);
+        }
+
+        public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
+                        UUID userId,
+                        ArchiverEditorPostPlaceDto.Sort sort,
+                        UUID archiverId) {
                 editorProfileRepository.findByUserId(userId)
                                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(userId);
+                if (archiverId != null) {
+                        postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                        postPlaces,
+                                        archiverVisibilityService.getVisibilityFilter(archiverId));
+                }
                 if (postPlaces.isEmpty()) {
                         return ArchiverEditorPostPlaceDto.ListResponse.empty();
                 }
@@ -103,6 +160,10 @@ public class PostQueryService {
         }
 
         public ArchiverHotPlaceDto.ListResponse getHotPlaces(int limit) {
+                return getHotPlaces(limit, null);
+        }
+
+        public ArchiverHotPlaceDto.ListResponse getHotPlaces(int limit, UUID archiverId) {
                 List<Place> places = placeRepository.findTopByViewCount(limit);
                 if (places.isEmpty()) {
                         return ArchiverHotPlaceDto.ListResponse.empty();
@@ -112,6 +173,11 @@ public class PostQueryService {
                                 .map(Place::getId)
                                 .toList();
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceIds(placeIds);
+                if (archiverId != null) {
+                        postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                        postPlaces,
+                                        archiverVisibilityService.getVisibilityFilter(archiverId));
+                }
 
                 Map<Long, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
                                 .sorted(Comparator.comparing(
@@ -124,6 +190,7 @@ public class PostQueryService {
                                                 (existing, ignored) -> existing));
 
                 List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
+                                .filter(place -> latestPostPlaceByPlaceId.containsKey(place.getId()))
                                 .map(place -> ArchiverHotPlaceDto.PlaceCardResponse.from(
                                                 place,
                                                 latestPostPlaceByPlaceId.get(place.getId())))
@@ -195,10 +262,19 @@ public class PostQueryService {
         }
 
         public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId) {
+                return getArchiverPlaceDetail(placeId, null);
+        }
+
+        public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId) {
                 Place place = placeRepository.findById(placeId)
                                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceId(placeId);
+                if (archiverId != null) {
+                        postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                        postPlaces,
+                                        archiverVisibilityService.getVisibilityFilter(archiverId));
+                }
 
                 EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
                 ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(
@@ -260,12 +336,27 @@ public class PostQueryService {
                         List<Long> categoryIds,
                         Double latitude,
                         Double longitude) {
+                return getMapPinsForArchiver(editorId, filter, categoryIds, latitude, longitude, null);
+        }
+
+        public EditorMapDto.Response getMapPinsForArchiver(
+                        UUID editorId,
+                        MapFilter filter,
+                        List<Long> categoryIds,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId) {
                 editorProfileRepository.findByUserId(editorId)
                                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
 
                 validateNearbyCoordinates(filter, latitude, longitude);
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
+                if (archiverId != null) {
+                        postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                        postPlaces,
+                                        archiverVisibilityService.getVisibilityFilter(archiverId));
+                }
                 if (postPlaces.isEmpty()) {
                         return EditorMapDto.Response.empty();
                 }
@@ -286,6 +377,40 @@ public class PostQueryService {
                                 .toList();
 
                 return EditorMapDto.Response.from(pins);
+        }
+
+        private CategoryQueryDto.CategoryPlaceResponse toCategoryPlaceResponse(
+                        Long placeId,
+                        String placeName,
+                        List<PostPlace> postPlaces) {
+                if (postPlaces == null || postPlaces.isEmpty()) {
+                        return null;
+                }
+
+                PostPlace latestPostPlace = postPlaces.stream()
+                                .max(Comparator.comparing(this::getLastUpdatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .orElse(null);
+                if (latestPostPlace == null) {
+                        return null;
+                }
+
+                long viewCount = postPlaces.stream()
+                                .map(PostPlace::getViewCount)
+                                .mapToLong(this::defaultZero)
+                                .sum();
+                long saveCount = postPlaces.stream()
+                                .map(PostPlace::getSaveCount)
+                                .mapToLong(this::defaultZero)
+                                .sum();
+
+                return CategoryQueryDto.CategoryPlaceResponse.builder()
+                                .placeId(placeId)
+                                .placeName(placeName)
+                                .latestDescription(latestPostPlace.getDescription())
+                                .viewCount(viewCount)
+                                .saveCount(saveCount)
+                                .build();
         }
 
         public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {

@@ -64,4 +64,9 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
         }
         return postPlaceJpaRepository.findAllByEditorIdIn(editorIds);
     }
+
+    @Override
+    public List<PostPlace> findAllByCategoryId(Long categoryId) {
+        return postPlaceJpaRepository.findAllByPostPlaceCategories_Category_Id(categoryId);
+    }
 }

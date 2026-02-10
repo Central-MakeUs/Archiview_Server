@@ -10,8 +10,11 @@ import zero.conflict.archiview.post.application.query.CategoryQueryService;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -39,7 +42,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .places(List.of(place))
                 .build();
 
-        given(categoryQueryService.getPlacesByCategoryId(categoryId)).willReturn(response);
+        given(categoryQueryService.getPlacesByCategoryId(eq(categoryId), any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/categories/{categoryId}/places", categoryId)
                         .with(authenticatedUser()))

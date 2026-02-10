@@ -8,6 +8,8 @@ build/
 application-local.yml
 .DS_Store
 
+prompt.txt
+
 
 ### STS ###
 .apt_generated

@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,9 +43,10 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .totalCount(1L)
                 .places(List.of(place))
                 .build();
-        given(postQueryService.getNearbyPlacesWithin1km(37.5445, 127.0560)).willReturn(response);
+        given(postQueryService.getNearbyPlacesWithin1km(eq(37.5445), eq(127.0560), any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/places/nearby")
+                        .with(authenticatedUser())
                         .queryParam("latitude", "37.5445")
                 .queryParam("longitude", "127.0560"))
                 .andExpect(status().isOk())
@@ -56,6 +60,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
     @DisplayName("내 주변 1km 장소 조회 - mock")
     void getNearbyPlaces_mock() throws Exception {
         mockMvc.perform(get("/api/v1/archivers/places/nearby")
+                        .with(authenticatedUser())
                         .queryParam("latitude", "37.5445")
                         .queryParam("longitude", "127.0560")
                 .queryParam("useMock", "true"))
@@ -82,7 +87,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .postPlaces(List.of(item))
                 .build();
 
-        given(postQueryService.getEditorUploadedPostPlaces(editorId, ArchiverEditorPostPlaceDto.Sort.LATEST))
+        given(postQueryService.getEditorUploadedPostPlaces(eq(editorId), eq(ArchiverEditorPostPlaceDto.Sort.LATEST), any(UUID.class)))
                 .willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/editors/{userId}/post-places", editorId)
@@ -125,11 +130,12 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
 
         given(postQueryService.getMapPinsForArchiver(
-                editorId,
-                EditorMapDto.MapFilter.ALL,
-                List.of(1L, 2L),
-                null,
-                null)).willReturn(response);
+                eq(editorId),
+                eq(EditorMapDto.MapFilter.ALL),
+                eq(List.of(1L, 2L)),
+                isNull(),
+                isNull(),
+                any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/map/places", editorId)
                         .with(authenticatedUser())
@@ -146,11 +152,12 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
     void getEditorMapPins_nearby_success() throws Exception {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000122");
         given(postQueryService.getMapPinsForArchiver(
-                editorId,
-                EditorMapDto.MapFilter.NEARBY,
-                null,
-                37.5445,
-                127.0560)).willReturn(EditorMapDto.Response.empty());
+                eq(editorId),
+                eq(EditorMapDto.MapFilter.NEARBY),
+                isNull(),
+                eq(37.5445),
+                eq(127.0560),
+                any(UUID.class))).willReturn(EditorMapDto.Response.empty());
 
         mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/map/places", editorId)
                         .with(authenticatedUser())

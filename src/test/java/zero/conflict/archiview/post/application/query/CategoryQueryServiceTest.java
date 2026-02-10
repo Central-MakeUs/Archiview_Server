@@ -7,17 +7,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
+import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.Category;
+import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Post;
+import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.application.query.ArchiverVisibilityService.VisibilityFilter;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
-import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CategoryQueryService 테스트")
@@ -27,10 +34,10 @@ class CategoryQueryServiceTest {
     private CategoryRepository categoryRepository;
 
     @Mock
-    private CategoryPlaceReadRepository categoryPlaceReadRepository;
+    private PostPlaceRepository postPlaceRepository;
 
     @Mock
-    private CategoryPlaceReadRepository.CategoryPlaceSummaryProjection projection;
+    private ArchiverVisibilityService archiverVisibilityService;
 
     @Test
     @DisplayName("카테고리별 장소 목록을 조회한다")
@@ -38,18 +45,33 @@ class CategoryQueryServiceTest {
         // given
         Long categoryId = 1L;
         Category category = Category.builder().id(categoryId).name("카페").build();
-        CategoryQueryService service = new CategoryQueryService(categoryRepository, categoryPlaceReadRepository);
+        CategoryQueryService service = new CategoryQueryService(
+                categoryRepository,
+                postPlaceRepository,
+                archiverVisibilityService);
 
         given(categoryRepository.findById(categoryId)).willReturn(Optional.of(category));
-        given(categoryPlaceReadRepository.findPlaceSummariesByCategoryId(categoryId)).willReturn(List.of(projection));
-        given(projection.getPlaceId()).willReturn(10L);
-        given(projection.getPlaceName()).willReturn("성수 카페");
-        given(projection.getLatestDescription()).willReturn("최근 설명");
-        given(projection.getViewCount()).willReturn(120L);
-        given(projection.getSaveCount()).willReturn(35L);
+        UUID editorId = UUID.randomUUID();
+        Post post = Post.builder().id(1L).editorId(editorId).build();
+        Place place = Place.builder().id(10L).name("성수 카페").build();
+        PostPlace postPlace = PostPlace.builder()
+                .id(100L)
+                .post(post)
+                .place(place)
+                .editorId(editorId)
+                .description("최근 설명")
+                .viewCount(120L)
+                .saveCount(35L)
+                .build();
+        given(postPlaceRepository.findAllByCategoryId(categoryId)).willReturn(List.of(postPlace));
+        VisibilityFilter visibilityFilter = new VisibilityFilter(Set.of(), Set.of());
+        given(archiverVisibilityService.getVisibilityFilter(editorId))
+                .willReturn(visibilityFilter);
+        given(archiverVisibilityService.filterVisiblePostPlaces(any(), any()))
+                .willReturn(List.of(postPlace));
 
         // when
-        CategoryQueryDto.CategoryPlaceListResponse response = service.getPlacesByCategoryId(categoryId);
+        CategoryQueryDto.CategoryPlaceListResponse response = service.getPlacesByCategoryId(categoryId, editorId);
 
         // then
         assertThat(response.getPlaces()).hasSize(1);
@@ -65,7 +87,10 @@ class CategoryQueryServiceTest {
     void getPlacesByCategoryId_invalidCategory() {
         // given
         Long categoryId = 999L;
-        CategoryQueryService service = new CategoryQueryService(categoryRepository, categoryPlaceReadRepository);
+        CategoryQueryService service = new CategoryQueryService(
+                categoryRepository,
+                postPlaceRepository,
+                archiverVisibilityService);
         given(categoryRepository.findById(categoryId)).willReturn(Optional.empty());
 
         // when & then
