@@ -24,6 +24,32 @@ class EditorQueryControllerTest extends ControllerTestSupport {
     private EditorProfileQueryService editorProfileQueryService;
 
     @Test
+    @DisplayName("에디터 내 프로필 조회 - 성공")
+    void getMyProfile_success() throws Exception {
+        given(editorProfileQueryService.getMyProfile(org.mockito.ArgumentMatchers.any()))
+                .willReturn(EditorProfileDto.Response.mock());
+
+        mockMvc.perform(get("/api/v1/editors/me/profile")
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.nickname").value("맛집탐방가"));
+    }
+
+    @Test
+    @DisplayName("에디터 공개 프로필 조회 - 성공")
+    void getEditorProfile_success() throws Exception {
+        UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000201");
+        given(editorProfileQueryService.getEditorProfile(editorId)).willReturn(EditorProfileDto.Response.mock());
+
+        mockMvc.perform(get("/api/v1/editors/{editorId}/profile", editorId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.instagramId").value("editor_insta"));
+    }
+
+    @Test
     @DisplayName("아카이버용 에디터 화면 조회 - 성공")
     void getEditorArchiverView_success() throws Exception {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000201");
@@ -40,6 +66,19 @@ class EditorQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.userId").value(editorId.toString()))
                 .andExpect(jsonPath("$.data.editorProfile.nickname").value("맛집탐방가"));
+    }
+
+    @Test
+    @DisplayName("에디터 인스타그램 ID 중복 확인 - 성공")
+    void checkInstagramId_success() throws Exception {
+        given(editorProfileQueryService.existsInstagramId("editor_insta")).willReturn(true);
+
+        mockMvc.perform(get("/api/v1/editors/profile/instagram-id/exists")
+                        .with(authenticatedUser())
+                        .queryParam("instagramId", "editor_insta"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.exists").value(true));
     }
 
     @Test

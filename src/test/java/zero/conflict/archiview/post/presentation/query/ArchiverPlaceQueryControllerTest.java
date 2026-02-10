@@ -8,6 +8,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.query.PostQueryService;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 
@@ -30,6 +32,52 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
     private PostQueryService postQueryService;
 
     @Test
+    @DisplayName("요즘 핫한 장소 조회 - 성공")
+    void getHotPlaces_success() throws Exception {
+        ArchiverHotPlaceDto.PlaceCardResponse place = ArchiverHotPlaceDto.PlaceCardResponse.builder()
+                .placeId(201L)
+                .name("서울숲 브루어스")
+                .address("서울 성동구 서울숲2길 32-14")
+                .viewCount(120L)
+                .build();
+        ArchiverHotPlaceDto.ListResponse response = ArchiverHotPlaceDto.ListResponse.from(List.of(place));
+
+        given(postQueryService.getHotPlaces(eq(5), any(UUID.class))).willReturn(response);
+
+        mockMvc.perform(get("/api/v1/archivers/places/hot")
+                        .with(authenticatedUser())
+                        .queryParam("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.places[0].placeId").value(201L))
+                .andExpect(jsonPath("$.data.places[0].name").value("서울숲 브루어스"));
+    }
+
+    @Test
+    @DisplayName("장소 상세 조회 - 성공")
+    void getPlaceDetail_success() throws Exception {
+        Long placeId = 301L;
+        ArchiverPlaceDetailDto.PlaceResponse place = ArchiverPlaceDetailDto.PlaceResponse.builder()
+                .placeId(placeId)
+                .name("잠실 레이크 브런치")
+                .build();
+        ArchiverPlaceDetailDto.PostPlaceResponse postPlace = ArchiverPlaceDetailDto.PostPlaceResponse.builder()
+                .postPlaceId(401L)
+                .description("설명")
+                .build();
+        ArchiverPlaceDetailDto.Response response = ArchiverPlaceDetailDto.Response.from(place, List.of(postPlace));
+
+        given(postQueryService.getArchiverPlaceDetail(eq(placeId), any(UUID.class))).willReturn(response);
+
+        mockMvc.perform(get("/api/v1/archivers/places/{placeId}", placeId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.place.placeId").value(301L))
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(401L));
+    }
+
+    @Test
     @DisplayName("내 주변 1km 장소 조회 - 성공")
     void getNearbyPlaces_success() throws Exception {
         CategoryQueryDto.CategoryPlaceResponse place = CategoryQueryDto.CategoryPlaceResponse.builder()
@@ -48,7 +96,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         mockMvc.perform(get("/api/v1/archivers/places/nearby")
                         .with(authenticatedUser())
                         .queryParam("latitude", "37.5445")
-                .queryParam("longitude", "127.0560"))
+                        .queryParam("longitude", "127.0560"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(1))
@@ -63,7 +111,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                         .with(authenticatedUser())
                         .queryParam("latitude", "37.5445")
                         .queryParam("longitude", "127.0560")
-                .queryParam("useMock", "true"))
+                        .queryParam("useMock", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(2))
