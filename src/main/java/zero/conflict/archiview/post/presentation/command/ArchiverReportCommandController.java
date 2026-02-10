@@ -23,7 +23,7 @@ public class ArchiverReportCommandController {
 
     private final PostReportCommandService postReportCommandService;
 
-    @Operation(summary = "postPlace 신고", description = "아카이버가 장소카드를 신고하고 이후 조회에서 숨깁니다.")
+    @Operation(summary = "장소카드 신고", description = "아카이버가 장소카드를 신고하고 이후 조회에서 숨깁니다.")
     @PostMapping("/{postPlaceId}")
     public ResponseEntity<ApiResponse<Void>> reportPostPlace(
             @PathVariable Long postPlaceId,
@@ -32,7 +32,7 @@ public class ArchiverReportCommandController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "postPlace 신고 취소 (기획에 없는거지만 혹시 몰라서 API는 만들어둠)", description = "아카이버가 장소카드 신고를 취소합니다.")
+    @Operation(summary = "장소카드 신고 취소 (기획에 없는거지만 혹시 몰라서 API는 만들어둠)", description = "아카이버가 장소카드 신고를 취소합니다.")
     @DeleteMapping("/{postPlaceId}")
     public ResponseEntity<ApiResponse<Void>> cancelReportPostPlace(
             @PathVariable Long postPlaceId,
