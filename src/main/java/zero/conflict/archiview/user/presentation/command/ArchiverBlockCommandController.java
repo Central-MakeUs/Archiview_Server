@@ -25,7 +25,7 @@ public class ArchiverBlockCommandController {
 
     private final EditorBlockCommandService editorBlockCommandService;
 
-    @Operation(summary = "에디터 차단", description = "아카이버가 에디터를 차단하고 해당 에디터의 post/postPlace를 숨깁니다.")
+    @Operation(summary = "에디터 차단", description = "아카이버가 에디터를 차단하고 해당 에디터의 게시글/장소카드를 숨깁니다.")
     @PostMapping("/{editorId}")
     public ResponseEntity<ApiResponse<Void>> blockEditor(
             @PathVariable UUID editorId,
