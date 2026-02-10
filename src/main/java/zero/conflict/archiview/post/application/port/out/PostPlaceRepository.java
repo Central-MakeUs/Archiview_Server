@@ -26,4 +26,6 @@ public interface PostPlaceRepository {
     List<PostPlace> findAllByEditorIds(List<UUID> editorIds);
 
     List<PostPlace> findAllByCategoryId(Long categoryId);
+
+    List<PostPlace> findAll();
 }

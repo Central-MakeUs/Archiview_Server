@@ -69,4 +69,9 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     public List<PostPlace> findAllByCategoryId(Long categoryId) {
         return postPlaceJpaRepository.findAllByPostPlaceCategories_Category_Id(categoryId);
     }
+
+    @Override
+    public List<PostPlace> findAll() {
+        return postPlaceJpaRepository.findAll();
+    }
 }
