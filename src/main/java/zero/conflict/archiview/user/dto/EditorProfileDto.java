@@ -138,6 +138,8 @@ public class EditorProfileDto {
         @jakarta.validation.constraints.Size(min = 2, max = 2)
         @Schema(description = "해시태그 2개", example = "[\"#성수카페\", \"#디저트맛집\"]")
         private java.util.List<@jakarta.validation.constraints.NotBlank String> hashtags;
+        @Schema(description = "프로필 이미지 URL")
+        private String profileImageUrl;
     }
 
     @Getter

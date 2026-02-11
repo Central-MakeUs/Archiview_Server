@@ -42,7 +42,8 @@ class EditorCommandControllerTest extends ControllerTestSupport {
                                 "instagramId", "editor_insta",
                                 "instagramUrl", "https://www.instagram.com/editor_insta",
                                 "introduction", "서울의 숨은 맛집을 기록합니다.",
-                                "hashtags", new String[]{"#성수카페", "#디저트맛집"}
+                                "hashtags", new String[]{"#성수카페", "#디저트맛집"},
+                                "profileImageUrl", "https://example.com/profile.png"
                         ))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

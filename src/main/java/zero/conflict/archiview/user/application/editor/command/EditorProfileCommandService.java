@@ -36,7 +36,7 @@ public class EditorProfileCommandService {
                 request.getIntroduction(),
                 request.getInstagramId(),
                 request.getInstagramUrl(),
-                null,
+                request.getProfileImageUrl(),
                 Hashtags.of(request.getHashtags().get(0), request.getHashtags().get(1)));
 
         EditorProfile savedProfile = editorProfileRepository.save(profile);
