@@ -3,7 +3,7 @@ package zero.conflict.archiview.post.application.editor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
-import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
+import zero.conflict.archiview.post.application.editor.query.EditorPostQueryService;
 import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
@@ -20,7 +20,7 @@ import java.util.UUID;
 public class EditorPostService implements EditorPostUseCase {
 
     private final PostCommandService postCommandService;
-    private final PostQueryService postQueryService;
+    private final EditorPostQueryService editorPostQueryService;
 
     @Override
     public PostCommandDto.Response createPost(PostCommandDto.Request request, UUID editorId) {
@@ -39,31 +39,31 @@ public class EditorPostService implements EditorPostUseCase {
 
     @Override
     public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {
-        return postQueryService.getInsightSummary(editorId, period);
+        return editorPostQueryService.getInsightSummary(editorId, period);
     }
 
     @Override
     public EditorInsightDto.PlaceCardListResponse getInsightPlaces(UUID editorId, EditorInsightDto.PlaceSort sort) {
-        return postQueryService.getInsightPlaces(editorId, sort);
+        return editorPostQueryService.getInsightPlaces(editorId, sort);
     }
 
     @Override
     public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, Long placeId) {
-        return postQueryService.getInsightPlaceDetail(editorId, placeId);
+        return editorPostQueryService.getInsightPlaceDetail(editorId, placeId);
     }
 
     @Override
     public EditorMapDto.Response getMapPins(UUID editorId, EditorMapDto.MapFilter filter, List<Long> categoryIds) {
-        return postQueryService.getMapPins(editorId, filter, categoryIds);
+        return editorPostQueryService.getMapPins(editorId, filter, categoryIds);
     }
 
     @Override
     public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(UUID editorId) {
-        return postQueryService.getUploadedPlaces(editorId);
+        return editorPostQueryService.getUploadedPlaces(editorId);
     }
 
     @Override
     public EditorPostByPostPlaceDto.Response getPostByPostPlaceId(Long postPlaceId) {
-        return postQueryService.getPostByPostPlaceId(postPlaceId);
+        return editorPostQueryService.getPostByPostPlaceId(postPlaceId);
     }
 }

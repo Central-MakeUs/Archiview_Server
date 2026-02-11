@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
+import zero.conflict.archiview.post.application.editor.query.EditorPostQueryService;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -24,14 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EditorPostQueryControllerTest extends ControllerTestSupport {
 
     @MockBean
-    private PostQueryService postQueryService;
+    private EditorPostQueryService editorPostQueryService;
 
     @Test
     @DisplayName("에디터 인사이트 요약 조회 - 성공")
     void getInsightSummary_success() throws Exception {
         EditorInsightDto.SummaryResponse response = EditorInsightDto.SummaryResponse.of(
                 "에디터A", 10L, 100L, 50L, 1000L, EditorInsightDto.Period.ALL);
-        given(postQueryService.getInsightSummary(
+        given(editorPostQueryService.getInsightSummary(
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(EditorInsightDto.Period.ALL)
         )).willReturn(response);
@@ -47,7 +47,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("에디터 인사이트 장소 목록 조회 - 기본 정렬")
     void getInsightPlaces_DefaultSort_NoPeriod() throws Exception {
-        given(postQueryService.getInsightPlaces(
+        given(editorPostQueryService.getInsightPlaces(
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(EditorInsightDto.PlaceSort.RECENT)))
                 .willReturn(EditorInsightDto.PlaceCardListResponse.empty(EditorInsightDto.PlaceSort.RECENT));
@@ -71,7 +71,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.of(placeId,
                 List.of(postPlaceDetail));
 
-        given(postQueryService.getInsightPlaceDetail(org.mockito.ArgumentMatchers.any(),
+        given(editorPostQueryService.getInsightPlaceDetail(org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(placeId)))
                 .willReturn(response);
 
@@ -96,7 +96,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .build();
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
 
-        given(postQueryService.getMapPins(
+        given(editorPostQueryService.getMapPins(
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
                 org.mockito.ArgumentMatchers.eq(List.of(1L, 2L))
@@ -123,7 +123,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .build();
         EditorUploadedPlaceDto.ListResponse response = EditorUploadedPlaceDto.ListResponse.from(List.of(place));
 
-        given(postQueryService.getUploadedPlaces(org.mockito.ArgumentMatchers.any())).willReturn(response);
+        given(editorPostQueryService.getUploadedPlaces(org.mockito.ArgumentMatchers.any())).willReturn(response);
 
         mockMvc.perform(get("/api/v1/editors/me/places")
                         .with(authenticatedUser()))
@@ -156,7 +156,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .postPlaces(List.of(postPlace))
                 .build();
 
-        given(postQueryService.getPostByPostPlaceId(postPlaceId)).willReturn(response);
+        given(editorPostQueryService.getPostByPostPlaceId(postPlaceId)).willReturn(response);
 
         mockMvc.perform(get("/api/v1/editors/me/posts/by-post-place/{postPlaceId}", postPlaceId)
                         .with(authenticatedUser()))
