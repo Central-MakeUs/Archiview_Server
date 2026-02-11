@@ -19,6 +19,8 @@ public interface EditorUserUseCase {
 
     boolean existsInstagramId(String instagramId);
 
+    boolean existsNickname(String nickname);
+
     void completeOnboarding(UUID userId, UserDto.OnboardingRequest request);
 
     UserDto.SwitchRoleResponse switchRole(UUID userId, UserDto.SwitchRoleRequest request);

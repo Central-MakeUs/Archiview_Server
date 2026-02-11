@@ -76,4 +76,18 @@ public class EditorQueryController {
         return ResponseEntity.ok(ApiResponse.success(
                 EditorProfileDto.InstagramIdCheckResponse.of(exists)));
     }
+
+    @Operation(summary = "에디터 닉네임 중복 확인", description = "에디터 프로필 등록을 위한 닉네임 중복 여부를 확인합니다.")
+    @GetMapping("/profile/nickname/exists")
+    public ResponseEntity<ApiResponse<EditorProfileDto.NicknameCheckResponse>> checkNickname(
+            @RequestParam(defaultValue = "false") boolean useMock,
+            @RequestParam @jakarta.validation.constraints.NotBlank String nickname) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(
+                    EditorProfileDto.NicknameCheckResponse.of(true)));
+        }
+        boolean exists = editorUserUseCase.existsNickname(nickname);
+        return ResponseEntity.ok(ApiResponse.success(
+                EditorProfileDto.NicknameCheckResponse.of(exists)));
+    }
 }

@@ -82,6 +82,19 @@ class EditorQueryControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("에디터 닉네임 중복 확인 - 성공")
+    void checkNickname_success() throws Exception {
+        given(editorProfileQueryService.existsNickname("맛집탐방가")).willReturn(true);
+
+        mockMvc.perform(get("/api/v1/editors/profile/nickname/exists")
+                        .with(authenticatedUser())
+                        .queryParam("nickname", "맛집탐방가"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.exists").value(true));
+    }
+
+    @Test
     @DisplayName("아카이버용 에디터 화면 조회 - mock")
     void getEditorArchiverView_mock() throws Exception {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000201");

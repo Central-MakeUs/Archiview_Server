@@ -101,6 +101,22 @@ public class EditorProfileDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(description = "닉네임 중복 확인 응답")
+    public static class NicknameCheckResponse {
+        @Schema(description = "이미 사용 중인지 여부", example = "true")
+        private boolean exists;
+
+        public static NicknameCheckResponse of(boolean exists) {
+            return NicknameCheckResponse.builder()
+                    .exists(exists)
+                    .build();
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     @Schema(description = "에디터 프로필 등록 요청")
     public static class CreateRequest {
         @jakarta.validation.constraints.NotBlank

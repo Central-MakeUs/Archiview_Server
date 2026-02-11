@@ -45,4 +45,9 @@ public class EditorProfileQueryService {
         return editorProfileRepository.existsByInstagramId(instagramId);
     }
 
+    @Transactional(readOnly = true)
+    public boolean existsNickname(String nickname) {
+        return editorProfileRepository.existsByNickname(nickname);
+    }
+
 }

@@ -49,6 +49,11 @@ public class EditorUserService implements EditorUserUseCase {
     }
 
     @Override
+    public boolean existsNickname(String nickname) {
+        return editorProfileQueryService.existsNickname(nickname);
+    }
+
+    @Override
     public void completeOnboarding(UUID userId, UserDto.OnboardingRequest request) {
         userCommandService.completeOnboarding(userId, request);
     }
