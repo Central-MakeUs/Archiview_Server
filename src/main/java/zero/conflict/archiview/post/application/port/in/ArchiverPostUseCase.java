@@ -45,5 +45,12 @@ public interface ArchiverPostUseCase {
 
     ArchiverSavedPostPlaceDto.ListResponse getMySavedPostPlaces(UUID archiverId);
 
+    EditorMapDto.Response getMySavedMapPins(
+            EditorMapDto.MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude,
+            UUID archiverId);
+
     void increasePostPlaceViewCount(Long postPlaceId, UUID actorId);
 }

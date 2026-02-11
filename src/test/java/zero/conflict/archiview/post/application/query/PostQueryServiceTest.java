@@ -702,6 +702,74 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces()).isEmpty();
         }
 
+        @Test
+        @DisplayName("아카이버 저장 지도 핀 조회 - 카테고리/근처 필터를 적용한다")
+        void getMySavedMapPins_success() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+                Category korean = Category.builder().id(1L).name("한식").build();
+                Category western = Category.builder().id(2L).name("양식").build();
+
+                Place nearPlace = Place.builder()
+                                .id(11L)
+                                .name("근처 한양식")
+                                .position(Position.of(37.5449, 127.0562))
+                                .build();
+                Place farPlace = Place.builder()
+                                .id(12L)
+                                .name("먼 한양식")
+                                .position(Position.of(37.5649, 127.0762))
+                                .build();
+                Post post = Post.builder().id(1L).build();
+                PostPlace nearPostPlace = PostPlace.builder().id(101L).post(post).place(nearPlace).editorId(editorId).build();
+                nearPostPlace.addCategory(korean);
+                nearPostPlace.addCategory(western);
+                PostPlace farPostPlace = PostPlace.builder().id(102L).post(post).place(farPlace).editorId(editorId).build();
+                farPostPlace.addCategory(korean);
+                farPostPlace.addCategory(western);
+
+                PostPlaceSave saveNear = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(101L).build();
+                PostPlaceSave saveFar = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(102L).build();
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+
+                given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId))
+                                .willReturn(List.of(saveNear, saveFar));
+                given(postPlaceRepository.findAllByIds(List.of(101L, 102L))).willReturn(List.of(nearPostPlace, farPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(List.of(nearPostPlace, farPostPlace), visibilityFilter))
+                                .willReturn(List.of(nearPostPlace, farPostPlace));
+                given(placeRepository.findAllByIds(List.of(11L, 12L))).willReturn(List.of(nearPlace, farPlace));
+
+                EditorMapDto.Response response = postQueryService.getMySavedMapPins(
+                                MapFilter.NEARBY,
+                                List.of(1L, 2L),
+                                37.5445,
+                                127.0560,
+                                archiverId);
+
+                assertThat(response.getPins()).hasSize(1);
+                assertThat(response.getPins().get(0).getPlaceId()).isEqualTo(11L);
+                assertThat(response.getPins().get(0).getName()).isEqualTo("근처 한양식");
+        }
+
+        @Test
+        @DisplayName("아카이버 저장 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
+        void getMySavedMapPins_nearbyWithoutCoordinates_throwsException() {
+                UUID archiverId = UUID.randomUUID();
+
+                assertThatThrownBy(() -> postQueryService.getMySavedMapPins(
+                                MapFilter.NEARBY,
+                                null,
+                                null,
+                                127.0560,
+                                archiverId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.INVALID_POSITION_LATITUDE);
+        }
+
         private static void setField(Object target, String fieldName, Object value) {
                 try {
                         Class<?> type = target.getClass();

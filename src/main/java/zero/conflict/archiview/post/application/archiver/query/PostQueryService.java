@@ -165,6 +165,59 @@ public class PostQueryService {
                 return ArchiverSavedPostPlaceDto.ListResponse.from(responses);
         }
 
+        public EditorMapDto.Response getMySavedMapPins(
+                        MapFilter filter,
+                        List<Long> categoryIds,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId) {
+                validateNearbyCoordinates(filter, latitude, longitude);
+
+                List<PostPlaceSave> saves = postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
+                if (saves.isEmpty()) {
+                        return EditorMapDto.Response.empty();
+                }
+
+                List<Long> postPlaceIds = saves.stream()
+                                .map(PostPlaceSave::getPostPlaceId)
+                                .distinct()
+                                .toList();
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByIds(postPlaceIds);
+                if (postPlaces.isEmpty()) {
+                        return EditorMapDto.Response.empty();
+                }
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService
+                                .getVisibilityFilter(archiverId);
+                List<PostPlace> visiblePostPlaces = archiverVisibilityService.filterVisiblePostPlaces(
+                                postPlaces,
+                                visibilityFilter);
+                if (visiblePostPlaces.isEmpty()) {
+                        return EditorMapDto.Response.empty();
+                }
+
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = visiblePostPlaces.stream()
+                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
+                if (postPlacesByPlaceId.isEmpty()) {
+                        return EditorMapDto.Response.empty();
+                }
+
+                Map<Long, Place> placeMap = placeRepository.findAllByIds(
+                                postPlacesByPlaceId.keySet().stream().toList())
+                                .stream()
+                                .collect(Collectors.toMap(Place::getId, Function.identity()));
+
+                List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
+                                .filter(entry -> matchAllCategories(entry.getValue(), categoryIds))
+                                .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
+                                .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
+                                .filter(pin -> pin != null)
+                                .toList();
+
+                return EditorMapDto.Response.from(pins);
+        }
+
         public ArchiverHotPlaceDto.ListResponse getHotPlaces(int limit, UUID archiverId) {
                 List<Place> places = placeRepository.findTopByViewCount(limit);
                 if (places.isEmpty()) {

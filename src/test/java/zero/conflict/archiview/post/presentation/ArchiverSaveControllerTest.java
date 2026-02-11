@@ -9,6 +9,7 @@ import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.archiver.command.PostSaveCommandService;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
 import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
+import zero.conflict.archiview.post.dto.EditorMapDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -79,5 +81,33 @@ class ArchiverSaveControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.data.totalCount").value(1))
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(11L))
                 .andExpect(jsonPath("$.data.postPlaces[0].placeName").value("성수 카페"));
+    }
+
+    @Test
+    @DisplayName("내 저장 장소 핀 지도 조회 성공")
+    void getMySavedMapPins_success() throws Exception {
+        EditorMapDto.PlacePinResponse pin = EditorMapDto.PlacePinResponse.builder()
+                .placeId(1L)
+                .name("한식당")
+                .latitude(37.5445)
+                .longitude(127.0560)
+                .categories(List.of("한식", "양식"))
+                .build();
+        EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
+        given(postQueryService.getMySavedMapPins(
+                eq(EditorMapDto.MapFilter.ALL),
+                eq(List.of(1L, 2L)),
+                isNull(),
+                isNull(),
+                any(UUID.class))).willReturn(response);
+
+        mockMvc.perform(get("/api/v1/archivers/saves/post-places/map/places")
+                        .with(authenticatedUser())
+                        .queryParam("filter", "ALL")
+                        .queryParam("categoryIds", "1", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.pins[0].placeId").value(1L))
+                .andExpect(jsonPath("$.data.pins[0].name").value("한식당"));
     }
 }
