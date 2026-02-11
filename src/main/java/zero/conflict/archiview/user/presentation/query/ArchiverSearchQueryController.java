@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.query.ArchiverSearchQueryService;
+import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 import zero.conflict.archiview.user.dto.SearchDto;
 
 @Tag(name = "Archiver Place Query", description = "아카이버 검색 조회 API")
@@ -23,7 +23,7 @@ import zero.conflict.archiview.user.dto.SearchDto;
 @RequestMapping("/api/v1/archivers/search")
 public class ArchiverSearchQueryController {
 
-    private final ArchiverSearchQueryService archiverSearchQueryService;
+    private final ArchiverUserUseCase archiverSearchQueryService;
 
     @Operation(summary = "아카이버 장소 검색", description = "전체/정보/에디터 탭 기반 검색 결과를 조회합니다.")
     @GetMapping("")

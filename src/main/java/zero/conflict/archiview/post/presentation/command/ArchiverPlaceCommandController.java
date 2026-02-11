@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.command.PostCommandService;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 
 @Tag(name = "Archiver Place Command", description = "아카이버용 장소 상호작용 API")
 @RestController
@@ -20,7 +20,7 @@ import zero.conflict.archiview.post.application.command.PostCommandService;
 @RequestMapping("/api/v1/archivers")
 public class ArchiverPlaceCommandController {
 
-    private final PostCommandService postCommandService;
+    private final ArchiverPostUseCase postCommandService;
 
 
 }

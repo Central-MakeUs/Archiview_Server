@@ -9,7 +9,7 @@ import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.Map;

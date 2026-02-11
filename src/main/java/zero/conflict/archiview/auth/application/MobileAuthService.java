@@ -7,7 +7,7 @@ import zero.conflict.archiview.auth.dto.MobileLoginRequest;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.auth.infrastructure.apple.AppleIdTokenVerifier;
 import zero.conflict.archiview.auth.infrastructure.kakao.KakaoIdTokenVerifier;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.HashMap;

@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.command.PostReportCommandService;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 
 @Tag(name = "Archiver Place Command", description = "아카이버 게시글 신고 API")
 @RestController
@@ -21,7 +21,7 @@ import zero.conflict.archiview.post.application.command.PostReportCommandService
 @RequestMapping("/api/v1/archivers/reports/post-places")
 public class ArchiverReportCommandController {
 
-    private final PostReportCommandService postReportCommandService;
+    private final ArchiverPostUseCase postReportCommandService;
 
     @Operation(summary = "장소카드 신고", description = "아카이버가 장소카드를 신고하고 이후 조회에서 숨깁니다.")
     @PostMapping("/{postPlaceId}")

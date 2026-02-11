@@ -160,8 +160,10 @@ public class ArchiverPlaceDetailDto {
                 @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
                 private String editorInstagramId;
 
-                public static PostPlaceResponse from(PostPlace postPlace,
-                                zero.conflict.archiview.user.domain.EditorProfile editorProfile) {
+                public static PostPlaceResponse from(
+                                PostPlace postPlace,
+                                String editorName,
+                                String editorInstagramId) {
                         Post post = postPlace.getPost();
                         List<String> categories = postPlace.getPostPlaceCategories().stream()
                                         .map(PostPlaceCategory::getCategory)
@@ -177,9 +179,8 @@ public class ArchiverPlaceDetailDto {
                                         .description(postPlace.getDescription())
                                         .imageUrl(postPlace.getImageUrl())
                                         .categoryNames(categories)
-                                        .editorName(editorProfile != null ? editorProfile.getNickname() : null)
-                                        .editorInstagramId(
-                                                        editorProfile != null ? editorProfile.getInstagramId() : null)
+                                        .editorName(editorName)
+                                        .editorInstagramId(editorInstagramId)
                                         .build();
                 }
         }

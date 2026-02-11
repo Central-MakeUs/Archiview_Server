@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.domain.OAuth2UserInfo;
 import zero.conflict.archiview.auth.infrastructure.jwt.AudienceValidator;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.HashMap;

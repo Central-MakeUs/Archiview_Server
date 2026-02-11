@@ -9,6 +9,7 @@ import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
+import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Address;
 import zero.conflict.archiview.post.domain.Category;
@@ -19,9 +20,6 @@ import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
 import zero.conflict.archiview.global.infra.s3.S3Service;
-import zero.conflict.archiview.user.application.port.UserRepository;
-import zero.conflict.archiview.user.domain.User;
-import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +32,7 @@ public class PostCommandService {
     private final PlaceRepository placeRepository;
     private final PostPlaceRepository postPlacesRepository;
     private final CategoryRepository categoryRepository;
-    private final UserRepository userRepository;
+    private final UserClient userClient;
     private final S3Service s3Service;
 
     @Transactional
@@ -42,11 +40,12 @@ public class PostCommandService {
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTags());
         Post savedPost = postRepository.save(post);
 
-        User editor = userRepository.findById(editorId)
-                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+        if (!userClient.existsUser(editorId)) {
+            throw new DomainException(PostErrorCode.POST_EDITOR_NOT_FOUND);
+        }
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), savedPost, editor.getId());
+                request.getPlaceInfoRequestList(), savedPost, editorId);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }

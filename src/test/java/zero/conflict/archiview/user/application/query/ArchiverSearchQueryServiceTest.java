@@ -7,22 +7,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
-import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import zero.conflict.archiview.post.application.query.ArchiverVisibilityService;
-import zero.conflict.archiview.post.domain.Address;
-import zero.conflict.archiview.post.domain.HashTags;
-import zero.conflict.archiview.post.domain.Place;
-import zero.conflict.archiview.post.domain.Position;
-import zero.conflict.archiview.post.domain.Post;
-import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.application.port.FollowRepository;
-import zero.conflict.archiview.user.application.port.SearchHistoryRepository;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
+import zero.conflict.archiview.user.application.port.out.FollowRepository;
+import zero.conflict.archiview.user.application.port.out.PostClient;
+import zero.conflict.archiview.user.application.port.out.SearchHistoryRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.Follow;
 import zero.conflict.archiview.user.domain.Hashtags;
-import zero.conflict.archiview.user.domain.SearchHistory;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.SearchDto;
@@ -30,7 +22,6 @@ import zero.conflict.archiview.user.dto.SearchDto;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,9 +45,7 @@ class ArchiverSearchQueryServiceTest {
     @Mock
     private SearchHistoryRepository searchHistoryRepository;
     @Mock
-    private PostPlaceRepository postPlaceRepository;
-    @Mock
-    private ArchiverVisibilityService archiverVisibilityService;
+    private PostClient postClient;
 
     @Test
     @DisplayName("검색(ALL) - 장소/에디터 결과를 반환한다")
@@ -69,37 +58,22 @@ class ArchiverSearchQueryServiceTest {
         given(searchHistoryRepository.save(any())).willAnswer(inv -> inv.getArgument(0));
         given(searchHistoryRepository.findAllByArchiverIdOrderByLastModifiedAtDesc(archiverId)).willReturn(List.of());
 
-        Place place = Place.createOf(
+        PostClient.PostPlaceView postPlace = new PostClient.PostPlaceView(
+                1000L,
+                editorId,
+                10L,
                 "용산 카페",
-                Address.of("서울 용산구 한강로", "서울 용산구 한강대로"),
-                Position.of(37.5, 127.0));
-        setField(place, "id", 10L);
-
-        Post post = Post.builder()
-                .id(100L)
-                .editorId(editorId)
-                .url(new zero.conflict.archiview.post.domain.InstagramUrl("https://www.instagram.com/p/abc"))
-                .hashTags(HashTags.from(List.of("#용산구")))
-                .isDeleted(false)
-                .build();
-
-        PostPlace postPlace = PostPlace.builder()
-                .id(1000L)
-                .post(post)
-                .place(place)
-                .editorId(editorId)
-                .description("용산 분위기 맛집")
-                .imageUrl("https://img.url")
-                .viewCount(100L)
-                .saveCount(20L)
-                .build();
-        setField(postPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
-
-        given(postPlaceRepository.findAll()).willReturn(List.of(postPlace));
-        ArchiverVisibilityService.VisibilityFilter filter =
-                new ArchiverVisibilityService.VisibilityFilter(Set.of(), Set.of());
-        given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(filter);
-        given(archiverVisibilityService.filterVisiblePostPlaces(List.of(postPlace), filter)).willReturn(List.of(postPlace));
+                "서울 용산구 한강로",
+                "서울 용산구 한강대로",
+                "용산 분위기 맛집",
+                "https://img.url",
+                "https://www.instagram.com/p/abc",
+                List.of("#용산구"),
+                20L,
+                100L,
+                LocalDateTime.of(2026, 2, 9, 12, 0, 0),
+                LocalDateTime.of(2026, 2, 10, 12, 0, 0));
+        given(postClient.findAllVisibleByArchiverId(archiverId)).willReturn(List.of(postPlace));
 
         EditorProfile profile = EditorProfile.builder()
                 .user(User.builder().id(editorId).build())

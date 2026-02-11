@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.command.EditorProfileCommandService;
+import zero.conflict.archiview.user.application.port.in.EditorUserUseCase;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 @RestController
@@ -19,7 +19,7 @@ import zero.conflict.archiview.user.dto.EditorProfileDto;
 @Tag(name = "Editor User Command", description = "에디터용 프로필 업데이트 관련 API")
 public class EditorCommandController {
 
-    private final EditorProfileCommandService editorProfileCommandService;
+    private final EditorUserUseCase editorProfileCommandService;
 
     @Operation(summary = "에디터 내 프로필 등록", description = "로그인한 사용자의 에디터 프로필을 등록합니다.")
     @PostMapping("/me/profile")

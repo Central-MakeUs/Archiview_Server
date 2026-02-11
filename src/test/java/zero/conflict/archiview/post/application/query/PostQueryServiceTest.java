@@ -10,6 +10,7 @@ import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
+import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
@@ -18,8 +19,6 @@ import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -48,10 +47,13 @@ class PostQueryServiceTest {
         private PostRepository postRepository;
 
         @Mock
-        private EditorProfileRepository editorProfileRepository;
+        private UserClient userClient;
 
         @Mock
         private CategoryPlaceReadRepository categoryPlaceReadRepository;
+
+        @Mock
+        private ArchiverVisibilityService archiverVisibilityService;
 
         @Mock
         private CategoryPlaceReadRepository.CategoryPlaceSummaryProjection categoryPlaceSummaryProjection;
@@ -257,8 +259,13 @@ class PostQueryServiceTest {
 
                 given(postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId))
                                 .willReturn(List.of(postPlace));
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(java.util.Optional.of(editorProfile));
+                given(userClient.getEditorSummaries(List.of(editorId)))
+                                .willReturn(java.util.Map.of(
+                                                editorId,
+                                                new UserClient.EditorSummary(
+                                                                editorId,
+                                                                editorProfile.getNickname(),
+                                                                editorProfile.getInstagramId())));
 
                 // when
                 zero.conflict.archiview.post.dto.EditorInsightDto.PlaceDetailResponse response = postQueryService
@@ -304,7 +311,13 @@ class PostQueryServiceTest {
 
                 given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place));
                 given(postPlaceRepository.findAllByPlaceId(placeId)).willReturn(List.of(postPlace));
-                given(editorProfileRepository.findAllByUserIds(List.of(editorId))).willReturn(List.of(editorProfile));
+                given(userClient.getEditorSummaries(List.of(editorId)))
+                                .willReturn(java.util.Map.of(
+                                                editorId,
+                                                new UserClient.EditorSummary(
+                                                                editorId,
+                                                                editorProfile.getNickname(),
+                                                                editorProfile.getInstagramId())));
 
                 // when
                 zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto.Response response = postQueryService
@@ -322,13 +335,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - LATEST 정렬")
         void getEditorUploadedPostPlaces_latest_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Place place1 = Place.builder().id(1L).name("최근 장소").build();
                 Place place2 = Place.builder().id(2L).name("오래된 장소").build();
@@ -373,13 +380,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - OLDEST 정렬")
         void getEditorUploadedPostPlaces_oldest_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Place place1 = Place.builder().id(1L).name("최근 장소").build();
                 Place place2 = Place.builder().id(2L).name("오래된 장소").build();
@@ -403,13 +404,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 수정시각 없으면 생성시각 사용")
         void getEditorUploadedPostPlaces_fallbackCreatedAt_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Place place = Place.builder().id(1L).name("장소").build();
                 Post post = Post.builder().id(1L).build();
@@ -438,27 +433,21 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 에디터가 없으면 예외")
         void getEditorUploadedPostPlaces_editorNotFound_throwsException() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId)).willReturn(Optional.empty());
+                given(userClient.existsEditorProfile(editorId)).willReturn(false);
 
                 assertThatThrownBy(() -> postQueryService.getEditorUploadedPostPlaces(
                                 editorId,
                                 ArchiverEditorPostPlaceDto.Sort.LATEST))
                                 .isInstanceOf(DomainException.class)
                                 .extracting(ex -> ((DomainException) ex).getErrorCode())
-                                .isEqualTo(UserErrorCode.EDITOR_PROFILE_NOT_FOUND);
+                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
         }
 
         @Test
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 비어있으면 빈 응답")
         void getEditorUploadedPostPlaces_empty_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
                 ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
@@ -473,13 +462,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - 카테고리 AND 필터")
         void getMapPinsForArchiver_categoryAndFilter_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Category korean = Category.builder().id(1L).name("한식").build();
                 Category western = Category.builder().id(2L).name("양식").build();
@@ -523,13 +506,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY와 카테고리 동시 AND")
         void getMapPinsForArchiver_nearbyAndCategory_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Category korean = Category.builder().id(1L).name("한식").build();
                 Category western = Category.builder().id(2L).name("양식").build();
@@ -572,7 +549,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - 에디터가 없으면 예외")
         void getMapPinsForArchiver_editorNotFound_throwsException() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId)).willReturn(Optional.empty());
+                given(userClient.existsEditorProfile(editorId)).willReturn(false);
 
                 assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
                                 editorId,
@@ -582,20 +559,14 @@ class PostQueryServiceTest {
                                 null))
                                 .isInstanceOf(DomainException.class)
                                 .extracting(ex -> ((DomainException) ex).getErrorCode())
-                                .isEqualTo(UserErrorCode.EDITOR_PROFILE_NOT_FOUND);
+                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
         }
 
         @Test
         @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
         void getMapPinsForArchiver_nearbyWithoutCoordinates_throwsException() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
                                 editorId,
@@ -612,13 +583,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - postPlace 없으면 빈 응답")
         void getMapPinsForArchiver_empty_success() {
                 UUID editorId = UUID.randomUUID();
-                given(editorProfileRepository.findByUserId(editorId))
-                                .willReturn(Optional.of(
-                                                zero.conflict.archiview.user.domain.EditorProfile.builder()
-                                                                .user(zero.conflict.archiview.user.domain.User.builder()
-                                                                                .id(editorId)
-                                                                                .build())
-                                                                .build()));
+                given(userClient.existsEditorProfile(editorId)).willReturn(true);
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
                 EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(

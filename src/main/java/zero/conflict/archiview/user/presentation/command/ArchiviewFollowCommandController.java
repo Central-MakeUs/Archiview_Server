@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.command.FollowCommandService;
+import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 import zero.conflict.archiview.user.dto.FollowDto;
 
 import java.util.UUID;
@@ -26,7 +26,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/archivers/follows")
 public class ArchiviewFollowCommandController {
 
-    private final FollowCommandService followCommandService;
+    private final ArchiverUserUseCase followCommandService;
 
     @Operation(summary = "팔로우 등록", description = "아카이버가 에디터를 팔로우합니다.")
     @PostMapping

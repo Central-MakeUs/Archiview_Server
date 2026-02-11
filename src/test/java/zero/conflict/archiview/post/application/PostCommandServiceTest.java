@@ -13,6 +13,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
+import zero.conflict.archiview.post.application.port.out.UserClient;
 
 import java.util.List;
 import java.util.Optional;
@@ -43,7 +44,7 @@ class PostCommandServiceTest {
         private CategoryRepository categoryRepository;
 
         @Mock
-        private zero.conflict.archiview.user.application.port.UserRepository userRepository;
+        private UserClient userClient;
 
         @Mock
         private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
@@ -84,9 +85,7 @@ class PostCommandServiceTest {
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
-                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
-                                .id(editorId).build();
-                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
+                given(userClient.existsUser(editorId)).willReturn(true);
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, newPlace,
                                 placeInfoRequest.getDescription(),
@@ -136,9 +135,7 @@ class PostCommandServiceTest {
                 Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
 
-                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
-                                .id(editorId).build();
-                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
+                given(userClient.existsUser(editorId)).willReturn(true);
 
                 Place existingPlace = Place.createOf(
                                 "기존 장소",
@@ -200,9 +197,7 @@ class PostCommandServiceTest {
 
                 Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
-                zero.conflict.archiview.user.domain.User editor = zero.conflict.archiview.user.domain.User.builder()
-                                .id(editorId).build();
-                given(userRepository.findById(editorId)).willReturn(Optional.of(editor));
+                given(userClient.existsUser(editorId)).willReturn(true);
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(postPlacesRepository.save(any(PostPlace.class)))

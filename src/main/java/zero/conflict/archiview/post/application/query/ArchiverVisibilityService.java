@@ -5,10 +5,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.application.port.out.PostPlaceReportRepository;
+import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceReport;
-import zero.conflict.archiview.user.application.port.EditorBlockRepository;
-import zero.conflict.archiview.user.domain.EditorBlock;
 
 import java.util.List;
 import java.util.Set;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 public class ArchiverVisibilityService {
 
     private final PostPlaceReportRepository postPlaceReportRepository;
-    private final EditorBlockRepository editorBlockRepository;
+    private final UserClient userClient;
 
     @Transactional(readOnly = true)
     public VisibilityFilter getVisibilityFilter(UUID archiverId) {
@@ -28,9 +27,7 @@ public class ArchiverVisibilityService {
                 .map(PostPlaceReport::getPostPlaceId)
                 .collect(Collectors.toSet());
 
-        Set<UUID> blockedEditorIds = editorBlockRepository.findAllByArchiverId(archiverId).stream()
-                .map(EditorBlock::getEditorId)
-                .collect(Collectors.toSet());
+        Set<UUID> blockedEditorIds = userClient.getBlockedEditorIds(archiverId);
 
         return new VisibilityFilter(reportedPostPlaceIds, blockedEditorIds);
     }

@@ -11,7 +11,6 @@ import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
-import zero.conflict.archiview.user.domain.EditorProfile;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -57,10 +56,10 @@ public class EditorInsightDto {
                     .build();
         }
 
-        public static SummaryResponse from(EditorProfile editorProfile,
+        public static SummaryResponse from(String editorNickname,
                 long totalCount, long instagramCount, long saveCount, long viewCount, Period period) {
             return SummaryResponse.builder()
-                    .editorNickname(editorProfile.getNickname())
+                    .editorNickname(editorNickname)
                     .totalPlaceCount(totalCount)
                     .instagramInflowCount(instagramCount)
                     .saveCount(saveCount)
@@ -294,7 +293,8 @@ public class EditorInsightDto {
         }
 
         public static PostPlaceDetailResponse from(
-                EditorProfile editorProfile,
+                String editorName,
+                String editorInstagramId,
                 PostPlace postPlace) {
             Post post = postPlace.getPost();
             List<String> categories = postPlace.getPostPlaceCategories().stream()
@@ -304,8 +304,8 @@ public class EditorInsightDto {
                     .toList();
             return PostPlaceDetailResponse.builder()
                     .postPlaceId(postPlace.getId())
-                    .editorName(editorProfile.getNickname())
-                    .editorInstagramId(editorProfile.getInstagramId())
+                    .editorName(editorName)
+                    .editorInstagramId(editorInstagramId)
                     .postUrl(post != null ? post.getUrl() : null)
                     .postHashTags(post != null ? post.getHashTags() : null)
                     .description(postPlace.getDescription())

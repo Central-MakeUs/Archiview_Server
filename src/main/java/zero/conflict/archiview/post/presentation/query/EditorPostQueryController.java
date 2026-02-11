@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.query.PostQueryService;
+import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EditorPostQueryController {
 
-    private final PostQueryService postQueryService;
+    private final EditorPostUseCase postQueryService;
 
     @Operation(summary = "에디터 인사이트 요약 조회", description = "에디터 인사이트 요약 지표를 조회합니다.")
     @GetMapping("/me/insights/summary")
