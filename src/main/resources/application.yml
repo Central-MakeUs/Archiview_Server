@@ -78,3 +78,12 @@ outbox:
       enabled: true
       fixed-delay-ms: 5000
       batch-size: 100
+      max-retry-count: 5
+      backoff:
+        initial-ms: 5000
+        max-ms: 300000
+    cleanup:
+      enabled: true
+      fixed-delay-ms: 3600000
+      retention-days: 7
+      batch-size: 500

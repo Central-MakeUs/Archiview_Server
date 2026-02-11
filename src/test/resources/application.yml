@@ -28,3 +28,5 @@ outbox:
   post:
     relay:
       enabled: false
+    cleanup:
+      enabled: false

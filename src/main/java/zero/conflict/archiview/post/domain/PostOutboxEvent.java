@@ -32,7 +32,8 @@ import java.util.UUID;
                 @UniqueConstraint(name = "uk_post_outbox_event_event_id", columnNames = "event_id")
         },
         indexes = {
-                @Index(name = "idx_post_outbox_status_id", columnList = "status,id"),
+                @Index(name = "idx_post_outbox_status_retry_at_id", columnList = "status,next_retry_at,id"),
+                @Index(name = "idx_post_outbox_status_published_at", columnList = "status,published_at"),
                 @Index(name = "idx_post_outbox_aggregate_id", columnList = "aggregate_id")
         })
 public class PostOutboxEvent extends BaseTimeEntity {
@@ -66,6 +67,10 @@ public class PostOutboxEvent extends BaseTimeEntity {
     @Column(length = 1000)
     private String lastError;
 
+    @Column(name = "next_retry_at")
+    private LocalDateTime nextRetryAt;
+
+    @Column(name = "published_at")
     private LocalDateTime publishedAt;
 
     public static PostOutboxEvent createPending(Long aggregateId, PostOutboxEventType eventType, String payload) {
@@ -84,6 +89,7 @@ public class PostOutboxEvent extends BaseTimeEntity {
                 .payload(payload)
                 .status(PostOutboxEventStatus.PENDING)
                 .retryCount(0)
+                .nextRetryAt(LocalDateTime.now())
                 .build();
     }
 
@@ -91,12 +97,21 @@ public class PostOutboxEvent extends BaseTimeEntity {
         this.status = PostOutboxEventStatus.PUBLISHED;
         this.publishedAt = publishedAt;
         this.lastError = null;
+        this.nextRetryAt = null;
     }
 
-    public void markFailed(String errorMessage) {
+    public void markRetryFailed(String errorMessage, LocalDateTime nextRetryAt) {
         this.status = PostOutboxEventStatus.FAILED;
         this.retryCount = this.retryCount + 1;
         this.lastError = truncate(errorMessage);
+        this.nextRetryAt = nextRetryAt;
+    }
+
+    public void markGiveUp(String errorMessage) {
+        this.status = PostOutboxEventStatus.GIVE_UP;
+        this.retryCount = this.retryCount + 1;
+        this.lastError = truncate(errorMessage);
+        this.nextRetryAt = null;
     }
 
     private static String truncate(String message) {
