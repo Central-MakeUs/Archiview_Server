@@ -12,11 +12,13 @@ import zero.conflict.archiview.post.application.editor.query.EditorPostQueryServ
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
+import zero.conflict.archiview.post.application.port.out.PostPlaceSaveRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -50,6 +52,9 @@ class PostQueryServiceTest {
 
         @Mock
         private PostRepository postRepository;
+
+        @Mock
+        private PostPlaceSaveRepository postPlaceSaveRepository;
 
         @Mock
         private UserClient userClient;
@@ -599,6 +604,102 @@ class PostQueryServiceTest {
                                 null);
 
                 assertThat(response.getPins()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("아카이버 저장 목록 조회 - 최근 저장순으로 조회하고 placeName을 포함한다")
+        void getMySavedPostPlaces_success() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+                Place place1 = Place.builder().id(101L).name("성수 카페").build();
+                Place place2 = Place.builder().id(102L).name("연남 식당").build();
+                PostPlace pp1 = PostPlace.builder()
+                                .id(11L)
+                                .post(post)
+                                .place(place1)
+                                .editorId(editorId)
+                                .description("설명1")
+                                .saveCount(5L)
+                                .viewCount(10L)
+                                .build();
+                PostPlace pp2 = PostPlace.builder()
+                                .id(12L)
+                                .post(post)
+                                .place(place2)
+                                .editorId(editorId)
+                                .description("설명2")
+                                .saveCount(7L)
+                                .viewCount(20L)
+                                .build();
+
+                PostPlaceSave save2 = PostPlaceSave.builder().id(2L).archiverId(archiverId).postPlaceId(12L).build();
+                PostPlaceSave save1 = PostPlaceSave.builder().id(1L).archiverId(archiverId).postPlaceId(11L).build();
+                setField(save2, "createdAt", LocalDateTime.of(2026, 2, 11, 10, 0, 0));
+                setField(save1, "createdAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+                setField(pp2, "lastModifiedAt", LocalDateTime.of(2026, 2, 9, 12, 0, 0));
+                setField(pp1, "lastModifiedAt", LocalDateTime.of(2026, 2, 8, 12, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+                given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId))
+                                .willReturn(List.of(save2, save1));
+                given(postPlaceRepository.findAllByIds(List.of(12L, 11L))).willReturn(List.of(pp1, pp2));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.isVisible(pp1, visibilityFilter)).willReturn(true);
+                given(archiverVisibilityService.isVisible(pp2, visibilityFilter)).willReturn(true);
+
+                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+
+                assertThat(response.getTotalCount()).isEqualTo(2L);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(12L);
+                assertThat(response.getPostPlaces().get(0).getPlaceName()).isEqualTo("연남 식당");
+                assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(11L);
+                assertThat(response.getPostPlaces().get(1).getPlaceName()).isEqualTo("성수 카페");
+        }
+
+        @Test
+        @DisplayName("아카이버 저장 목록 조회 - 가시성/누락된 postPlace는 제외한다")
+        void getMySavedPostPlaces_filtersInvisibleAndMissing() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+                Place place = Place.builder().id(101L).name("성수 카페").build();
+                PostPlace visible = PostPlace.builder().id(11L).post(post).place(place).editorId(editorId).build();
+                PostPlace hidden = PostPlace.builder().id(12L).post(post).place(place).editorId(editorId).build();
+
+                PostPlaceSave saveVisible = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(11L).build();
+                PostPlaceSave saveHidden = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(12L).build();
+                PostPlaceSave saveMissing = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(13L).build();
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+                given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId))
+                                .willReturn(List.of(saveVisible, saveHidden, saveMissing));
+                given(postPlaceRepository.findAllByIds(List.of(11L, 12L, 13L))).willReturn(List.of(visible, hidden));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.isVisible(visible, visibilityFilter)).willReturn(true);
+                given(archiverVisibilityService.isVisible(hidden, visibilityFilter)).willReturn(false);
+
+                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+
+                assertThat(response.getTotalCount()).isEqualTo(1L);
+                assertThat(response.getPostPlaces()).hasSize(1);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(11L);
+        }
+
+        @Test
+        @DisplayName("아카이버 저장 목록 조회 - 저장 목록이 비어있으면 빈 응답")
+        void getMySavedPostPlaces_empty() {
+                UUID archiverId = UUID.randomUUID();
+                given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId)).willReturn(List.of());
+
+                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+
+                assertThat(response.getTotalCount()).isEqualTo(0L);
+                assertThat(response.getPostPlaces()).isEmpty();
         }
 
         private static void setField(Object target, String fieldName, Object value) {

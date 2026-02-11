@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
     List<PostPlace> findAllByEditorId(UUID editorId);
 
+    List<PostPlace> findAllByIdIn(List<Long> postPlaceIds);
+
     void deleteAllByPost_Id(Long postId);
 
     List<PostPlace> findAllByPlace_IdIn(List<Long> placeIds);

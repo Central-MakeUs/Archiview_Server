@@ -3,6 +3,7 @@ package zero.conflict.archiview.post.application.port.in;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
+import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 
@@ -37,6 +38,12 @@ public interface ArchiverPostUseCase {
     void reportPostPlace(UUID archiverId, Long postPlaceId);
 
     void cancelReportPostPlace(UUID archiverId, Long postPlaceId);
+
+    void savePostPlace(UUID archiverId, Long postPlaceId);
+
+    void unsavePostPlace(UUID archiverId, Long postPlaceId);
+
+    ArchiverSavedPostPlaceDto.ListResponse getMySavedPostPlaces(UUID archiverId);
 
     void increasePostPlaceViewCount(Long postPlaceId, UUID actorId);
 }

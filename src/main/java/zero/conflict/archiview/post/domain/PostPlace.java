@@ -84,6 +84,17 @@ public class PostPlace extends BaseTimeEntity {
         }
     }
 
+    public void decreaseSaveCount(UUID actorId) {
+        if (this.editorId.equals(actorId)) {
+            return;
+        }
+        if (this.saveCount == null || this.saveCount <= 0L) {
+            this.saveCount = 0L;
+            return;
+        }
+        this.saveCount--;
+    }
+
     public void increaseInstagramInflowCount(UUID actorId) {
         if (!this.editorId.equals(actorId)) {
             this.instagramInflowCount++;

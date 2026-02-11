@@ -13,6 +13,8 @@ public interface PostPlaceRepository {
 
     java.util.Optional<PostPlace> findById(Long postPlaceId);
 
+    List<PostPlace> findAllByIds(List<Long> postPlaceIds);
+
     List<PostPlace> findAllByPlaceIds(List<Long> placeIds);
 
     List<PostPlace> findAllByPlaceId(Long placeId);

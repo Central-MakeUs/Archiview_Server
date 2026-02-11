@@ -25,6 +25,14 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
+    public List<PostPlace> findAllByIds(List<Long> postPlaceIds) {
+        if (postPlaceIds == null || postPlaceIds.isEmpty()) {
+            return List.of();
+        }
+        return postPlaceJpaRepository.findAllByIdIn(postPlaceIds);
+    }
+
+    @Override
     public void deleteAllByPostId(Long postId) {
         postPlaceJpaRepository.deleteAllByPost_Id(postId);
     }

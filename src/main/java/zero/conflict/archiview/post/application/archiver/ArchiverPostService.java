@@ -4,12 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.application.archiver.command.PostReportCommandService;
+import zero.conflict.archiview.post.application.archiver.command.PostSaveCommandService;
 import zero.conflict.archiview.post.application.archiver.query.CategoryQueryService;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
 import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
+import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 
@@ -23,6 +25,7 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     private final PostQueryService postQueryService;
     private final CategoryQueryService categoryQueryService;
     private final PostReportCommandService postReportCommandService;
+    private final PostSaveCommandService postSaveCommandService;
     private final PostCommandService postCommandService;
 
     @Override
@@ -86,6 +89,21 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     @Override
     public void cancelReportPostPlace(UUID archiverId, Long postPlaceId) {
         postReportCommandService.cancelReportPostPlace(archiverId, postPlaceId);
+    }
+
+    @Override
+    public void savePostPlace(UUID archiverId, Long postPlaceId) {
+        postSaveCommandService.savePostPlace(archiverId, postPlaceId);
+    }
+
+    @Override
+    public void unsavePostPlace(UUID archiverId, Long postPlaceId) {
+        postSaveCommandService.unsavePostPlace(archiverId, postPlaceId);
+    }
+
+    @Override
+    public ArchiverSavedPostPlaceDto.ListResponse getMySavedPostPlaces(UUID archiverId) {
+        return postQueryService.getMySavedPostPlaces(archiverId);
     }
 
     @Override
