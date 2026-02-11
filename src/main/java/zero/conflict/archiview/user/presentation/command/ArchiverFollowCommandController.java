@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.validation.Valid;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.archiver.ArchiverUserUseCase;
+import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 import zero.conflict.archiview.user.dto.FollowDto;
 
 import java.util.UUID;

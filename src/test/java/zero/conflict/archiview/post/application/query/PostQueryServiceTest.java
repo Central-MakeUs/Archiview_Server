@@ -20,11 +20,10 @@ import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
-import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
+import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceReadRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;

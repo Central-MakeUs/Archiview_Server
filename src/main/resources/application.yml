@@ -71,3 +71,10 @@ springdoc:
     path: /v3/api-docs
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
+outbox:
+  post:
+    relay:
+      enabled: true
+      fixed-delay-ms: 5000
+      batch-size: 100

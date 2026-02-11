@@ -6,6 +6,7 @@ import zero.conflict.archiview.post.application.editor.command.PostCommandServic
 import zero.conflict.archiview.post.application.archiver.command.PostReportCommandService;
 import zero.conflict.archiview.post.application.archiver.query.CategoryQueryService;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;

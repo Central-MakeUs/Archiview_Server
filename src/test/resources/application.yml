@@ -23,3 +23,8 @@ auth:
     kakao:
       issuer: https://kauth.kakao.com
       audience: test-audience
+
+outbox:
+  post:
+    relay:
+      enabled: false

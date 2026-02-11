@@ -21,7 +21,7 @@ import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
-import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
+import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceReadRepository;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;

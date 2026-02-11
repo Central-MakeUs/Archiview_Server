@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.archiver.ArchiverPostUseCase;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 
 @Tag(name = "Archiver Place Command", description = "아카이버 게시글 신고 API")
 @RestController
