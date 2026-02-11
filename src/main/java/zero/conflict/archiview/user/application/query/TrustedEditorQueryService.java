@@ -3,10 +3,9 @@ package zero.conflict.archiview.user.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.application.port.FollowRepository;
+import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
+import zero.conflict.archiview.user.application.port.out.FollowRepository;
+import zero.conflict.archiview.user.application.port.out.PostClient;
 import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.Follow;
 import zero.conflict.archiview.user.dto.TrustedEditorDto;
@@ -25,7 +24,7 @@ public class TrustedEditorQueryService {
 
     private final EditorProfileRepository editorProfileRepository;
     private final FollowRepository followRepository;
-    private final PostPlaceRepository postPlaceRepository;
+    private final PostClient postClient;
 
     @Transactional(readOnly = true)
     public TrustedEditorDto.ListResponse getTrustedEditors() {
@@ -65,11 +64,6 @@ public class TrustedEditorQueryService {
     }
 
     private Map<UUID, Long> countPostPlaces(List<UUID> editorIds) {
-        List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorIds(editorIds);
-        Map<UUID, Long> counts = new HashMap<>();
-        for (PostPlace postPlace : postPlaces) {
-            counts.merge(postPlace.getEditorId(), 1L, Long::sum);
-        }
-        return counts;
+        return postClient.countByEditorIds(editorIds);
     }
 }

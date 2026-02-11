@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.command.EditorBlockCommandService;
+import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 
 import java.util.UUID;
 
@@ -23,7 +23,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/archivers/blocks/editors")
 public class ArchiverBlockCommandController {
 
-    private final EditorBlockCommandService editorBlockCommandService;
+    private final ArchiverUserUseCase editorBlockCommandService;
 
     @Operation(summary = "에디터 차단", description = "아카이버가 에디터를 차단하고 해당 에디터의 게시글/장소카드를 숨깁니다.")
     @PostMapping("/{editorId}")

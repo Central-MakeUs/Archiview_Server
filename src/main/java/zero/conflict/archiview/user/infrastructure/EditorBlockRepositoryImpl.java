@@ -2,7 +2,7 @@ package zero.conflict.archiview.user.infrastructure;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import zero.conflict.archiview.user.application.port.EditorBlockRepository;
+import zero.conflict.archiview.user.application.port.out.EditorBlockRepository;
 import zero.conflict.archiview.user.domain.EditorBlock;
 
 import java.util.List;

@@ -6,13 +6,13 @@ import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.global.error.DomainException;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.UserDto;
 import zero.conflict.archiview.user.application.support.NicknameGenerator;
-import zero.conflict.archiview.user.application.port.ArchiverProfileRepository;
+import zero.conflict.archiview.user.application.port.out.ArchiverProfileRepository;
 import zero.conflict.archiview.user.domain.ArchiverProfile;
 
 @Service

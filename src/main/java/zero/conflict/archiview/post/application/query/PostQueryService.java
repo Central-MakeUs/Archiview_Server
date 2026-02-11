@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
+import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
@@ -21,9 +22,6 @@ import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.domain.EditorProfile;
-import zero.conflict.archiview.user.domain.error.UserErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -41,7 +39,7 @@ public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
         private final PlaceRepository placeRepository;
-        private final EditorProfileRepository editorProfileRepository;
+        private final UserClient userClient;
         private final CategoryPlaceReadRepository categoryPlaceReadRepository;
         private final ArchiverVisibilityService archiverVisibilityService;
 
@@ -107,8 +105,9 @@ public class PostQueryService {
                         UUID userId,
                         ArchiverEditorPostPlaceDto.Sort sort,
                         UUID archiverId) {
-                editorProfileRepository.findByUserId(userId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+                if (!userClient.existsEditorProfile(userId)) {
+                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                }
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(userId);
                 if (archiverId != null) {
@@ -292,12 +291,17 @@ public class PostQueryService {
                                 .distinct()
                                 .toList();
 
-                Map<UUID, EditorProfile> editorProfileMap = editorProfileRepository.findAllByUserIds(editorIds).stream()
-                                .collect(Collectors.toMap(EditorProfile::getUserId, Function.identity()));
+                Map<UUID, UserClient.EditorSummary> editorProfileMap = userClient.getEditorSummaries(editorIds);
 
                 List<ArchiverPlaceDetailDto.PostPlaceResponse> postPlaceResponses = postPlaces.stream()
                                 .map(pp -> ArchiverPlaceDetailDto.PostPlaceResponse.from(
-                                                pp, editorProfileMap.get(pp.getEditorId())))
+                                                pp,
+                                                editorProfileMap.get(pp.getEditorId()) != null
+                                                                ? editorProfileMap.get(pp.getEditorId()).nickname()
+                                                                : null,
+                                                editorProfileMap.get(pp.getEditorId()) != null
+                                                                ? editorProfileMap.get(pp.getEditorId()).instagramId()
+                                                                : null))
                                 .toList();
 
                 return ArchiverPlaceDetailDto.Response.from(placeResponse, postPlaceResponses);
@@ -346,8 +350,9 @@ public class PostQueryService {
                         Double latitude,
                         Double longitude,
                         UUID archiverId) {
-                editorProfileRepository.findByUserId(editorId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+                if (!userClient.existsEditorProfile(editorId)) {
+                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                }
 
                 validateNearbyCoordinates(filter, latitude, longitude);
 
@@ -414,8 +419,11 @@ public class PostQueryService {
         }
 
         public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {
-                EditorProfile editorProfile = editorProfileRepository.findByUserId(editorId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+                Map<UUID, UserClient.EditorSummary> editorProfiles = userClient.getEditorSummaries(List.of(editorId));
+                UserClient.EditorSummary editorProfile = editorProfiles.get(editorId);
+                if (editorProfile == null) {
+                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                }
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
 
@@ -441,7 +449,7 @@ public class PostQueryService {
                 }
 
                 return EditorInsightDto.SummaryResponse.from(
-                                editorProfile,
+                                editorProfile.nickname(),
                                 totalPlaceCount,
                                 instagramInflowCount,
                                 saveCount,
@@ -477,12 +485,17 @@ public class PostQueryService {
                         return EditorInsightDto.PlaceDetailResponse.empty(placeId);
                 }
 
-                EditorProfile editorProfile = editorProfileRepository.findByUserId(editorId)
-                                .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
+                Map<UUID, UserClient.EditorSummary> editorProfiles = userClient.getEditorSummaries(List.of(editorId));
+                UserClient.EditorSummary editorProfile = editorProfiles.get(editorId);
+                if (editorProfile == null) {
+                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                }
 
                 List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
                                 .map(postPlace -> EditorInsightDto.PostPlaceDetailResponse.from(
-                                                editorProfile, postPlace))
+                                                editorProfile.nickname(),
+                                                editorProfile.instagramId(),
+                                                postPlace))
                                 .toList();
 
                 return EditorInsightDto.PlaceDetailResponse.of(placeId, details);

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
-import zero.conflict.archiview.post.application.query.PostQueryService;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
@@ -29,7 +29,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/archivers")
 public class ArchiverPlaceQueryController {
 
-    private final PostQueryService postQueryService;
+    private final ArchiverPostUseCase postQueryService;
 
     @Operation(summary = "요즘 핫한 장소 조회", description = "장소 기준 조회수 내림차순으로 핫플레이스를 조회합니다.")
     @GetMapping("/places/hot")

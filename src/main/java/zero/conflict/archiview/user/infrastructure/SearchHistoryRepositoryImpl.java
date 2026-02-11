@@ -2,7 +2,7 @@ package zero.conflict.archiview.user.infrastructure;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import zero.conflict.archiview.user.application.port.SearchHistoryRepository;
+import zero.conflict.archiview.user.application.port.out.SearchHistoryRepository;
 import zero.conflict.archiview.user.domain.SearchHistory;
 
 import java.util.List;

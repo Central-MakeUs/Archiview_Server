@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.global.error.DomainException;
-import zero.conflict.archiview.user.application.port.ArchiverProfileRepository;
+import zero.conflict.archiview.user.application.port.out.ArchiverProfileRepository;
 import zero.conflict.archiview.user.domain.ArchiverProfile;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.ArchiverProfileDto;

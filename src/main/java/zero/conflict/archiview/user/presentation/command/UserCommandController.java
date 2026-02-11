@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.command.UserCommandService;
+import zero.conflict.archiview.user.application.port.in.EditorUserUseCase;
 import zero.conflict.archiview.user.dto.UserDto;
 
 @Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
@@ -19,7 +19,7 @@ import zero.conflict.archiview.user.dto.UserDto;
 @RequestMapping("/api/v1/users")
 public class UserCommandController {
 
-    private final UserCommandService userCommandService;
+    private final EditorUserUseCase userCommandService;
 
     @Operation(summary = "온보딩 완료", description = "최초 로그인 후 에디터 또는 아카이버 역할을 선택하여 회원가입을 완료합니다.")
     @PostMapping("/onboarding")

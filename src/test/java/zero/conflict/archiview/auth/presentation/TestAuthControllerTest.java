@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.Optional;

@@ -3,15 +3,11 @@ package zero.conflict.archiview.user.application.query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import zero.conflict.archiview.post.application.query.ArchiverVisibilityService;
-import zero.conflict.archiview.post.domain.Place;
-import zero.conflict.archiview.post.domain.Post;
-import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.user.application.port.EditorProfileRepository;
-import zero.conflict.archiview.user.application.port.FollowRepository;
-import zero.conflict.archiview.user.application.port.SearchHistoryRepository;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
+import zero.conflict.archiview.user.application.port.out.FollowRepository;
+import zero.conflict.archiview.user.application.port.out.PostClient;
+import zero.conflict.archiview.user.application.port.out.SearchHistoryRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.Hashtags;
 import zero.conflict.archiview.user.domain.SearchHistory;
@@ -45,8 +41,7 @@ public class ArchiverSearchQueryService {
     private final EditorProfileRepository editorProfileRepository;
     private final FollowRepository followRepository;
     private final SearchHistoryRepository searchHistoryRepository;
-    private final PostPlaceRepository postPlaceRepository;
-    private final ArchiverVisibilityService archiverVisibilityService;
+    private final PostClient postClient;
 
     @Transactional
     public SearchDto.Response search(UUID archiverId, String query, SearchDto.Tab tab) {
@@ -68,18 +63,15 @@ public class ArchiverSearchQueryService {
         SearchDto.KeywordType keywordType = detectType(normalized);
         saveSearchHistory(archiverId, query, normalized, keywordType);
 
-        ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService.getVisibilityFilter(
+        List<PostClient.PostPlaceView> visiblePostPlaces = postClient.findAllVisibleByArchiverId(
                 archiverId);
-        List<PostPlace> visiblePostPlaces = archiverVisibilityService.filterVisiblePostPlaces(
-                postPlaceRepository.findAll(),
-                visibilityFilter);
 
-        Map<Long, List<PostPlace>> visibleByPlaceId = visiblePostPlaces.stream()
-                .filter(pp -> pp.getPlace() != null && pp.getPlace().getId() != null)
-                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
-        Map<UUID, List<PostPlace>> visibleByEditorId = visiblePostPlaces.stream()
-                .filter(pp -> pp.getEditorId() != null)
-                .collect(Collectors.groupingBy(PostPlace::getEditorId));
+        Map<Long, List<PostClient.PostPlaceView>> visibleByPlaceId = visiblePostPlaces.stream()
+                .filter(pp -> pp.placeId() != null)
+                .collect(Collectors.groupingBy(PostClient.PostPlaceView::placeId));
+        Map<UUID, List<PostClient.PostPlaceView>> visibleByEditorId = visiblePostPlaces.stream()
+                .filter(pp -> pp.editorId() != null)
+                .collect(Collectors.groupingBy(PostClient.PostPlaceView::editorId));
 
         Set<Long> matchedPlaceIds = matchPlaceIds(visiblePostPlaces, normalized, keywordType);
         List<SearchDto.PlaceCard> allPlaceCards = matchedPlaceIds.stream()
@@ -224,27 +216,28 @@ public class ArchiverSearchQueryService {
                 .build();
     }
 
-    private SearchDto.PlaceCard toPlaceCard(List<PostPlace> postPlaces) {
+    private SearchDto.PlaceCard toPlaceCard(List<PostClient.PostPlaceView> postPlaces) {
         if (postPlaces == null || postPlaces.isEmpty()) {
             return null;
         }
-        PostPlace latestPostPlace = postPlaces.stream()
+        PostClient.PostPlaceView latestPostPlace = postPlaces.stream()
                 .max(Comparator.comparing(this::lastUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
                 .orElse(null);
-        if (latestPostPlace == null || latestPostPlace.getPlace() == null) {
+        if (latestPostPlace == null) {
             return null;
         }
-        Place place = latestPostPlace.getPlace();
-        long saveCount = postPlaces.stream().map(PostPlace::getSaveCount).mapToLong(this::defaultZero).sum();
-        long viewCount = postPlaces.stream().map(PostPlace::getViewCount).mapToLong(this::defaultZero).sum();
+        long saveCount = postPlaces.stream().map(PostClient.PostPlaceView::saveCount).mapToLong(this::defaultZero)
+                .sum();
+        long viewCount = postPlaces.stream().map(PostClient.PostPlaceView::viewCount).mapToLong(this::defaultZero)
+                .sum();
 
         return SearchDto.PlaceCard.builder()
-                .placeId(place.getId())
-                .placeName(place.getName())
-                .imageUrl(latestPostPlace.getImageUrl())
-                .summary(latestPostPlace.getDescription())
-                .addressName(place.getAddress() != null ? place.getAddress().getAddressName() : null)
-                .roadAddressName(place.getAddress() != null ? place.getAddress().getRoadAddressName() : null)
+                .placeId(latestPostPlace.placeId())
+                .placeName(latestPostPlace.placeName())
+                .imageUrl(latestPostPlace.imageUrl())
+                .summary(latestPostPlace.description())
+                .addressName(latestPostPlace.addressName())
+                .roadAddressName(latestPostPlace.roadAddressName())
                 .saveCount(saveCount)
                 .viewCount(viewCount)
                 .latestUpdatedAt(lastUpdatedAt(latestPostPlace))
@@ -254,7 +247,7 @@ public class ArchiverSearchQueryService {
     private SearchDto.EditorCard toEditorCard(
             UUID editorId,
             EditorProfile profile,
-            List<PostPlace> postPlaces,
+            List<PostClient.PostPlaceView> postPlaces,
             Set<UUID> followingEditorIds) {
         if (profile == null) {
             return null;
@@ -283,12 +276,12 @@ public class ArchiverSearchQueryService {
     }
 
     private Set<Long> matchPlaceIds(
-            List<PostPlace> visiblePostPlaces,
+            List<PostClient.PostPlaceView> visiblePostPlaces,
             String normalized,
             SearchDto.KeywordType keywordType) {
         return visiblePostPlaces.stream()
                 .filter(pp -> matchesPostPlace(pp, normalized, keywordType))
-                .map(pp -> pp.getPlace() != null ? pp.getPlace().getId() : null)
+                .map(PostClient.PostPlaceView::placeId)
                 .filter(placeId -> placeId != null)
                 .collect(Collectors.toSet());
     }
@@ -296,12 +289,12 @@ public class ArchiverSearchQueryService {
     private Set<UUID> matchEditorIds(
             String normalized,
             SearchDto.KeywordType keywordType,
-            List<PostPlace> visiblePostPlaces,
-            Map<UUID, List<PostPlace>> visibleByEditorId,
+            List<PostClient.PostPlaceView> visiblePostPlaces,
+            Map<UUID, List<PostClient.PostPlaceView>> visibleByEditorId,
             Set<Long> matchedPlaceIds) {
         Set<UUID> matchedByPostPlace = visiblePostPlaces.stream()
                 .filter(pp -> matchesPostPlace(pp, normalized, keywordType))
-                .map(PostPlace::getEditorId)
+                .map(PostClient.PostPlaceView::editorId)
                 .filter(id -> id != null)
                 .collect(Collectors.toSet());
 
@@ -311,8 +304,8 @@ public class ArchiverSearchQueryService {
                 .collect(Collectors.toSet());
 
         Set<UUID> matchedByPlace = visiblePostPlaces.stream()
-                .filter(pp -> pp.getPlace() != null && matchedPlaceIds.contains(pp.getPlace().getId()))
-                .map(PostPlace::getEditorId)
+                .filter(pp -> pp.placeId() != null && matchedPlaceIds.contains(pp.placeId()))
+                .map(PostClient.PostPlaceView::editorId)
                 .collect(Collectors.toSet());
 
         Set<UUID> result = new HashSet<>();
@@ -331,23 +324,18 @@ public class ArchiverSearchQueryService {
         return editorProfileRepository.findByUserId(editorId).isPresent();
     }
 
-    private boolean matchesPostPlace(PostPlace pp, String normalized, SearchDto.KeywordType keywordType) {
-        Place place = pp.getPlace();
-        Post post = pp.getPost();
-
+    private boolean matchesPostPlace(PostClient.PostPlaceView pp, String normalized, SearchDto.KeywordType keywordType) {
         if (keywordType == SearchDto.KeywordType.URL) {
-            return contains(post != null ? post.getUrl() : null, normalized);
+            return contains(pp.postUrl(), normalized);
         }
 
-        boolean placeMatch = contains(place != null ? place.getName() : null, normalized)
-                || contains(place != null && place.getAddress() != null ? place.getAddress().getAddressName() : null,
-                        normalized)
-                || contains(place != null && place.getAddress() != null ? place.getAddress().getRoadAddressName() : null,
-                        normalized);
-        boolean postHashTagMatch = post != null && post.getHashTags() != null
-                && post.getHashTags().stream().anyMatch(tag -> contains(tag, normalized));
-        boolean descriptionMatch = contains(pp.getDescription(), normalized);
-        boolean urlMatch = contains(post != null ? post.getUrl() : null, normalized);
+        boolean placeMatch = contains(pp.placeName(), normalized)
+                || contains(pp.addressName(), normalized)
+                || contains(pp.roadAddressName(), normalized);
+        boolean postHashTagMatch = pp.hashTags() != null
+                && pp.hashTags().stream().anyMatch(tag -> contains(tag, normalized));
+        boolean descriptionMatch = contains(pp.description(), normalized);
+        boolean urlMatch = contains(pp.postUrl(), normalized);
         return placeMatch || postHashTagMatch || descriptionMatch || urlMatch;
     }
 
@@ -420,8 +408,8 @@ public class ArchiverSearchQueryService {
         return value == null ? 0L : value;
     }
 
-    private LocalDateTime lastUpdatedAt(PostPlace postPlace) {
-        return postPlace.getLastModifiedAt() != null ? postPlace.getLastModifiedAt() : postPlace.getCreatedAt();
+    private LocalDateTime lastUpdatedAt(PostClient.PostPlaceView postPlace) {
+        return postPlace.lastModifiedAt() != null ? postPlace.lastModifiedAt() : postPlace.createdAt();
     }
 
     private LocalDateTime lastUpdatedAt(EditorProfile profile) {

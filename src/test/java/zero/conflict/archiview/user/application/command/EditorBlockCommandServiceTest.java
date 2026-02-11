@@ -7,8 +7,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
-import zero.conflict.archiview.user.application.port.EditorBlockRepository;
-import zero.conflict.archiview.user.application.port.UserRepository;
+import zero.conflict.archiview.user.application.port.out.EditorBlockRepository;
+import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 

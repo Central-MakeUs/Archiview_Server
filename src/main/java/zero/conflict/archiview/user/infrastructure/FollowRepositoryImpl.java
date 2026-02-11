@@ -2,7 +2,7 @@ package zero.conflict.archiview.user.infrastructure;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import zero.conflict.archiview.user.application.port.FollowRepository;
+import zero.conflict.archiview.user.application.port.out.FollowRepository;
 import zero.conflict.archiview.user.domain.Follow;
 
 import java.util.List;

@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.command.PostCommandService;
+import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 
@@ -20,7 +20,7 @@ import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 @Tag(name = "Editor Place Command", description = "에디터용 장소 정보 업데이트 API (CUD)")
 public class EditorPostCommandController {
 
-    private final PostCommandService postCommandService;
+    private final EditorPostUseCase postCommandService;
 
     @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
     @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)

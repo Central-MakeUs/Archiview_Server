@@ -1,4 +1,4 @@
-package zero.conflict.archiview.user.application.port;
+package zero.conflict.archiview.user.application.port.out;
 
 import zero.conflict.archiview.user.domain.ArchiverProfile;
 
