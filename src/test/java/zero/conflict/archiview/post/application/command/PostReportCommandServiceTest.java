@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.application.archiver.command.PostReportCommandService;
 import zero.conflict.archiview.post.application.port.out.PostPlaceReportRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.PostPlace;

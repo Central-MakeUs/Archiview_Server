@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.user.application.editor.command.UserCommandService;
 import zero.conflict.archiview.user.application.port.out.ArchiverProfileRepository;
 import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
 import zero.conflict.archiview.user.application.port.out.UserRepository;

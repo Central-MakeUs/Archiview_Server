@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
-import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
+import zero.conflict.archiview.post.application.archiver.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
@@ -29,7 +29,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/archivers")
 public class ArchiverPlaceQueryController {
 
-    private final ArchiverPostUseCase postQueryService;
+    private final ArchiverPostUseCase archiverPostUseCase;
 
     @Operation(summary = "요즘 핫한 장소 조회", description = "장소 기준 조회수 내림차순으로 핫플레이스를 조회합니다.")
     @GetMapping("/places/hot")
@@ -40,7 +40,7 @@ public class ArchiverPlaceQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverHotPlaceDto.ListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getHotPlaces(size, oAuth2User.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getHotPlaces(size, oAuth2User.getUserId())));
     }
 
     @Operation(summary = "장소 상세 조회 (아카이버)", description = "placeId로 장소 상세와 연결된 게시글 목록을 조회합니다.")
@@ -52,7 +52,7 @@ public class ArchiverPlaceQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getArchiverPlaceDetail(placeId, oAuth2User.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getArchiverPlaceDetail(placeId, oAuth2User.getUserId())));
     }
 
     @Operation(summary = "내 주변 1km 장소 조회", description = "현재 좌표 기준 1km 내 장소 목록을 조회합니다.")
@@ -65,7 +65,7 @@ public class ArchiverPlaceQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getNearbyPlacesWithin1km(
+        return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getNearbyPlacesWithin1km(
                 latitude,
                 longitude,
                 oAuth2User.getUserId())));
@@ -81,7 +81,7 @@ public class ArchiverPlaceQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverEditorPostPlaceDto.ListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getEditorUploadedPostPlaces(
+        return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getEditorUploadedPostPlaces(
                 userId,
                 sort,
                 oAuth2User.getUserId())));
@@ -101,7 +101,7 @@ public class ArchiverPlaceQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorMapDto.Response.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                postQueryService.getMapPinsForArchiver(
+                archiverPostUseCase.getMapPinsForArchiver(
                         editorId,
                         filter,
                         categoryIds,

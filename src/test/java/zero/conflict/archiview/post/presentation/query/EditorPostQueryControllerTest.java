@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.query.PostQueryService;
+import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;

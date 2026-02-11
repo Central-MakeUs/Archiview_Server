@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.query.CategoryQueryService;
+import zero.conflict.archiview.post.application.archiver.query.CategoryQueryService;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 import java.util.List;

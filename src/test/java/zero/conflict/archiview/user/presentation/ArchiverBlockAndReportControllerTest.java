@@ -6,8 +6,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.command.PostReportCommandService;
-import zero.conflict.archiview.user.application.command.EditorBlockCommandService;
+import zero.conflict.archiview.post.application.archiver.command.PostReportCommandService;
+import zero.conflict.archiview.user.application.archiver.command.EditorBlockCommandService;
 
 import java.util.UUID;
 

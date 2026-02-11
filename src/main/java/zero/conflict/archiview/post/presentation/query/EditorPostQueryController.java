@@ -9,7 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
+import zero.conflict.archiview.post.application.editor.EditorPostUseCase;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EditorPostQueryController {
 
-    private final EditorPostUseCase postQueryService;
+    private final EditorPostUseCase editorPostUseCase;
 
     @Operation(summary = "에디터 인사이트 요약 조회", description = "에디터 인사이트 요약 지표를 조회합니다.")
     @GetMapping("/me/insights/summary")
@@ -35,7 +35,7 @@ public class EditorPostQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.SummaryResponse.mock(period)));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getInsightSummary(user.getUserId(), period)));
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getInsightSummary(user.getUserId(), period)));
     }
 
     @Operation(summary = "에디터 인사이트 장소 목록 조회", description = "에디터 인사이트 장소 목록을 조회합니다.")
@@ -47,7 +47,7 @@ public class EditorPostQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceCardListResponse.mock(sort)));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getInsightPlaces(user.getUserId(), sort)));
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getInsightPlaces(user.getUserId(), sort)));
     }
 
     @Operation(summary = "에디터 장소 상세 조회 (작업중)", description = "에디터 장소 상세를 조회합니다.")
@@ -60,7 +60,7 @@ public class EditorPostQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorInsightDto.PlaceDetailResponse.mock(placeId)));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                postQueryService.getInsightPlaceDetail(user.getUserId(), placeId)));
+                editorPostUseCase.getInsightPlaceDetail(user.getUserId(), placeId)));
     }
 
     @Operation(summary = "내 장소 지도 핀 조회", description = "에디터가 등록한 장소들을 지도 핀 형태로 조회합니다.")
@@ -76,7 +76,7 @@ public class EditorPostQueryController {
         }
 
         return ResponseEntity.ok(ApiResponse.success(
-                postQueryService.getMapPins(
+                editorPostUseCase.getMapPins(
                         oAuth2User.getUserId(),
                         filter,
                         categoryIds)));
@@ -90,14 +90,14 @@ public class EditorPostQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorUploadedPlaceDto.ListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getUploadedPlaces(oAuth2User.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getUploadedPlaces(oAuth2User.getUserId())));
     }
 
     @Operation(summary = "postPlaceId로 게시글 상세 조회", description = "해당 postPlace가 속한 게시글과 게시글 내 모든 장소를 조회합니다.")
     @GetMapping("/me/posts/by-post-place/{postPlaceId}")
     public ResponseEntity<ApiResponse<EditorPostByPostPlaceDto.Response>> getPostByPostPlaceId(
             @PathVariable Long postPlaceId) {
-        return ResponseEntity.ok(ApiResponse.success(postQueryService.getPostByPostPlaceId(postPlaceId)));
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getPostByPostPlaceId(postPlaceId)));
     }
 
 }

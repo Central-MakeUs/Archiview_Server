@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.user.application.query.ArchiverSearchQueryService;
+import zero.conflict.archiview.user.application.archiver.query.ArchiverSearchQueryService;
 import zero.conflict.archiview.user.dto.SearchDto;
 
 import java.time.LocalDateTime;

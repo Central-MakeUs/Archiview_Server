@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import zero.conflict.archiview.post.application.command.PostCommandService;
+import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;

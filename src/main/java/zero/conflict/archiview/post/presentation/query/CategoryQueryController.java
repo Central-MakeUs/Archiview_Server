@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
+import zero.conflict.archiview.post.application.archiver.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 @RestController
@@ -22,7 +22,7 @@ import zero.conflict.archiview.post.dto.CategoryQueryDto;
 @Tag(name = "Category Query", description = "카테고리 조회 API")
 public class CategoryQueryController {
 
-    private final ArchiverPostUseCase categoryQueryService;
+    private final ArchiverPostUseCase archiverPostUseCase;
 
     @Operation(summary = "카테고리 목록 조회", description = "사용 가능한 카테고리 목록을 조회합니다.")
     @GetMapping("")
@@ -31,7 +31,7 @@ public class CategoryQueryController {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(categoryQueryService.getCategories()));
+        return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getCategories()));
     }
 
     @Operation(summary = "카테고리별 장소 목록 조회",
@@ -45,6 +45,6 @@ public class CategoryQueryController {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                categoryQueryService.getPlacesByCategoryId(categoryId, oAuth2User.getUserId())));
+                archiverPostUseCase.getPlacesByCategoryId(categoryId, oAuth2User.getUserId())));
     }
 }

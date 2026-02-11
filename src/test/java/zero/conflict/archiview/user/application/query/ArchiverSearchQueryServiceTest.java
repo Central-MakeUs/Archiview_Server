@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.user.application.archiver.query.ArchiverSearchQueryService;
 import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
 import zero.conflict.archiview.user.application.port.out.FollowRepository;
 import zero.conflict.archiview.user.application.port.out.PostClient;
