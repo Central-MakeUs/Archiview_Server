@@ -7,6 +7,7 @@ import zero.conflict.archiview.post.application.port.out.PostOutboxEventReposito
 import zero.conflict.archiview.post.domain.PostOutboxEvent;
 import zero.conflict.archiview.post.domain.PostOutboxEventStatus;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -30,9 +31,23 @@ public class PostOutboxEventRepositoryImpl implements PostOutboxEventRepository 
     }
 
     @Override
-    public List<PostOutboxEvent> findPendingBatch(int batchSize) {
-        return postOutboxEventJpaRepository.findByStatusInOrderByIdAsc(
+    public List<PostOutboxEvent> findRelayBatch(LocalDateTime now, int batchSize) {
+        return postOutboxEventJpaRepository.findByStatusInAndNextRetryAtLessThanEqualOrderByIdAsc(
                 RELAY_TARGET_STATUSES,
+                now,
                 PageRequest.of(0, batchSize));
+    }
+
+    @Override
+    public List<PostOutboxEvent> findPublishedBatchBefore(LocalDateTime cutoff, int batchSize) {
+        return postOutboxEventJpaRepository.findByStatusAndPublishedAtBeforeOrderByIdAsc(
+                PostOutboxEventStatus.PUBLISHED,
+                cutoff,
+                PageRequest.of(0, batchSize));
+    }
+
+    @Override
+    public void deleteAll(List<PostOutboxEvent> events) {
+        postOutboxEventJpaRepository.deleteAllInBatch(events);
     }
 }
