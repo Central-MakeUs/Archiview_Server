@@ -10,6 +10,7 @@ import zero.conflict.archiview.user.application.archiver.query.BlockQueryService
 import zero.conflict.archiview.user.application.editor.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.archiver.query.FollowQueryService;
 import zero.conflict.archiview.user.application.archiver.query.TrustedEditorQueryService;
+import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 import zero.conflict.archiview.user.dto.ArchiverProfileDto;
 import zero.conflict.archiview.user.dto.BlockDto;
 import zero.conflict.archiview.user.dto.EditorProfileDto;

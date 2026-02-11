@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.archiver.ArchiverPostUseCase;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 @RestController

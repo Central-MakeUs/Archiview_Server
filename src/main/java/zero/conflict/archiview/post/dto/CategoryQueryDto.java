@@ -5,7 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import zero.conflict.archiview.post.domain.Category;
-import zero.conflict.archiview.post.infrastructure.CategoryPlaceReadRepository;
+import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceReadRepository;
 
 import java.util.List;
 public class CategoryQueryDto {

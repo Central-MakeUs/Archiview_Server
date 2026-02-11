@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
+import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;

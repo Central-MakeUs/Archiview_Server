@@ -3,6 +3,7 @@ package zero.conflict.archiview.post.application.editor.command;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
@@ -34,6 +35,7 @@ public class PostCommandService {
     private final CategoryRepository categoryRepository;
     private final UserClient userClient;
     private final S3Service s3Service;
+    private final PostOutboxService postOutboxService;
 
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.Request request, java.util.UUID editorId) {
@@ -46,6 +48,10 @@ public class PostCommandService {
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
                 request.getPlaceInfoRequestList(), savedPost, editorId);
+        List<Long> placeIds = placeInfoResponses.stream()
+                .map(PostCommandDto.Response.PlaceInfoResponse::getPlaceId)
+                .toList();
+        postOutboxService.appendPostCreatedEvent(savedPost, placeIds);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
     }
@@ -91,6 +97,10 @@ public class PostCommandService {
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
                 request.getPlaceInfoRequestList(), post, editorId);
+        List<Long> placeIds = placeInfoResponses.stream()
+                .map(PostCommandDto.Response.PlaceInfoResponse::getPlaceId)
+                .toList();
+        postOutboxService.appendPostUpdatedEvent(post, placeIds);
 
         return mapPostToResponse(post, placeInfoResponses);
     }

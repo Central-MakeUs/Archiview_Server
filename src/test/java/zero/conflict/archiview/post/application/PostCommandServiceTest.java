@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
+import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
@@ -48,6 +49,9 @@ class PostCommandServiceTest {
 
         @Mock
         private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
+
+        @Mock
+        private PostOutboxService postOutboxService;
 
         @Test
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
