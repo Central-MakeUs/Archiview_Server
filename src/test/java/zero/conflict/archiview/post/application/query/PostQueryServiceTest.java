@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.archiver.query.ArchiverVisibilityService;
+import zero.conflict.archiview.post.application.editor.query.EditorPostQueryService;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
@@ -37,6 +38,9 @@ class PostQueryServiceTest {
 
         @InjectMocks
         private PostQueryService postQueryService;
+
+        @InjectMocks
+        private EditorPostQueryService editorPostQueryService;
 
         @Mock
         private PostPlaceRepository postPlaceRepository;
@@ -107,7 +111,7 @@ class PostQueryServiceTest {
                 given(postPlaceRepository.findAllByPostId(10L)).willReturn(List.of(postPlace1, postPlace2));
 
                 // when
-                EditorPostByPostPlaceDto.Response response = postQueryService.getPostByPostPlaceId(100L);
+                EditorPostByPostPlaceDto.Response response = editorPostQueryService.getPostByPostPlaceId(100L);
 
                 // then
                 assertThat(response.getPostId()).isEqualTo(10L);
@@ -145,7 +149,7 @@ class PostQueryServiceTest {
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place));
 
                 // when
-                EditorMapDto.Response response = postQueryService.getMapPins(
+                EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.ALL,
                                 null);
@@ -179,7 +183,7 @@ class PostQueryServiceTest {
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place1));
 
                 // when (Filter by category1)
-                EditorMapDto.Response response = postQueryService.getMapPins(
+                EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.ALL,
                                 List.of(category1.getId()));
@@ -206,7 +210,7 @@ class PostQueryServiceTest {
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
 
                 // when (Nearby filter now returns all pins as BBox is removed)
-                EditorMapDto.Response response = postQueryService.getMapPins(
+                EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.NEARBY,
                                 null);
@@ -269,7 +273,7 @@ class PostQueryServiceTest {
                                                                 editorProfile.getInstagramId())));
 
                 // when
-                zero.conflict.archiview.post.dto.EditorInsightDto.PlaceDetailResponse response = postQueryService
+                zero.conflict.archiview.post.dto.EditorInsightDto.PlaceDetailResponse response = editorPostQueryService
                                 .getInsightPlaceDetail(editorId, placeId);
 
                 // then
