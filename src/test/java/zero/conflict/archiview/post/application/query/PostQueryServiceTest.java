@@ -12,13 +12,13 @@ import zero.conflict.archiview.post.application.editor.query.EditorPostQueryServ
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import zero.conflict.archiview.post.application.port.out.PostPlaceSaveRepository;
+import zero.conflict.archiview.post.application.port.out.PostPlaceArchiveRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
-import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -54,7 +54,7 @@ class PostQueryServiceTest {
         private PostRepository postRepository;
 
         @Mock
-        private PostPlaceSaveRepository postPlaceSaveRepository;
+        private PostPlaceArchiveRepository postPlaceSaveRepository;
 
         @Mock
         private UserClient userClient;
@@ -607,8 +607,8 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버 저장 목록 조회 - 최근 저장순으로 조회하고 placeName을 포함한다")
-        void getMySavedPostPlaces_success() {
+        @DisplayName("아카이버 아카이브 목록 조회 - 최근 저장순으로 조회하고 placeName을 포함한다")
+        void getMyArchivedPostPlaces_success() {
                 UUID archiverId = UUID.randomUUID();
                 UUID editorId = UUID.randomUUID();
                 Post post = Post.builder().id(1L).build();
@@ -633,8 +633,8 @@ class PostQueryServiceTest {
                                 .viewCount(20L)
                                 .build();
 
-                PostPlaceSave save2 = PostPlaceSave.builder().id(2L).archiverId(archiverId).postPlaceId(12L).build();
-                PostPlaceSave save1 = PostPlaceSave.builder().id(1L).archiverId(archiverId).postPlaceId(11L).build();
+                PostPlaceArchive save2 = PostPlaceArchive.builder().id(2L).archiverId(archiverId).postPlaceId(12L).build();
+                PostPlaceArchive save1 = PostPlaceArchive.builder().id(1L).archiverId(archiverId).postPlaceId(11L).build();
                 setField(save2, "createdAt", LocalDateTime.of(2026, 2, 11, 10, 0, 0));
                 setField(save1, "createdAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
                 setField(pp2, "lastModifiedAt", LocalDateTime.of(2026, 2, 9, 12, 0, 0));
@@ -650,7 +650,7 @@ class PostQueryServiceTest {
                 given(archiverVisibilityService.isVisible(pp1, visibilityFilter)).willReturn(true);
                 given(archiverVisibilityService.isVisible(pp2, visibilityFilter)).willReturn(true);
 
-                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(2L);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(12L);
@@ -660,8 +660,8 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버 저장 목록 조회 - 가시성/누락된 postPlace는 제외한다")
-        void getMySavedPostPlaces_filtersInvisibleAndMissing() {
+        @DisplayName("아카이버 아카이브 목록 조회 - 가시성/누락된 postPlace는 제외한다")
+        void getMyArchivedPostPlaces_filtersInvisibleAndMissing() {
                 UUID archiverId = UUID.randomUUID();
                 UUID editorId = UUID.randomUUID();
                 Post post = Post.builder().id(1L).build();
@@ -669,9 +669,9 @@ class PostQueryServiceTest {
                 PostPlace visible = PostPlace.builder().id(11L).post(post).place(place).editorId(editorId).build();
                 PostPlace hidden = PostPlace.builder().id(12L).post(post).place(place).editorId(editorId).build();
 
-                PostPlaceSave saveVisible = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(11L).build();
-                PostPlaceSave saveHidden = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(12L).build();
-                PostPlaceSave saveMissing = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(13L).build();
+                PostPlaceArchive saveVisible = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(11L).build();
+                PostPlaceArchive saveHidden = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(12L).build();
+                PostPlaceArchive saveMissing = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(13L).build();
 
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
                                 java.util.Set.of(),
@@ -683,7 +683,7 @@ class PostQueryServiceTest {
                 given(archiverVisibilityService.isVisible(visible, visibilityFilter)).willReturn(true);
                 given(archiverVisibilityService.isVisible(hidden, visibilityFilter)).willReturn(false);
 
-                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(1L);
                 assertThat(response.getPostPlaces()).hasSize(1);
@@ -691,20 +691,20 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버 저장 목록 조회 - 저장 목록이 비어있으면 빈 응답")
-        void getMySavedPostPlaces_empty() {
+        @DisplayName("아카이버 아카이브 목록 조회 - 저장 목록이 비어있으면 빈 응답")
+        void getMyArchivedPostPlaces_empty() {
                 UUID archiverId = UUID.randomUUID();
                 given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId)).willReturn(List.of());
 
-                ArchiverSavedPostPlaceDto.ListResponse response = postQueryService.getMySavedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(0L);
                 assertThat(response.getPostPlaces()).isEmpty();
         }
 
         @Test
-        @DisplayName("아카이버 저장 지도 핀 조회 - 카테고리/근처 필터를 적용한다")
-        void getMySavedMapPins_success() {
+        @DisplayName("아카이버 아카이브 지도 핀 조회 - 카테고리/근처 필터를 적용한다")
+        void getMyArchivedMapPins_success() {
                 UUID archiverId = UUID.randomUUID();
                 UUID editorId = UUID.randomUUID();
                 Category korean = Category.builder().id(1L).name("한식").build();
@@ -728,8 +728,8 @@ class PostQueryServiceTest {
                 farPostPlace.addCategory(korean);
                 farPostPlace.addCategory(western);
 
-                PostPlaceSave saveNear = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(101L).build();
-                PostPlaceSave saveFar = PostPlaceSave.builder().archiverId(archiverId).postPlaceId(102L).build();
+                PostPlaceArchive saveNear = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(101L).build();
+                PostPlaceArchive saveFar = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(102L).build();
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
                                 java.util.Set.of(),
                                 java.util.Set.of());
@@ -742,7 +742,7 @@ class PostQueryServiceTest {
                                 .willReturn(List.of(nearPostPlace, farPostPlace));
                 given(placeRepository.findAllByIds(List.of(11L, 12L))).willReturn(List.of(nearPlace, farPlace));
 
-                EditorMapDto.Response response = postQueryService.getMySavedMapPins(
+                EditorMapDto.Response response = postQueryService.getMyArchivedMapPins(
                                 MapFilter.NEARBY,
                                 List.of(1L, 2L),
                                 37.5445,
@@ -755,11 +755,11 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버 저장 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
-        void getMySavedMapPins_nearbyWithoutCoordinates_throwsException() {
+        @DisplayName("아카이버 아카이브 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
+        void getMyArchivedMapPins_nearbyWithoutCoordinates_throwsException() {
                 UUID archiverId = UUID.randomUUID();
 
-                assertThatThrownBy(() -> postQueryService.getMySavedMapPins(
+                assertThatThrownBy(() -> postQueryService.getMyArchivedMapPins(
                                 MapFilter.NEARBY,
                                 null,
                                 null,

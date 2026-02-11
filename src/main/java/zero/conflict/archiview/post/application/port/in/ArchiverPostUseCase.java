@@ -3,7 +3,7 @@ package zero.conflict.archiview.post.application.port.in;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
-import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 
@@ -39,13 +39,13 @@ public interface ArchiverPostUseCase {
 
     void cancelReportPostPlace(UUID archiverId, Long postPlaceId);
 
-    void savePostPlace(UUID archiverId, Long postPlaceId);
+    void archivePostPlace(UUID archiverId, Long postPlaceId);
 
-    void unsavePostPlace(UUID archiverId, Long postPlaceId);
+    void unarchivePostPlace(UUID archiverId, Long postPlaceId);
 
-    ArchiverSavedPostPlaceDto.ListResponse getMySavedPostPlaces(UUID archiverId);
+    ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(UUID archiverId);
 
-    EditorMapDto.Response getMySavedMapPins(
+    EditorMapDto.Response getMyArchivedMapPins(
             EditorMapDto.MapFilter filter,
             List<Long> categoryIds,
             Double latitude,

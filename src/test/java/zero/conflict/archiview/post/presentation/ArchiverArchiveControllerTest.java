@@ -6,9 +6,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.archiver.command.PostSaveCommandService;
+import zero.conflict.archiview.post.application.archiver.command.PostArchiveCommandService;
 import zero.conflict.archiview.post.application.archiver.query.PostQueryService;
-import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 
 import java.time.LocalDateTime;
@@ -28,40 +28,40 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class ArchiverSaveControllerTest extends ControllerTestSupport {
+class ArchiverArchiveControllerTest extends ControllerTestSupport {
 
     @MockBean
-    private PostSaveCommandService postSaveCommandService;
+    private PostArchiveCommandService postArchiveCommandService;
 
     @MockBean
     private PostQueryService postQueryService;
 
     @Test
-    @DisplayName("postPlace 저장 성공")
-    void savePostPlace_success() throws Exception {
-        doNothing().when(postSaveCommandService).savePostPlace(any(), eq(1L));
+    @DisplayName("postPlace 아카이브 성공")
+    void archivePostPlace_success() throws Exception {
+        doNothing().when(postArchiveCommandService).archivePostPlace(any(), eq(1L));
 
-        mockMvc.perform(post("/api/v1/archivers/saves/post-places/{postPlaceId}", 1L)
+        mockMvc.perform(post("/api/v1/archivers/archives/post-places/{postPlaceId}", 1L)
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
-    @DisplayName("postPlace 저장 해제 성공")
-    void unsavePostPlace_success() throws Exception {
-        doNothing().when(postSaveCommandService).unsavePostPlace(any(), eq(1L));
+    @DisplayName("postPlace 아카이브 해제 성공")
+    void unarchivePostPlace_success() throws Exception {
+        doNothing().when(postArchiveCommandService).unarchivePostPlace(any(), eq(1L));
 
-        mockMvc.perform(delete("/api/v1/archivers/saves/post-places/{postPlaceId}", 1L)
+        mockMvc.perform(delete("/api/v1/archivers/archives/post-places/{postPlaceId}", 1L)
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
 
     @Test
-    @DisplayName("내 저장 postPlace 목록 조회 성공")
-    void getMySavedPostPlaces_success() throws Exception {
-        ArchiverSavedPostPlaceDto.SavedPostPlaceResponse item = ArchiverSavedPostPlaceDto.SavedPostPlaceResponse.builder()
+    @DisplayName("내 아카이브 postPlace 목록 조회 성공")
+    void getMyArchivedPostPlaces_success() throws Exception {
+        ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse item = ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse.builder()
                 .postPlaceId(11L)
                 .placeId(101L)
                 .placeName("성수 카페")
@@ -69,12 +69,12 @@ class ArchiverSaveControllerTest extends ControllerTestSupport {
                 .saveCount(10L)
                 .viewCount(20L)
                 .lastModifiedAt(LocalDateTime.of(2026, 2, 9, 12, 0, 0))
-                .savedAt(LocalDateTime.of(2026, 2, 10, 12, 0, 0))
+                .archivedAt(LocalDateTime.of(2026, 2, 10, 12, 0, 0))
                 .build();
-        ArchiverSavedPostPlaceDto.ListResponse response = ArchiverSavedPostPlaceDto.ListResponse.from(List.of(item));
-        given(postQueryService.getMySavedPostPlaces(any(UUID.class))).willReturn(response);
+        ArchiverArchivedPostPlaceDto.ListResponse response = ArchiverArchivedPostPlaceDto.ListResponse.from(List.of(item));
+        given(postQueryService.getMyArchivedPostPlaces(any(UUID.class))).willReturn(response);
 
-        mockMvc.perform(get("/api/v1/archivers/saves/post-places")
+        mockMvc.perform(get("/api/v1/archivers/archives/post-places")
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -84,8 +84,8 @@ class ArchiverSaveControllerTest extends ControllerTestSupport {
     }
 
     @Test
-    @DisplayName("내 저장 장소 핀 지도 조회 성공")
-    void getMySavedMapPins_success() throws Exception {
+    @DisplayName("내 아카이브 장소 핀 지도 조회 성공")
+    void getMyArchivedMapPins_success() throws Exception {
         EditorMapDto.PlacePinResponse pin = EditorMapDto.PlacePinResponse.builder()
                 .placeId(1L)
                 .name("한식당")
@@ -94,14 +94,14 @@ class ArchiverSaveControllerTest extends ControllerTestSupport {
                 .categories(List.of("한식", "양식"))
                 .build();
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
-        given(postQueryService.getMySavedMapPins(
+        given(postQueryService.getMyArchivedMapPins(
                 eq(EditorMapDto.MapFilter.ALL),
                 eq(List.of(1L, 2L)),
                 isNull(),
                 isNull(),
                 any(UUID.class))).willReturn(response);
 
-        mockMvc.perform(get("/api/v1/archivers/saves/post-places/map/places")
+        mockMvc.perform(get("/api/v1/archivers/archives/post-places/map/places")
                         .with(authenticatedUser())
                         .queryParam("filter", "ALL")
                         .queryParam("categoryIds", "1", "2"))

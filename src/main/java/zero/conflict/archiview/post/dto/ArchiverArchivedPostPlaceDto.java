@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
-@Schema(description = "아카이버 저장한 장소카드(postPlace) 조회 DTO")
-public class ArchiverSavedPostPlaceDto {
+@Schema(description = "아카이버 아카이브한 장소카드(postPlace) 조회 DTO")
+public class ArchiverArchivedPostPlaceDto {
 
     @Getter
     @NoArgsConstructor
@@ -20,9 +20,9 @@ public class ArchiverSavedPostPlaceDto {
     @Builder
     public static class ListResponse {
         private Long totalCount;
-        private List<SavedPostPlaceResponse> postPlaces;
+        private List<ArchivedPostPlaceResponse> postPlaces;
 
-        public static ListResponse from(List<SavedPostPlaceResponse> postPlaces) {
+        public static ListResponse from(List<ArchivedPostPlaceResponse> postPlaces) {
             return ListResponse.builder()
                     .totalCount((long) postPlaces.size())
                     .postPlaces(postPlaces)
@@ -40,7 +40,7 @@ public class ArchiverSavedPostPlaceDto {
             return ListResponse.builder()
                     .totalCount(2L)
                     .postPlaces(List.of(
-                            SavedPostPlaceResponse.builder()
+                            ArchivedPostPlaceResponse.builder()
                                     .postPlaceId(901L)
                                     .placeId(301L)
                                     .placeName("성수 감성 카페")
@@ -49,9 +49,9 @@ public class ArchiverSavedPostPlaceDto {
                                     .saveCount(52L)
                                     .viewCount(210L)
                                     .lastModifiedAt(LocalDateTime.now().minusDays(1))
-                                    .savedAt(LocalDateTime.now().minusHours(3))
+                                    .archivedAt(LocalDateTime.now().minusHours(3))
                                     .build(),
-                            SavedPostPlaceResponse.builder()
+                            ArchivedPostPlaceResponse.builder()
                                     .postPlaceId(902L)
                                     .placeId(302L)
                                     .placeName("연남 브런치 하우스")
@@ -60,7 +60,7 @@ public class ArchiverSavedPostPlaceDto {
                                     .saveCount(34L)
                                     .viewCount(120L)
                                     .lastModifiedAt(LocalDateTime.now().minusDays(2))
-                                    .savedAt(LocalDateTime.now().minusDays(1))
+                                    .archivedAt(LocalDateTime.now().minusDays(1))
                                     .build()))
                     .build();
         }
@@ -70,7 +70,7 @@ public class ArchiverSavedPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class SavedPostPlaceResponse {
+    public static class ArchivedPostPlaceResponse {
         @Schema(description = "postPlace ID", example = "901")
         private Long postPlaceId;
         @Schema(description = "place ID", example = "301")
@@ -89,7 +89,7 @@ public class ArchiverSavedPostPlaceDto {
         @Schema(description = "최종 수정 시각", example = "2026-02-09 22:10:00")
         private LocalDateTime lastModifiedAt;
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-        @Schema(description = "저장 시각", example = "2026-02-10 19:20:00")
-        private LocalDateTime savedAt;
+        @Schema(description = "아카이브 시각", example = "2026-02-10 19:20:00")
+        private LocalDateTime archivedAt;
     }
 }

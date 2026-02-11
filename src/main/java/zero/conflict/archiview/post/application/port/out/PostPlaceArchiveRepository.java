@@ -1,17 +1,17 @@
 package zero.conflict.archiview.post.application.port.out;
 
-import zero.conflict.archiview.post.domain.PostPlaceSave;
+import zero.conflict.archiview.post.domain.PostPlaceArchive;
 
 import java.util.List;
 import java.util.UUID;
 
-public interface PostPlaceSaveRepository {
+public interface PostPlaceArchiveRepository {
 
-    PostPlaceSave save(PostPlaceSave postPlaceSave);
+    PostPlaceArchive save(PostPlaceArchive postPlaceArchive);
 
     boolean existsByArchiverIdAndPostPlaceId(UUID archiverId, Long postPlaceId);
 
     void deleteByArchiverIdAndPostPlaceId(UUID archiverId, Long postPlaceId);
 
-    List<PostPlaceSave> findAllByArchiverIdOrderByCreatedAtDesc(UUID archiverId);
+    List<PostPlaceArchive> findAllByArchiverIdOrderByCreatedAtDesc(UUID archiverId);
 }

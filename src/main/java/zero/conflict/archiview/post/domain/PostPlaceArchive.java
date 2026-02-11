@@ -23,7 +23,7 @@ import java.util.UUID;
 @Table(
         name = "post_place_save",
         uniqueConstraints = @UniqueConstraint(columnNames = { "archiver_id", "post_place_id" }))
-public class PostPlaceSave extends BaseTimeEntity {
+public class PostPlaceArchive extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,8 +35,8 @@ public class PostPlaceSave extends BaseTimeEntity {
     @Column(name = "post_place_id", nullable = false)
     private Long postPlaceId;
 
-    public static PostPlaceSave createOf(UUID archiverId, Long postPlaceId) {
-        return PostPlaceSave.builder()
+    public static PostPlaceArchive createOf(UUID archiverId, Long postPlaceId) {
+        return PostPlaceArchive.builder()
                 .archiverId(archiverId)
                 .postPlaceId(postPlaceId)
                 .build();

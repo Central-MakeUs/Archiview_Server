@@ -4,19 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
-import zero.conflict.archiview.post.application.port.out.PostPlaceSaveRepository;
+import zero.conflict.archiview.post.application.port.out.PostPlaceArchiveRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.post.domain.PostPlaceSave;
+import zero.conflict.archiview.post.domain.PostPlaceArchive;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
-import zero.conflict.archiview.post.dto.ArchiverSavedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
@@ -38,7 +38,7 @@ import java.util.UUID;
 public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
-        private final PostPlaceSaveRepository postPlaceSaveRepository;
+        private final PostPlaceArchiveRepository postPlaceArchiveRepository;
         private final PlaceRepository placeRepository;
         private final UserClient userClient;
         private final CategoryPlaceReadRepository categoryPlaceReadRepository;
@@ -141,14 +141,14 @@ public class PostQueryService {
                 return getHotPlaces(limit, null);
         }
 
-        public ArchiverSavedPostPlaceDto.ListResponse getMySavedPostPlaces(UUID archiverId) {
-                List<PostPlaceSave> saves = postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
-                if (saves.isEmpty()) {
-                        return ArchiverSavedPostPlaceDto.ListResponse.empty();
+        public ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(UUID archiverId) {
+                List<PostPlaceArchive> archives = postPlaceArchiveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
+                if (archives.isEmpty()) {
+                        return ArchiverArchivedPostPlaceDto.ListResponse.empty();
                 }
 
-                List<Long> postPlaceIds = saves.stream()
-                                .map(PostPlaceSave::getPostPlaceId)
+                List<Long> postPlaceIds = archives.stream()
+                                .map(PostPlaceArchive::getPostPlaceId)
                                 .distinct()
                                 .toList();
                 Map<Long, PostPlace> postPlaceById = postPlaceRepository.findAllByIds(postPlaceIds).stream()
@@ -156,16 +156,18 @@ public class PostQueryService {
 
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService
                                 .getVisibilityFilter(archiverId);
-                List<ArchiverSavedPostPlaceDto.SavedPostPlaceResponse> responses = saves.stream()
-                                .map(save -> toSavedPostPlaceResponse(save, postPlaceById.get(save.getPostPlaceId()),
+                List<ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse> responses = archives.stream()
+                                .map(archive -> toArchivedPostPlaceResponse(
+                                                archive,
+                                                postPlaceById.get(archive.getPostPlaceId()),
                                                 visibilityFilter))
                                 .filter(response -> response != null)
                                 .toList();
 
-                return ArchiverSavedPostPlaceDto.ListResponse.from(responses);
+                return ArchiverArchivedPostPlaceDto.ListResponse.from(responses);
         }
 
-        public EditorMapDto.Response getMySavedMapPins(
+        public EditorMapDto.Response getMyArchivedMapPins(
                         MapFilter filter,
                         List<Long> categoryIds,
                         Double latitude,
@@ -173,13 +175,13 @@ public class PostQueryService {
                         UUID archiverId) {
                 validateNearbyCoordinates(filter, latitude, longitude);
 
-                List<PostPlaceSave> saves = postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
-                if (saves.isEmpty()) {
+                List<PostPlaceArchive> archives = postPlaceArchiveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
+                if (archives.isEmpty()) {
                         return EditorMapDto.Response.empty();
                 }
 
-                List<Long> postPlaceIds = saves.stream()
-                                .map(PostPlaceSave::getPostPlaceId)
+                List<Long> postPlaceIds = archives.stream()
+                                .map(PostPlaceArchive::getPostPlaceId)
                                 .distinct()
                                 .toList();
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByIds(postPlaceIds);
@@ -473,18 +475,18 @@ public class PostQueryService {
                                 : postPlace.getCreatedAt();
         }
 
-        private ArchiverSavedPostPlaceDto.SavedPostPlaceResponse toSavedPostPlaceResponse(
-                        PostPlaceSave save,
+        private ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse toArchivedPostPlaceResponse(
+                        PostPlaceArchive archive,
                         PostPlace postPlace,
                         ArchiverVisibilityService.VisibilityFilter visibilityFilter) {
-                if (save == null || postPlace == null) {
+                if (archive == null || postPlace == null) {
                         return null;
                 }
                 if (!archiverVisibilityService.isVisible(postPlace, visibilityFilter)) {
                         return null;
                 }
 
-                return ArchiverSavedPostPlaceDto.SavedPostPlaceResponse.builder()
+                return ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse.builder()
                                 .postPlaceId(postPlace.getId())
                                 .placeId(postPlace.getPlace() != null ? postPlace.getPlace().getId() : null)
                                 .placeName(postPlace.getPlace() != null ? postPlace.getPlace().getName() : null)
@@ -493,7 +495,7 @@ public class PostQueryService {
                                 .saveCount(defaultZero(postPlace.getSaveCount()))
                                 .viewCount(defaultZero(postPlace.getViewCount()))
                                 .lastModifiedAt(getLastUpdatedAt(postPlace))
-                                .savedAt(save.getCreatedAt())
+                                .archivedAt(archive.getCreatedAt())
                                 .build();
         }
 
