@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.port.in.EditorUserUseCase;
+import zero.conflict.archiview.user.application.editor.EditorUserUseCase;
 import zero.conflict.archiview.user.dto.UserDto;
 
 @Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
@@ -19,7 +19,7 @@ import zero.conflict.archiview.user.dto.UserDto;
 @RequestMapping("/api/v1/users")
 public class UserCommandController {
 
-    private final EditorUserUseCase userCommandService;
+    private final EditorUserUseCase editorUserUseCase;
 
     @Operation(summary = "온보딩 완료", description = "최초 로그인 후 에디터 또는 아카이버 역할을 선택하여 회원가입을 완료합니다.")
     @PostMapping("/onboarding")
@@ -27,7 +27,7 @@ public class UserCommandController {
             @RequestBody @Valid UserDto.OnboardingRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
-        userCommandService.completeOnboarding(oAuth2User.getUserId(), request);
+        editorUserUseCase.completeOnboarding(oAuth2User.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -36,6 +36,6 @@ public class UserCommandController {
     public ResponseEntity<ApiResponse<UserDto.SwitchRoleResponse>> switchRole(
             @RequestBody @Valid UserDto.SwitchRoleRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        return ResponseEntity.ok(ApiResponse.success(userCommandService.switchRole(oAuth2User.getUserId(), request)));
+        return ResponseEntity.ok(ApiResponse.success(editorUserUseCase.switchRole(oAuth2User.getUserId(), request)));
     }
 }

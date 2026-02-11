@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.user.application.port.in.EditorUserUseCase;
+import zero.conflict.archiview.user.application.editor.EditorUserUseCase;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 @Tag(name = "Editor User Query", description = "에디터 전용 조회 API")
@@ -24,7 +24,7 @@ import zero.conflict.archiview.user.dto.EditorProfileDto;
 @Validated
 public class EditorQueryController {
 
-    private final EditorUserUseCase editorProfileQueryService;
+    private final EditorUserUseCase editorUserUseCase;
 
     @Operation(summary = "에디터 프로필 조회", description = "로그인한 에디터 자신의 프로필 정보를 조회합니다.")
     @GetMapping("/me/profile")
@@ -35,7 +35,7 @@ public class EditorQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                editorProfileQueryService.getMyProfile(oAuth2User.getUserId())));
+                editorUserUseCase.getMyProfile(oAuth2User.getUserId())));
     }
 
     @Operation(summary = "에디터 공개 프로필 조회", description = "특정 에디터의 공개된 프로필 정보를 조회합니다.")
@@ -48,7 +48,7 @@ public class EditorQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                editorProfileQueryService.getEditorProfile(editorId)));
+                editorUserUseCase.getEditorProfile(editorId)));
     }
 
     @Operation(summary = "아카이버용 에디터 화면 조회 (작업중)", description = "아카이버가 볼 에디터 화면 정보(userId + editorProfile)를 조회합니다.")
@@ -60,7 +60,7 @@ public class EditorQueryController {
             return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.ArchiverViewResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(
-                editorProfileQueryService.getEditorProfileForArchiver(editorId)));
+                editorUserUseCase.getEditorProfileForArchiver(editorId)));
     }
 
     @Operation(summary = "에디터 인스타그램 ID 중복 확인", description = "에디터 프로필 등록을 위한 인스타그램 ID 중복 여부를 확인합니다.")
@@ -72,7 +72,7 @@ public class EditorQueryController {
             return ResponseEntity.ok(ApiResponse.success(
                     EditorProfileDto.InstagramIdCheckResponse.of(true)));
         }
-        boolean exists = editorProfileQueryService.existsInstagramId(instagramId);
+        boolean exists = editorUserUseCase.existsInstagramId(instagramId);
         return ResponseEntity.ok(ApiResponse.success(
                 EditorProfileDto.InstagramIdCheckResponse.of(exists)));
     }

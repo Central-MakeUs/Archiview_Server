@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.user.application.command.EditorProfileCommandService;
+import zero.conflict.archiview.user.application.editor.command.EditorProfileCommandService;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
 import java.util.Map;

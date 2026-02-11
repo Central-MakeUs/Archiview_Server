@@ -6,13 +6,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.application.archiver.query.ArchiverVisibilityService;
+import zero.conflict.archiview.post.application.archiver.query.CategoryQueryService;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.Category;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
-import zero.conflict.archiview.post.application.query.ArchiverVisibilityService.VisibilityFilter;
+import zero.conflict.archiview.post.application.archiver.query.ArchiverVisibilityService.VisibilityFilter;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 

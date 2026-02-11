@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
-import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
+import zero.conflict.archiview.post.application.archiver.ArchiverPostUseCase;
 
 @Tag(name = "Archiver Place Command", description = "아카이버 게시글 신고 API")
 @RestController
@@ -21,14 +21,14 @@ import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 @RequestMapping("/api/v1/archivers/reports/post-places")
 public class ArchiverReportCommandController {
 
-    private final ArchiverPostUseCase postReportCommandService;
+    private final ArchiverPostUseCase archiverPostUseCase;
 
     @Operation(summary = "장소카드 신고", description = "아카이버가 장소카드를 신고하고 이후 조회에서 숨깁니다.")
     @PostMapping("/{postPlaceId}")
     public ResponseEntity<ApiResponse<Void>> reportPostPlace(
             @PathVariable Long postPlaceId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        postReportCommandService.reportPostPlace(oAuth2User.getUserId(), postPlaceId);
+        archiverPostUseCase.reportPostPlace(oAuth2User.getUserId(), postPlaceId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
@@ -37,7 +37,7 @@ public class ArchiverReportCommandController {
     public ResponseEntity<ApiResponse<Void>> cancelReportPostPlace(
             @PathVariable Long postPlaceId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        postReportCommandService.cancelReportPostPlace(oAuth2User.getUserId(), postPlaceId);
+        archiverPostUseCase.cancelReportPostPlace(oAuth2User.getUserId(), postPlaceId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
