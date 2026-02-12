@@ -15,6 +15,8 @@ import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -165,5 +167,23 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.data.postId").value(10L))
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
                 .andExpect(jsonPath("$.data.postPlaces[0].placeUrl").value("https://place.url"));
+    }
+
+    @Test
+    @DisplayName("postPlaceId로 게시글 상세 조회 - mock 응답")
+    void getPostByPostPlaceId_Mock() throws Exception {
+        Long postPlaceId = 777L;
+
+        mockMvc.perform(get("/api/v1/editors/me/posts/by-post-place/{postPlaceId}", postPlaceId)
+                        .with(authenticatedUser())
+                        .queryParam("useMock", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(777L))
+                .andExpect(jsonPath("$.data.postPlaces[0].placeViewCount").isNumber())
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceLastModifiedAt").exists())
+                .andExpect(jsonPath("$.data.postPlaces[0].placeCreatedAt").exists());
+
+        then(editorPostQueryService).should(never()).getPostByPostPlaceId(postPlaceId);
     }
 }

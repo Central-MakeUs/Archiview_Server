@@ -43,6 +43,18 @@ public class EditorPostByPostPlaceDto {
                             .toList())
                     .build();
         }
+
+        public static Response mock(Long postPlaceId) {
+            long basePostPlaceId = postPlaceId == null ? 100L : postPlaceId;
+            return Response.builder()
+                    .postId(10L)
+                    .url("https://www.instagram.com/p/mock-post")
+                    .hashTags(List.of("#성수", "#카페"))
+                    .postPlaces(List.of(
+                            PostPlaceResponse.mock(basePostPlaceId, 301L, "성수 샘플 카페"),
+                            PostPlaceResponse.mock(basePostPlaceId + 1, 302L, "연남 샘플 다이닝")))
+                    .build();
+        }
     }
 
     @Getter
@@ -136,6 +148,35 @@ public class EditorPostByPostPlaceDto {
                     .placeLastModifiedAt(place != null ? place.getLastModifiedAt() : null)
                     .categoryIds(categories.stream().map(Category::getId).toList())
                     .categoryNames(categories.stream().map(Category::getName).toList())
+                    .build();
+        }
+
+        public static PostPlaceResponse mock(Long postPlaceId, Long placeId, String placeName) {
+            LocalDateTime now = LocalDateTime.now();
+            return PostPlaceResponse.builder()
+                    .postPlaceId(postPlaceId)
+                    .description(placeName + " 설명입니다.")
+                    .imageUrl("https://picsum.photos/400/300?random=" + postPlaceId)
+                    .viewCount(120L)
+                    .saveCount(45L)
+                    .instagramInflowCount(60L)
+                    .directionCount(20L)
+                    .postPlaceCreatedAt(now.minusDays(5))
+                    .postPlaceLastModifiedAt(now.minusHours(6))
+                    .placeId(placeId)
+                    .placeName(placeName)
+                    .placeUrl("https://place.map.kakao.com/" + placeId)
+                    .phoneNumber("02-1234-5678")
+                    .addressName("서울특별시 성동구 성수동 1-1")
+                    .roadAddressName("서울특별시 성동구 아차산로 1")
+                    .latitude(37.5445)
+                    .longitude(127.0560)
+                    .nearestStationWalkTime("성수역 도보 5분")
+                    .placeViewCount(1500L)
+                    .placeCreatedAt(now.minusMonths(2))
+                    .placeLastModifiedAt(now.minusDays(2))
+                    .categoryIds(List.of(1L, 2L))
+                    .categoryNames(List.of("카페", "디저트"))
                     .build();
         }
 

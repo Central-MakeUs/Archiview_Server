@@ -96,7 +96,11 @@ public class EditorPostQueryController {
     @Operation(summary = "postPlaceId로 게시글 상세 조회", description = "해당 postPlace가 속한 게시글과 게시글 내 모든 장소를 조회합니다.")
     @GetMapping("/me/posts/by-post-place/{postPlaceId}")
     public ResponseEntity<ApiResponse<EditorPostByPostPlaceDto.Response>> getPostByPostPlaceId(
-            @PathVariable Long postPlaceId) {
+            @PathVariable Long postPlaceId,
+            @RequestParam(defaultValue = "false") boolean useMock) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(EditorPostByPostPlaceDto.Response.mock(postPlaceId)));
+        }
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getPostByPostPlaceId(postPlaceId)));
     }
 
