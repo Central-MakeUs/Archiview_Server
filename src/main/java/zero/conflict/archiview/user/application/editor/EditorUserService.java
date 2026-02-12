@@ -19,8 +19,8 @@ public class EditorUserService implements EditorUserUseCase {
     private final UserCommandService userCommandService;
 
     @Override
-    public EditorProfileDto.Response createProfile(UUID userId, EditorProfileDto.CreateRequest request) {
-        return editorProfileCommandService.createProfile(userId, request);
+    public UserDto.RegisterEditorProfileResponse registerEditorProfile(UUID userId, EditorProfileDto.CreateRequest request) {
+        return userCommandService.registerEditorProfile(userId, request);
     }
 
     @Override

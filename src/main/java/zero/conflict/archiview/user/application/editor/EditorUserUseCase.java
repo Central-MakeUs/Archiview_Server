@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface EditorUserUseCase {
 
-    EditorProfileDto.Response createProfile(UUID userId, EditorProfileDto.CreateRequest request);
+    UserDto.RegisterEditorProfileResponse registerEditorProfile(UUID userId, EditorProfileDto.CreateRequest request);
 
     EditorProfileDto.Response updateProfile(UUID userId, EditorProfileDto.UpdateRequest request);
 

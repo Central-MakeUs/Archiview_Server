@@ -21,15 +21,6 @@ public class EditorCommandController {
 
     private final EditorUserUseCase editorUserUseCase;
 
-    @Operation(summary = "에디터 내 프로필 등록", description = "로그인한 사용자의 에디터 프로필을 등록합니다.")
-    @PostMapping("/me/profile")
-    public ResponseEntity<ApiResponse<EditorProfileDto.Response>> createMyProfile(
-            @RequestBody @Valid EditorProfileDto.CreateRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        return ResponseEntity.ok(ApiResponse.success(
-                editorUserUseCase.createProfile(oAuth2User.getUserId(), request)));
-    }
-
     @Operation(summary = "에디터 내 프로필 수정", description = "로그인한 사용자의 에디터 프로필 정보를 수정합니다.")
     @PutMapping("/me/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.Response>> updateMyProfile(

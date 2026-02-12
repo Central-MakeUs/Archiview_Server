@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.user.application.editor.command.EditorProfileCommandService;
 import zero.conflict.archiview.user.application.editor.command.UserCommandService;
 import zero.conflict.archiview.user.application.port.out.ArchiverProfileRepository;
 import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
@@ -15,6 +16,7 @@ import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.application.support.NicknameGenerator;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 
 import java.lang.reflect.Field;
@@ -25,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,10 +42,84 @@ class UserCommandServiceTest {
     @Mock
     private EditorProfileRepository editorProfileRepository;
     @Mock
+    private EditorProfileCommandService editorProfileCommandService;
+    @Mock
     private JwtTokenProvider jwtTokenProvider;
 
     @InjectMocks
     private UserCommandService userCommandService;
+
+    @Test
+    @DisplayName("ARCHIVER가 에디터 프로필 등록 시 EDITOR로 전환하고 토큰을 발급한다")
+    void registerEditorProfile_archiver_success() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000111");
+        User user = createUser(userId, User.Role.ARCHIVER);
+        EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
+                .nickname("맛집탐방가")
+                .instagramId("editor_insta")
+                .instagramUrl("https://www.instagram.com/editor_insta")
+                .introduction("소개")
+                .hashtags(java.util.List.of("#A", "#B"))
+                .build();
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileCommandService.createProfile(userId, request)).willReturn(EditorProfileDto.Response.mock());
+        given(jwtTokenProvider.createAccessToken(any())).willReturn("editor-access-token");
+
+        UserDto.RegisterEditorProfileResponse response = userCommandService.registerEditorProfile(userId, request);
+
+        assertThat(response.getAccessToken()).isEqualTo("editor-access-token");
+        assertThat(response.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(response.getEditorProfile()).isNotNull();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("EDITOR가 에디터 프로필 등록 시 역할 유지 + 토큰 발급한다")
+    void registerEditorProfile_editor_success() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000112");
+        User user = createUser(userId, User.Role.EDITOR);
+        EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
+                .nickname("맛집탐방가")
+                .instagramId("editor_insta")
+                .instagramUrl("https://www.instagram.com/editor_insta")
+                .introduction("소개")
+                .hashtags(java.util.List.of("#A", "#B"))
+                .build();
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileCommandService.createProfile(userId, request)).willReturn(EditorProfileDto.Response.mock());
+        given(jwtTokenProvider.createAccessToken(any())).willReturn("editor-access-token");
+
+        UserDto.RegisterEditorProfileResponse response = userCommandService.registerEditorProfile(userId, request);
+
+        assertThat(response.getAccessToken()).isEqualTo("editor-access-token");
+        assertThat(response.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        verify(userRepository, never()).save(user);
+    }
+
+    @Test
+    @DisplayName("GUEST는 에디터 프로필 등록할 수 없다")
+    void registerEditorProfile_guest_throwsException() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000113");
+        User user = createUser(userId, User.Role.GUEST);
+        EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
+                .nickname("맛집탐방가")
+                .instagramId("editor_insta")
+                .instagramUrl("https://www.instagram.com/editor_insta")
+                .introduction("소개")
+                .hashtags(java.util.List.of("#A", "#B"))
+                .build();
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> userCommandService.registerEditorProfile(userId, request))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(UserErrorCode.ONBOARDING_REQUIRED_FOR_EDITOR_PROFILE);
+    }
 
     @Test
     @DisplayName("ARCHIVER로 전환 시 아카이버 토큰을 발급한다")

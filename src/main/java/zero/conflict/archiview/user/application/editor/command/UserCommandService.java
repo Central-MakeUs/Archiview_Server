@@ -10,6 +10,7 @@ import zero.conflict.archiview.user.application.port.out.EditorProfileRepository
 import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 import zero.conflict.archiview.user.application.support.NicknameGenerator;
 import zero.conflict.archiview.user.application.port.out.ArchiverProfileRepository;
@@ -23,6 +24,7 @@ public class UserCommandService {
     private final NicknameGenerator nicknameGenerator;
     private final ArchiverProfileRepository archiverProfileRepository;
     private final EditorProfileRepository editorProfileRepository;
+    private final EditorProfileCommandService editorProfileCommandService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
@@ -64,6 +66,32 @@ public class UserCommandService {
         return UserDto.SwitchRoleResponse.builder()
                 .accessToken(accessToken)
                 .role(targetRole)
+                .build();
+    }
+
+    @Transactional
+    public UserDto.RegisterEditorProfileResponse registerEditorProfile(
+            java.util.UUID userId,
+            EditorProfileDto.CreateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+
+        if (user.getRole() == User.Role.GUEST) {
+            throw new DomainException(UserErrorCode.ONBOARDING_REQUIRED_FOR_EDITOR_PROFILE);
+        }
+
+        if (user.getRole() == User.Role.ARCHIVER) {
+            user.assignRole(User.Role.EDITOR);
+            userRepository.save(user);
+        }
+
+        EditorProfileDto.Response editorProfile = editorProfileCommandService.createProfile(userId, request);
+        String accessToken = jwtTokenProvider.createAccessToken(new CustomOAuth2User(user, java.util.Map.of()));
+
+        return UserDto.RegisterEditorProfileResponse.builder()
+                .accessToken(accessToken)
+                .role(user.getRole())
+                .editorProfile(editorProfile)
                 .build();
     }
 

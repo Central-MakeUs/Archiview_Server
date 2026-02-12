@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.editor.EditorUserUseCase;
+import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 
 @Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
@@ -20,6 +21,17 @@ import zero.conflict.archiview.user.dto.UserDto;
 public class UserCommandController {
 
     private final EditorUserUseCase editorUserUseCase;
+
+    @Operation(
+            summary = "에디터 프로필 등록",
+            description = "로그인한 사용자의 에디터 프로필을 등록하고 역할을 EDITOR로 전환한 뒤 신규 토큰을 발급합니다.")
+    @PostMapping("/me/editor-profile")
+    public ResponseEntity<ApiResponse<UserDto.RegisterEditorProfileResponse>> registerEditorProfile(
+            @RequestBody @Valid EditorProfileDto.CreateRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        return ResponseEntity.ok(ApiResponse.success(
+                editorUserUseCase.registerEditorProfile(oAuth2User.getUserId(), request)));
+    }
 
     @Operation(summary = "온보딩 완료", description = "최초 로그인 후 에디터 또는 아카이버 역할을 선택하여 회원가입을 완료합니다.")
     @PostMapping("/onboarding")

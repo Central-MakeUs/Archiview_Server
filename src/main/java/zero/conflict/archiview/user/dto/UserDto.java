@@ -31,4 +31,12 @@ public class UserDto {
         private String accessToken;
         private User.Role role;
     }
+
+    @Getter
+    @Builder
+    public static class RegisterEditorProfileResponse {
+        private String accessToken;
+        private User.Role role;
+        private EditorProfileDto.Response editorProfile;
+    }
 }
