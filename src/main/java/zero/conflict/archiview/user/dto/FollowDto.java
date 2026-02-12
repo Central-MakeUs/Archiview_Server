@@ -28,7 +28,7 @@ public class FollowDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "내 팔로우 목록 응답")
+    @Schema(name = "FollowListResponse", description = "내 팔로우 목록 응답")
     public static class ListResponse {
         @Schema(description = "팔로우한 에디터 수")
         private int totalCount;

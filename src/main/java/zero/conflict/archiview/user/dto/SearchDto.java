@@ -28,6 +28,7 @@ public class SearchDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "SearchResponse")
     public static class Response {
         private String query;
         private Tab tab;

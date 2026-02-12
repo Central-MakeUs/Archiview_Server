@@ -18,7 +18,7 @@ public class TrustedEditorDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "믿고 먹는 에디터 목록 응답")
+    @Schema(name = "TrustedEditorListResponse", description = "믿고 먹는 에디터 목록 응답")
     public static class ListResponse {
         private List<EditorResponse> editors;
 

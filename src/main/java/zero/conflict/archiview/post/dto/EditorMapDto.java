@@ -64,7 +64,7 @@ public class EditorMapDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "에디터 지도 장소 목록 응답")
+    @Schema(name = "EditorMapResponse", description = "에디터 지도 장소 목록 응답")
     public static class Response {
         @Schema(description = "필터링된 장소 핀 목록")
         private List<PlacePinResponse> pins;

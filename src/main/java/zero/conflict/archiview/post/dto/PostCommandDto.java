@@ -81,6 +81,7 @@ public class PostCommandDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "PostCommandResponse")
     public static class Response {
         @Schema(description = "저장된 게시글 ID", example = "00000000-0000-0000-0000-000000000001")
         private Long postId;

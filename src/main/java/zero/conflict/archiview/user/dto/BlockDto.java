@@ -19,7 +19,7 @@ public class BlockDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "내 차단 에디터 목록 응답")
+    @Schema(name = "BlockedEditorListResponse", description = "내 차단 에디터 목록 응답")
     public static class ListResponse {
         @Schema(description = "차단한 에디터 수")
         private int totalCount;

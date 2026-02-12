@@ -1,5 +1,6 @@
 package zero.conflict.archiview.post.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +12,7 @@ import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Schema(description = "postPlaceId 기준 게시글 상세 조회 DTO")
@@ -20,6 +22,7 @@ public class EditorPostByPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorPostByPostPlaceResponse")
     public static class Response {
         @Schema(description = "게시글 ID")
         private Long postId;
@@ -46,6 +49,7 @@ public class EditorPostByPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorPostByPostPlacePostPlaceResponse")
     public static class PostPlaceResponse {
         @Schema(description = "PostPlace ID")
         private Long postPlaceId;
@@ -61,6 +65,12 @@ public class EditorPostByPostPlaceDto {
         private Long instagramInflowCount;
         @Schema(description = "길찾기수")
         private Long directionCount;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "장소카드 생성 시각")
+        private LocalDateTime postPlaceCreatedAt;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "장소카드 최종 수정 시각")
+        private LocalDateTime postPlaceLastModifiedAt;
 
         @Schema(description = "장소 ID")
         private Long placeId;
@@ -80,6 +90,14 @@ public class EditorPostByPostPlaceDto {
         private Double longitude;
         @Schema(description = "가까운 역 도보 시간")
         private String nearestStationWalkTime;
+        @Schema(description = "장소 조회수")
+        private Long placeViewCount;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "장소 생성 시각")
+        private LocalDateTime placeCreatedAt;
+        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "장소 최종 수정 시각")
+        private LocalDateTime placeLastModifiedAt;
 
         @Schema(description = "카테고리 ID 목록")
         private List<Long> categoryIds;
@@ -101,6 +119,8 @@ public class EditorPostByPostPlaceDto {
                     .saveCount(defaultZero(postPlace.getSaveCount()))
                     .instagramInflowCount(defaultZero(postPlace.getInstagramInflowCount()))
                     .directionCount(defaultZero(postPlace.getDirectionCount()))
+                    .postPlaceCreatedAt(postPlace.getCreatedAt())
+                    .postPlaceLastModifiedAt(postPlace.getLastModifiedAt())
                     .placeId(place != null ? place.getId() : null)
                     .placeName(place != null ? place.getName() : null)
                     .placeUrl(place != null ? place.getPlaceUrl() : null)
@@ -111,6 +131,9 @@ public class EditorPostByPostPlaceDto {
                     .latitude(place != null && place.getPosition() != null ? place.getPosition().getLatitude() : null)
                     .longitude(place != null && place.getPosition() != null ? place.getPosition().getLongitude() : null)
                     .nearestStationWalkTime(place != null ? place.getNearestStationWalkTime() : null)
+                    .placeViewCount(place != null ? defaultZero(place.getViewCount()) : 0L)
+                    .placeCreatedAt(place != null ? place.getCreatedAt() : null)
+                    .placeLastModifiedAt(place != null ? place.getLastModifiedAt() : null)
                     .categoryIds(categories.stream().map(Category::getId).toList())
                     .categoryNames(categories.stream().map(Category::getName).toList())
                     .build();

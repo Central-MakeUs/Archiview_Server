@@ -18,6 +18,7 @@ public class ArchiverArchivedPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "ArchiverArchivedPostPlaceListResponse")
     public static class ListResponse {
         private Long totalCount;
         private List<ArchivedPostPlaceResponse> postPlaces;

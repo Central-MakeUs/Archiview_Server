@@ -24,6 +24,7 @@ public class ArchiverEditorPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "ArchiverEditorPostPlaceListResponse")
     public static class ListResponse {
         private Long totalCount;
         private List<PostPlaceResponse> postPlaces;
@@ -72,6 +73,7 @@ public class ArchiverEditorPostPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "ArchiverEditorPostPlaceResponse")
     public static class PostPlaceResponse {
         @Schema(description = "postPlace ID", example = "1001")
         private Long postPlaceId;

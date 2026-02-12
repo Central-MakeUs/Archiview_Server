@@ -41,7 +41,7 @@ public class EditorProfileDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "에디터 프로필 정보 응답")
+    @Schema(name = "EditorProfileResponse", description = "에디터 프로필 정보 응답")
     public static class Response {
         @Schema(description = "에디터 닉네임", example = "맛집탐방가")
         private String nickname;

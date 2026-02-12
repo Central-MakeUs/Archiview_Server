@@ -140,6 +140,7 @@ public class EditorInsightDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorInsightPlaceCardResponse")
     public static class PlaceCardResponse {
         @Schema(description = "장소 ID", example = "101")
         private Long placeId;

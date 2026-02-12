@@ -1,5 +1,6 @@
 package zero.conflict.archiview.post.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class EditorUploadedPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorUploadedPlaceListResponse")
     public static class ListResponse {
         private List<PlaceCardResponse> places;
 
@@ -66,6 +68,7 @@ public class EditorUploadedPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorUploadedPlaceCardResponse")
     public static class PlaceCardResponse {
         private Long placeId;
         private String placeName;
