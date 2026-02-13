@@ -24,9 +24,7 @@ public class FollowCommandService {
         User editor = userRepository.findById(editorId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
-        if (archiver.getRole() != User.Role.ARCHIVER) {
-            throw new DomainException(UserErrorCode.INVALID_FOLLOWER_ROLE);
-        }
+
         if (editor.getRole() != User.Role.EDITOR) {
             throw new DomainException(UserErrorCode.INVALID_FOLLOWEE_ROLE);
         }

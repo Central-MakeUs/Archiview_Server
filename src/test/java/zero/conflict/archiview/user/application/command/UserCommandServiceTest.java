@@ -122,7 +122,23 @@ class UserCommandServiceTest {
     }
 
     @Test
-    @DisplayName("ARCHIVER로 전환 시 아카이버 토큰을 발급한다")
+    @DisplayName("온보딩 완료 시 GUEST 역할 선택은 예외를 반환한다")
+    void completeOnboarding_guestRole_throwsException() throws Exception {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000114");
+        User user = createUser(userId, User.Role.GUEST);
+        UserDto.OnboardingRequest request = new UserDto.OnboardingRequest();
+        setOnboardingRole(request, User.Role.GUEST);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+        assertThatThrownBy(() -> userCommandService.completeOnboarding(userId, request))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(UserErrorCode.INVALID_ROLE_SWITCH_TARGET);
+    }
+
+    @Test
+    @DisplayName("EDITOR가 ARCHIVER 뷰로 전환 시 DB role은 유지하고 토큰을 발급한다")
     void switchRole_toArchiver_success() throws Exception {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000101");
         User user = createUser(userId, User.Role.EDITOR);
@@ -136,8 +152,8 @@ class UserCommandServiceTest {
 
         assertThat(response.getAccessToken()).isEqualTo("archiver-access-token");
         assertThat(response.getRole()).isEqualTo(User.Role.ARCHIVER);
-        assertThat(user.getRole()).isEqualTo(User.Role.ARCHIVER);
-        verify(userRepository).save(user);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        verify(userRepository, never()).save(user);
     }
 
     @Test
@@ -177,6 +193,26 @@ class UserCommandServiceTest {
         verify(userRepository).save(user);
     }
 
+    @Test
+    @DisplayName("EDITOR가 EDITOR 뷰로 전환 시 프로필 검증 없이 토큰을 발급한다")
+    void switchRole_toEditor_whenAlreadyEditor_success() throws Exception {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000104");
+        User user = createUser(userId, User.Role.EDITOR);
+        UserDto.SwitchRoleRequest request = new UserDto.SwitchRoleRequest();
+        setRole(request, User.Role.EDITOR);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(jwtTokenProvider.createAccessToken(any())).willReturn("editor-access-token");
+
+        UserDto.SwitchRoleResponse response = userCommandService.switchRole(userId, request);
+
+        assertThat(response.getAccessToken()).isEqualTo("editor-access-token");
+        assertThat(response.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        verify(editorProfileRepository, never()).existsByUserId(userId);
+        verify(userRepository, never()).save(user);
+    }
+
     private User createUser(UUID userId, User.Role role) {
         return User.builder()
                 .id(userId)
@@ -190,6 +226,12 @@ class UserCommandServiceTest {
 
     private void setRole(UserDto.SwitchRoleRequest request, User.Role role) throws Exception {
         Field roleField = UserDto.SwitchRoleRequest.class.getDeclaredField("role");
+        roleField.setAccessible(true);
+        roleField.set(request, role);
+    }
+
+    private void setOnboardingRole(UserDto.OnboardingRequest request, User.Role role) throws Exception {
+        Field roleField = UserDto.OnboardingRequest.class.getDeclaredField("role");
         roleField.setAccessible(true);
         roleField.set(request, role);
     }

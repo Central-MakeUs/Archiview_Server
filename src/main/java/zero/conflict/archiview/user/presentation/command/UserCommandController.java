@@ -43,7 +43,7 @@ public class UserCommandController {
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "역할 전환", description = "아카이버/에디터 역할을 전환하고 해당 역할용 토큰을 발급합니다.")
+    @Operation(summary = "역할 전환", description = "뷰 전환용 API입니다. 토큰을 재발급하며, EDITOR 사용자의 DB role은 ARCHIVER로 내려가지 않습니다.")
     @PostMapping("/switch-role")
     public ResponseEntity<ApiResponse<UserDto.SwitchRoleResponse>> switchRole(
             @RequestBody @Valid UserDto.SwitchRoleRequest request,

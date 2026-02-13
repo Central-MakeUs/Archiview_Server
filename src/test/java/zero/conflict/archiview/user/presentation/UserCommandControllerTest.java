@@ -7,8 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.user.application.editor.command.UserCommandService;
 import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 
@@ -18,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -75,6 +78,34 @@ class UserCommandControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("온보딩 완료 - 잘못된 role 문자열은 USER_014를 반환한다")
+    void completeOnboarding_invalidRoleString_returnsInvalidRoleError() throws Exception {
+        mockMvc.perform(post("/api/v1/users/onboarding")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "INVALID_ROLE"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("USER_014"));
+    }
+
+    @Test
+    @DisplayName("온보딩 완료 - GUEST role은 USER_014를 반환한다")
+    void completeOnboarding_guestRole_returnsInvalidRoleError() throws Exception {
+        willThrow(new DomainException(UserErrorCode.INVALID_ROLE_SWITCH_TARGET))
+                .given(userCommandService)
+                .completeOnboarding(eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")), any());
+
+        mockMvc.perform(post("/api/v1/users/onboarding")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "GUEST"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("USER_014"));
+    }
+
+    @Test
     @DisplayName("역할 전환 - 성공")
     void switchRole_success() throws Exception {
         UserDto.SwitchRoleResponse response = UserDto.SwitchRoleResponse.builder()
@@ -94,6 +125,34 @@ class UserCommandControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.accessToken").value("new-access"))
                 .andExpect(jsonPath("$.data.role").value("ARCHIVER"));
+    }
+
+    @Test
+    @DisplayName("역할 전환 - 잘못된 role 문자열은 USER_014를 반환한다")
+    void switchRole_invalidRoleString_returnsInvalidRoleError() throws Exception {
+        mockMvc.perform(post("/api/v1/users/switch-role")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "INVALID_ROLE"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("USER_014"));
+    }
+
+    @Test
+    @DisplayName("역할 전환 - GUEST role은 USER_014를 반환한다")
+    void switchRole_guestRole_returnsInvalidRoleError() throws Exception {
+        willThrow(new DomainException(UserErrorCode.INVALID_ROLE_SWITCH_TARGET))
+                .given(userCommandService)
+                .switchRole(eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")), any());
+
+        mockMvc.perform(post("/api/v1/users/switch-role")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of("role", "GUEST"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("USER_014"));
     }
 
 }
