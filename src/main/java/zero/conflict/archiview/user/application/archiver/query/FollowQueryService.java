@@ -29,9 +29,6 @@ public class FollowQueryService {
     public FollowDto.ListResponse getMyFollowings(UUID archiverId) {
         User archiver = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
-        if (archiver.getRole() != User.Role.ARCHIVER) {
-            throw new DomainException(UserErrorCode.INVALID_FOLLOWER_ROLE);
-        }
 
         List<Follow> follows = followRepository.findAllByArchiverId(archiverId);
         if (follows.isEmpty()) {

@@ -30,7 +30,6 @@ public class BlockQueryService {
         User archiver = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
-
         List<EditorBlock> blocks = editorBlockRepository.findAllByArchiverId(archiverId);
         if (blocks.isEmpty()) {
             return BlockDto.ListResponse.empty();
