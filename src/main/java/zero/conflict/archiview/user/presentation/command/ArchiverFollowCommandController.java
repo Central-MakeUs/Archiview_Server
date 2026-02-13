@@ -9,14 +9,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import jakarta.validation.Valid;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
-import zero.conflict.archiview.user.dto.FollowDto;
 
 import java.util.UUID;
 
@@ -28,12 +25,12 @@ public class ArchiverFollowCommandController {
 
     private final ArchiverUserUseCase archiverUserUseCase;
 
-    @Operation(summary = "팔로우 등록", description = "아카이버가 에디터를 팔로우합니다.")
-    @PostMapping
+    @Operation(summary = "팔로우 등록", description = "아카이버가 editorId 경로값의 에디터를 팔로우합니다.")
+    @PostMapping("/{editorId}")
     public ResponseEntity<ApiResponse<Void>> follow(
-            @RequestBody @Valid FollowDto.CreateRequest request,
+            @PathVariable UUID editorId,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        archiverUserUseCase.follow(oAuth2User.getUserId(), request.getEditorId());
+        archiverUserUseCase.follow(oAuth2User.getUserId(), editorId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 

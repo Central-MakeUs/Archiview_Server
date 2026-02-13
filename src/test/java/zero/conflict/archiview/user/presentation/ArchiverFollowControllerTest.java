@@ -62,14 +62,8 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
         void follow_Success() throws Exception {
                 doNothing().when(followCommandService).follow(eq(ARCHIVER_ID), eq(EDITOR_ID));
 
-                FollowDto.CreateRequest request = FollowDto.CreateRequest.builder()
-                                .editorId(EDITOR_ID)
-                                .build();
-
-                mockMvc.perform(post("/api/v1/archivers/follows")
-                                .with(authenticatedArchiver())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+                mockMvc.perform(post("/api/v1/archivers/follows/{editorId}", EDITOR_ID)
+                                .with(authenticatedArchiver()))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andDo(print());
@@ -82,14 +76,8 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
                                 .given(followCommandService)
                                 .follow(org.mockito.ArgumentMatchers.any(), eq(ARCHIVER_ID));
 
-                FollowDto.CreateRequest request = FollowDto.CreateRequest.builder()
-                                .editorId(ARCHIVER_ID)
-                                .build();
-
-                mockMvc.perform(post("/api/v1/archivers/follows")
-                                .with(authenticatedArchiver())
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
+                mockMvc.perform(post("/api/v1/archivers/follows/{editorId}", ARCHIVER_ID)
+                                .with(authenticatedArchiver()))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.success").value(false))
                                 .andExpect(jsonPath("$.code").value("USER_017"));

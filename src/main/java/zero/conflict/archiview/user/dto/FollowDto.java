@@ -17,17 +17,6 @@ public class FollowDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(name = "FollowCreateRequest", description = "팔로우 등록 요청")
-    public static class CreateRequest {
-        @jakarta.validation.constraints.NotNull
-        @Schema(description = "에디터 ID")
-        private UUID editorId;
-    }
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
     @Schema(name = "FollowListResponse", description = "내 팔로우 목록 응답")
     public static class ListResponse {
         @Schema(description = "팔로우한 에디터 수")
