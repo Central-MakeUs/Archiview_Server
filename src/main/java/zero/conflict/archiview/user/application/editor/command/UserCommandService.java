@@ -57,6 +57,12 @@ public class UserCommandService {
         User.Role targetRole = request.getRole();
         validateSwitchTargetRole(targetRole);
 
+        if (targetRole == User.Role.ARCHIVER && archiverProfileRepository.findByUserId(userId).isEmpty()) {
+            String nickname = nicknameGenerator.generate();
+            ArchiverProfile profile = ArchiverProfile.createOf(user, nickname);
+            archiverProfileRepository.save(profile);
+        }
+
         if (targetRole == User.Role.EDITOR
                 && user.getRole() != User.Role.EDITOR
                 && !editorProfileRepository.existsByUserId(userId)) {

@@ -146,6 +146,8 @@ class UserCommandServiceTest {
         setRole(request, User.Role.ARCHIVER);
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(archiverProfileRepository.findByUserId(userId)).willReturn(Optional.empty());
+        given(nicknameGenerator.generate()).willReturn("generated-nickname");
         given(jwtTokenProvider.createAccessToken(any())).willReturn("archiver-access-token");
 
         UserDto.SwitchRoleResponse response = userCommandService.switchRole(userId, request);
@@ -153,7 +155,31 @@ class UserCommandServiceTest {
         assertThat(response.getAccessToken()).isEqualTo("archiver-access-token");
         assertThat(response.getRole()).isEqualTo(User.Role.ARCHIVER);
         assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        verify(nicknameGenerator).generate();
+        verify(archiverProfileRepository).save(any());
         verify(userRepository, never()).save(user);
+    }
+
+    @Test
+    @DisplayName("EDITOR가 ARCHIVER 뷰로 전환 시 아카이버 프로필이 이미 있으면 생성하지 않는다")
+    void switchRole_toArchiver_withExistingProfile_success() throws Exception {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000109");
+        User user = createUser(userId, User.Role.EDITOR);
+        UserDto.SwitchRoleRequest request = new UserDto.SwitchRoleRequest();
+        setRole(request, User.Role.ARCHIVER);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(archiverProfileRepository.findByUserId(userId))
+                .willReturn(Optional.of(zero.conflict.archiview.user.domain.ArchiverProfile.createOf(user, "existing")));
+        given(jwtTokenProvider.createAccessToken(any())).willReturn("archiver-access-token");
+
+        UserDto.SwitchRoleResponse response = userCommandService.switchRole(userId, request);
+
+        assertThat(response.getAccessToken()).isEqualTo("archiver-access-token");
+        assertThat(response.getRole()).isEqualTo(User.Role.ARCHIVER);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        verify(nicknameGenerator, never()).generate();
+        verify(archiverProfileRepository, never()).save(any());
     }
 
     @Test
