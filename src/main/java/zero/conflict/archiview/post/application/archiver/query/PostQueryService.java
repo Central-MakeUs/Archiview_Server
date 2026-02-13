@@ -107,9 +107,6 @@ public class PostQueryService {
                         UUID userId,
                         ArchiverEditorPostPlaceDto.Sort sort,
                         UUID archiverId) {
-                if (!userClient.existsEditorProfile(userId)) {
-                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
-                }
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(userId);
                 if (archiverId != null) {
