@@ -47,4 +47,13 @@ public class EditorPostCommandController {
                 editorPostUseCase.updatePost(postId, request, user.getUserId())));
     }
 
+    @Operation(summary = "게시글 삭제", description = "에디터가 등록한 게시글을 삭제합니다.")
+    @DeleteMapping("/me/posts/{postId}")
+    public ResponseEntity<ApiResponse<Void>> deletePost(
+            @PathVariable Long postId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+        editorPostUseCase.deletePost(postId, user.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
 }

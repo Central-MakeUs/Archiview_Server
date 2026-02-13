@@ -31,6 +31,11 @@ public class PostOutboxService {
         append(post, placeIds, PostOutboxEventType.POST_UPDATED);
     }
 
+    @Transactional
+    public void appendPostDeletedEvent(Post post, List<Long> placeIds) {
+        append(post, placeIds, PostOutboxEventType.POST_DELETED);
+    }
+
     private void append(Post post, List<Long> placeIds, PostOutboxEventType eventType) {
         try {
             String eventId = UUID.randomUUID().toString();

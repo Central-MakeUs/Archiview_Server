@@ -18,8 +18,10 @@ import zero.conflict.archiview.post.application.port.out.UserClient;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.argThat;
@@ -217,5 +219,105 @@ class PostCommandServiceTest {
                 verify(placeRepository, times(2)).findByPosition(any(Position.class));
                 verify(placeRepository, times(2)).save(any(Place.class));
                 verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("게시글 삭제 성공")
+        void deletePost_success() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 10L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/delete1"))
+                                .hashTags(HashTags.from(List.of("#삭제")))
+                                .isDeleted(false)
+                                .build();
+
+                PostPlace postPlace1 = PostPlace.builder()
+                                .id(1L)
+                                .post(post)
+                                .place(Place.builder().id(100L).build())
+                                .editorId(editorId)
+                                .build();
+                PostPlace postPlace2 = PostPlace.builder()
+                                .id(2L)
+                                .post(post)
+                                .place(Place.builder().id(200L).build())
+                                .editorId(editorId)
+                                .build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+                given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(postPlace1, postPlace2));
+
+                postCommandService.deletePost(postId, editorId);
+
+                assertThat(post.isDeleted()).isTrue();
+                assertThat(post.getDeletedAt()).isNotNull();
+                verify(postRepository).save(post);
+                verify(postPlacesRepository).markDeletedAllByPostId(eq(postId), eq(editorId), any(java.time.LocalDateTime.class));
+                verify(postOutboxService).appendPostDeletedEvent(post, List.of(100L, 200L));
+        }
+
+        @Test
+        @DisplayName("이미 삭제된 게시글 삭제는 멱등 처리")
+        void deletePost_idempotentWhenAlreadyDeleted() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 11L;
+                Post deletedPost = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/delete2"))
+                                .hashTags(HashTags.from(List.of("#삭제")))
+                                .isDeleted(true)
+                                .build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(deletedPost));
+
+                postCommandService.deletePost(postId, editorId);
+
+                verify(postRepository, never()).save(any(Post.class));
+                verify(postPlacesRepository, never()).findAllByPostId(any(Long.class));
+                verify(postPlacesRepository, never()).markDeletedAllByPostId(any(Long.class), any(UUID.class),
+                                any(java.time.LocalDateTime.class));
+                verify(postOutboxService, never()).appendPostDeletedEvent(any(Post.class), anyList());
+        }
+
+        @Test
+        @DisplayName("게시글 삭제 실패 - 존재하지 않음")
+        void deletePost_notFound() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 12L;
+                given(postRepository.findById(postId)).willReturn(Optional.empty());
+
+                assertThatThrownBy(() -> postCommandService.deletePost(postId, editorId))
+                                .isInstanceOf(zero.conflict.archiview.global.error.DomainException.class)
+                                .extracting(ex -> ((zero.conflict.archiview.global.error.DomainException) ex).getErrorCode())
+                                .isEqualTo(zero.conflict.archiview.post.domain.error.PostErrorCode.POST_NOT_FOUND);
+        }
+
+        @Test
+        @DisplayName("게시글 삭제 실패 - 권한 없음")
+        void deletePost_forbidden() {
+                UUID ownerId = UUID.randomUUID();
+                UUID otherEditorId = UUID.randomUUID();
+                Long postId = 13L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(ownerId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/delete3"))
+                                .hashTags(HashTags.from(List.of("#삭제")))
+                                .isDeleted(false)
+                                .build();
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+
+                assertThatThrownBy(() -> postCommandService.deletePost(postId, otherEditorId))
+                                .isInstanceOf(zero.conflict.archiview.global.error.DomainException.class)
+                                .extracting(ex -> ((zero.conflict.archiview.global.error.DomainException) ex).getErrorCode())
+                                .isEqualTo(zero.conflict.archiview.post.domain.error.PostErrorCode.POST_FORBIDDEN);
+
+                verify(postPlacesRepository, never()).markDeletedAllByPostId(any(Long.class), any(UUID.class),
+                                any(java.time.LocalDateTime.class));
+                verify(postOutboxService, never()).appendPostDeletedEvent(any(Post.class), anyList());
         }
 }

@@ -16,6 +16,8 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -126,6 +128,21 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.postId").value(10L));
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 성공")
+    void deletePost_success() throws Exception {
+        Long postId = 10L;
+        java.util.UUID editorId = java.util.UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+        mockMvc.perform(delete("/api/v1/editors/me/posts/{postId}", postId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").doesNotExist());
+
+        verify(postCommandService).deletePost(postId, editorId);
     }
 
     @Test

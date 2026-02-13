@@ -18,6 +18,8 @@ public interface EditorPostUseCase {
 
     PostCommandDto.Response updatePost(Long postId, PostCommandDto.Request request, UUID editorId);
 
+    void deletePost(Long postId, UUID editorId);
+
     EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period);
 
     EditorInsightDto.PlaceCardListResponse getInsightPlaces(UUID editorId, EditorInsightDto.PlaceSort sort);

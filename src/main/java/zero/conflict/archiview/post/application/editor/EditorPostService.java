@@ -38,6 +38,11 @@ public class EditorPostService implements EditorPostUseCase {
     }
 
     @Override
+    public void deletePost(Long postId, UUID editorId) {
+        postCommandService.deletePost(postId, editorId);
+    }
+
+    @Override
     public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {
         return editorPostQueryService.getInsightSummary(editorId, period);
     }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.domain.PostPlace;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +36,11 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     @Override
     public void deleteAllByPostId(Long postId) {
         postPlaceJpaRepository.deleteAllByPost_Id(postId);
+    }
+
+    @Override
+    public void markDeletedAllByPostId(Long postId, UUID actorId, LocalDateTime deletedAt) {
+        postPlaceJpaRepository.markDeletedAllByPostId(postId, actorId, deletedAt);
     }
 
     @Override

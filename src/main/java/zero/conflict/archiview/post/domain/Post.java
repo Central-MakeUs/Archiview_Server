@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +36,7 @@ public class Post extends BaseTimeEntity {
     private HashTags hashTags;
 
     private Boolean isDeleted;
+    private LocalDateTime deletedAt;
 
     public static Post createOf(UUID editorId, String url, List<String> hashTags) {
         return Post.builder()
@@ -42,6 +44,7 @@ public class Post extends BaseTimeEntity {
                 .url(InstagramUrl.from(url))
                 .hashTags(HashTags.from(hashTags))
                 .isDeleted(false)
+                .deletedAt(null)
                 .build();
     }
 
@@ -56,6 +59,20 @@ public class Post extends BaseTimeEntity {
     public void update(String url, List<String> hashTags) {
         this.url = InstagramUrl.from(url);
         this.hashTags = HashTags.from(hashTags);
+    }
+
+    public void markDeleted() {
+        this.isDeleted = true;
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public void markDeleted(LocalDateTime deletedAt) {
+        this.isDeleted = true;
+        this.deletedAt = deletedAt;
+    }
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(this.isDeleted);
     }
 
 }

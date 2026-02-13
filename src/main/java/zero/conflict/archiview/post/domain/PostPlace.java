@@ -1,12 +1,14 @@
 package zero.conflict.archiview.post.domain;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.SQLRestriction;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
+@SQLRestriction("deleted_at IS NULL")
 public class PostPlace extends BaseTimeEntity {
 
     @Id
@@ -52,6 +55,12 @@ public class PostPlace extends BaseTimeEntity {
 
     @Builder.Default
     private Long directionCount = 0L;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "deleted_by", columnDefinition = "BINARY(16)")
+    private UUID deletedBy;
 
     public static PostPlace createOf(Post post, Place place, String description, String imageUrl,
             UUID editorId) {
@@ -105,6 +114,15 @@ public class PostPlace extends BaseTimeEntity {
         if (!this.editorId.equals(actorId)) {
             this.directionCount++;
         }
+    }
+
+    public void markDeleted(UUID actorId, LocalDateTime deletedAt) {
+        this.deletedBy = actorId;
+        this.deletedAt = deletedAt;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 
 }

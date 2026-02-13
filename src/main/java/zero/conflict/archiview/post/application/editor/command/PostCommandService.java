@@ -22,6 +22,7 @@ import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
 import zero.conflict.archiview.global.infra.s3.S3Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,6 +104,33 @@ public class PostCommandService {
         postOutboxService.appendPostUpdatedEvent(post, placeIds);
 
         return mapPostToResponse(post, placeInfoResponses);
+    }
+
+    @Transactional
+    public void deletePost(Long postId, java.util.UUID editorId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new DomainException(PostErrorCode.POST_NOT_FOUND));
+
+        if (!post.getEditorId().equals(editorId)) {
+            throw new DomainException(PostErrorCode.POST_FORBIDDEN);
+        }
+
+        if (post.isDeleted()) {
+            return;
+        }
+
+        List<Long> placeIds = postPlacesRepository.findAllByPostId(postId).stream()
+                .map(PostPlace::getPlace)
+                .filter(place -> place != null && place.getId() != null)
+                .map(Place::getId)
+                .distinct()
+                .toList();
+
+        LocalDateTime deletedAt = LocalDateTime.now();
+        post.markDeleted(deletedAt);
+        postRepository.save(post);
+        postPlacesRepository.markDeletedAllByPostId(postId, editorId, deletedAt);
+        postOutboxService.appendPostDeletedEvent(post, placeIds);
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
