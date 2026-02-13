@@ -38,30 +38,6 @@ public class EditorQueryController {
                 editorUserUseCase.getMyProfile(oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "에디터 공개 프로필 조회", description = "특정 에디터의 공개된 프로필 정보를 조회합니다.")
-    @GetMapping("/{editorId}/profile")
-    public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getEditorProfile(
-            @PathVariable java.util.UUID editorId,
-            @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
-        if (useMock) {
-            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
-        }
-        return ResponseEntity.ok(ApiResponse.success(
-                editorUserUseCase.getEditorProfile(editorId)));
-    }
-
-    @Operation(summary = "에디터 화면 조회", description = "아카이버가 볼 에디터 화면 정보(userId + editorProfile)를 조회합니다.")
-    @GetMapping("/{editorId}/archiver-view")
-    public ResponseEntity<ApiResponse<EditorProfileDto.ArchiverViewResponse>> getEditorArchiverView(
-            @PathVariable java.util.UUID editorId,
-            @RequestParam(defaultValue = "false") boolean useMock) {
-        if (useMock) {
-            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.ArchiverViewResponse.mock()));
-        }
-        return ResponseEntity.ok(ApiResponse.success(
-                editorUserUseCase.getEditorProfileForArchiver(editorId)));
-    }
 
     @Operation(summary = "에디터 인스타그램 ID 중복 확인", description = "에디터 프로필 등록을 위한 인스타그램 ID 중복 여부를 확인합니다.")
     @GetMapping("/profile/instagram-id/exists")
