@@ -15,8 +15,6 @@ public interface EditorUserUseCase {
 
     EditorProfileDto.Response getEditorProfile(UUID editorId);
 
-    EditorProfileDto.ArchiverViewResponse getEditorProfileForArchiver(UUID editorId);
-
     boolean existsInstagramId(String instagramId);
 
     boolean existsNickname(String nickname);
