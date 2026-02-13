@@ -19,6 +19,7 @@ import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
@@ -382,6 +383,126 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).isArchived()).isTrue();
                 assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(101L);
                 assertThat(response.getPostPlaces().get(1).isArchived()).isFalse();
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 완비 카드가 있으면 최신 완비 카드를 선택한다")
+        void getHotPlaces_prefersLatestCompletePostPlace() {
+                Place place = Place.builder().id(1L).name("성수 핫플").viewCount(100L).build();
+                Category cafe = Category.builder().id(1L).name("카페").build();
+
+                Post completePost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/complete", List.of("#완비"));
+                Post incompletePost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/latest", List.of("#최신"));
+
+                PostPlace complete = PostPlace.builder()
+                                .id(11L)
+                                .post(completePost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("완비 설명")
+                                .imageUrl("https://img.complete")
+                                .build();
+                complete.addCategory(cafe);
+                setField(complete, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+
+                PostPlace latestIncomplete = PostPlace.builder()
+                                .id(12L)
+                                .post(incompletePost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("최신 설명")
+                                .imageUrl("https://img.latest")
+                                .build();
+                setField(latestIncomplete, "lastModifiedAt", LocalDateTime.of(2026, 2, 12, 10, 0, 0));
+
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(place));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(1L))).willReturn(List.of(latestIncomplete, complete));
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, null);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.complete");
+                assertThat(response.getPlaces().get(0).getCategoryNames()).containsExactly("카페");
+                assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#완비");
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 완비 카드가 여러 개면 가장 최근 완비 카드를 선택한다")
+        void getHotPlaces_selectsLatestAmongCompleteCandidates() {
+                Place place = Place.builder().id(1L).name("성수 핫플").viewCount(100L).build();
+                Category cafe = Category.builder().id(1L).name("카페").build();
+
+                Post oldPost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/old", List.of("#오래됨"));
+                Post newPost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/new", List.of("#최신완비"));
+
+                PostPlace oldComplete = PostPlace.builder()
+                                .id(21L)
+                                .post(oldPost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("오래된 완비")
+                                .imageUrl("https://img.old")
+                                .build();
+                oldComplete.addCategory(cafe);
+                setField(oldComplete, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+
+                PostPlace newComplete = PostPlace.builder()
+                                .id(22L)
+                                .post(newPost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("최근 완비")
+                                .imageUrl("https://img.new")
+                                .build();
+                newComplete.addCategory(cafe);
+                setField(newComplete, "lastModifiedAt", LocalDateTime.of(2026, 2, 12, 10, 0, 0));
+
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(place));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(1L))).willReturn(List.of(oldComplete, newComplete));
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, null);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.new");
+                assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#최신완비");
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 완비 카드가 없으면 최신 카드로 대체한다")
+        void getHotPlaces_fallsBackToLatestWhenNoCompleteCard() {
+                Place place = Place.builder().id(1L).name("성수 핫플").viewCount(100L).build();
+                Post latestPost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/latest", List.of("#최신"));
+                Post oldPost = Post.createOf(UUID.randomUUID(), "https://www.instagram.com/p/old", List.of("#오래됨"));
+
+                PostPlace latestIncomplete = PostPlace.builder()
+                                .id(31L)
+                                .post(latestPost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("최신 설명")
+                                .imageUrl("https://img.latest")
+                                .build();
+                setField(latestIncomplete, "lastModifiedAt", LocalDateTime.of(2026, 2, 12, 10, 0, 0));
+
+                PostPlace olderIncomplete = PostPlace.builder()
+                                .id(32L)
+                                .post(oldPost)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("오래된 설명")
+                                .imageUrl("")
+                                .build();
+                setField(olderIncomplete, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(place));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(1L))).willReturn(List.of(olderIncomplete, latestIncomplete));
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, null);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.latest");
+                assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#최신");
+                assertThat(response.getPlaces().get(0).getCategoryNames()).isEmpty();
         }
 
         @Test

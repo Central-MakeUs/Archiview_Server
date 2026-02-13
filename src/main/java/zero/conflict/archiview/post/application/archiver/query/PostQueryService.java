@@ -9,6 +9,7 @@ import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
+import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceArchive;
@@ -236,24 +237,74 @@ public class PostQueryService {
                                         archiverVisibilityService.getVisibilityFilter(archiverId));
                 }
 
-                Map<Long, PostPlace> latestPostPlaceByPlaceId = postPlaces.stream()
-                                .sorted(Comparator.comparing(
-                                                this::getLastUpdatedAt,
-                                                Comparator.nullsLast(Comparator.naturalOrder()))
-                                                .reversed())
+                Map<Long, PostPlace> representativePostPlaceByPlaceId = postPlaces.stream()
+                                .filter(pp -> pp.getPlace() != null && pp.getPlace().getId() != null)
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()))
+                                .entrySet()
+                                .stream()
                                 .collect(Collectors.toMap(
-                                                pp -> pp.getPlace().getId(),
-                                                Function.identity(),
-                                                (existing, ignored) -> existing));
+                                                Map.Entry::getKey,
+                                                entry -> selectRepresentativeHotPlacePostPlace(entry.getValue())));
 
                 List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
-                                .filter(place -> latestPostPlaceByPlaceId.containsKey(place.getId()))
+                                .filter(place -> representativePostPlaceByPlaceId.containsKey(place.getId()))
                                 .map(place -> ArchiverHotPlaceDto.PlaceCardResponse.from(
                                                 place,
-                                                latestPostPlaceByPlaceId.get(place.getId())))
+                                                representativePostPlaceByPlaceId.get(place.getId())))
                                 .toList();
 
                 return ArchiverHotPlaceDto.ListResponse.from(cards);
+        }
+
+        private PostPlace selectRepresentativeHotPlacePostPlace(List<PostPlace> postPlaces) {
+                if (postPlaces == null || postPlaces.isEmpty()) {
+                        return null;
+                }
+
+                Comparator<PostPlace> latestComparator = Comparator.comparing(
+                                this::getLastUpdatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder()));
+
+                return postPlaces.stream()
+                                .filter(this::isCompleteHotPlaceCard)
+                                .max(latestComparator)
+                                .orElseGet(() -> postPlaces.stream().max(latestComparator).orElse(null));
+        }
+
+        private boolean isCompleteHotPlaceCard(PostPlace postPlace) {
+                if (postPlace == null) {
+                        return false;
+                }
+                if (!hasCategories(postPlace)) {
+                        return false;
+                }
+                if (postPlace.getImageUrl() == null || postPlace.getImageUrl().isBlank()) {
+                        return false;
+                }
+                if (postPlace.getDescription() == null || postPlace.getDescription().isBlank()) {
+                        return false;
+                }
+                return hasHashTags(postPlace.getPost());
+        }
+
+        private boolean hasCategories(PostPlace postPlace) {
+                return postPlace.getPostPlaceCategories() != null
+                                && postPlace.getPostPlaceCategories().stream()
+                                                .map(PostPlaceCategory::getCategory)
+                                                .anyMatch(category -> category != null && category.getName() != null
+                                                                && !category.getName().isBlank());
+        }
+
+        private boolean hasHashTags(Post post) {
+                if (post == null) {
+                        return false;
+                }
+                try {
+                        List<String> hashTags = post.getHashTags();
+                        return hashTags != null && !hashTags.isEmpty();
+                } catch (NullPointerException e) {
+                        return false;
+                }
         }
 
         private EditorUploadedPlaceDto.Stats sumStats(List<PostPlace> postPlaces) {
