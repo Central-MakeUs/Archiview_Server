@@ -64,6 +64,17 @@ class EditorBlockCommandServiceTest {
     }
 
     @Test
+    @DisplayName("자기 자신 차단은 예외")
+    void blockEditor_self_throwsException() {
+        UUID sameId = UUID.randomUUID();
+
+        assertThatThrownBy(() -> editorBlockCommandService.blockEditor(sameId, sameId))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(UserErrorCode.SELF_BLOCK_NOT_ALLOWED);
+    }
+
+    @Test
     @DisplayName("차단 대상이 에디터가 아니면 예외")
     void blockEditor_invalidTargetRole() {
         UUID archiverId = UUID.randomUUID();
@@ -74,7 +85,7 @@ class EditorBlockCommandServiceTest {
         assertThatThrownBy(() -> editorBlockCommandService.blockEditor(archiverId, editorId))
                 .isInstanceOf(DomainException.class)
                 .extracting(ex -> ((DomainException) ex).getErrorCode())
-                .isEqualTo(UserErrorCode.INVALID_FOLLOWEE_ROLE);
+                .isEqualTo(UserErrorCode.INVALID_BLOCKEE_ROLE);
     }
 
     @Test

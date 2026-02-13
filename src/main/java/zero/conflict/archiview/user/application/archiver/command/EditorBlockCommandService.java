@@ -21,6 +21,10 @@ public class EditorBlockCommandService {
 
     @Transactional
     public void blockEditor(UUID archiverId, UUID editorId) {
+        if (archiverId.equals(editorId)) {
+            throw new DomainException(UserErrorCode.SELF_BLOCK_NOT_ALLOWED);
+        }
+
         User archiver = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
         User editor = userRepository.findById(editorId)

@@ -62,6 +62,24 @@ class PostReportCommandServiceTest {
     }
 
     @Test
+    @DisplayName("내 장소카드 신고는 예외")
+    void reportPostPlace_selfReport_throwsException() {
+        UUID archiverId = UUID.randomUUID();
+        Long postPlaceId = 1L;
+        PostPlace myPostPlace = PostPlace.builder()
+                .id(postPlaceId)
+                .editorId(archiverId)
+                .build();
+        given(postPlaceRepository.findById(postPlaceId)).willReturn(Optional.of(myPostPlace));
+
+        assertThatThrownBy(() -> postReportCommandService.reportPostPlace(archiverId, postPlaceId))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(PostErrorCode.SELF_REPORT_NOT_ALLOWED);
+        verify(postPlaceReportRepository, never()).save(any());
+    }
+
+    @Test
     @DisplayName("존재하지 않는 postPlace 신고 시 예외")
     void reportPostPlace_notFound() {
         UUID archiverId = UUID.randomUUID();

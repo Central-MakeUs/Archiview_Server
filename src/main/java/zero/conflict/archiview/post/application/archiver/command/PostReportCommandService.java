@@ -20,8 +20,12 @@ public class PostReportCommandService {
 
     @Transactional
     public void reportPostPlace(UUID archiverId, Long postPlaceId) {
-        postPlaceRepository.findById(postPlaceId)
+        var postPlace = postPlaceRepository.findById(postPlaceId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+        if (archiverId.equals(postPlace.getEditorId())) {
+            throw new DomainException(PostErrorCode.SELF_REPORT_NOT_ALLOWED);
+        }
 
         if (postPlaceReportRepository.existsByArchiverIdAndPostPlaceId(archiverId, postPlaceId)) {
             return;

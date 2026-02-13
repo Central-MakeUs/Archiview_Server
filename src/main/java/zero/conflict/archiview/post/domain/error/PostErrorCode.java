@@ -24,6 +24,7 @@ public enum PostErrorCode implements DomainErrorCode {
     POST_EDITOR_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_EDITOR_PROFILE_NOT_FOUND",
             "error.post.editor_profile_not_found"),
     POST_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_PLACE_NOT_FOUND", "error.post.place_not_found"),
+    SELF_REPORT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "POST_SELF_REPORT_NOT_ALLOWED", "error.post.self_report_not_allowed"),
     TOO_MANY_HASHTAGS(HttpStatus.BAD_REQUEST, "POST_TOO_MANY_HASHTAGS", "error.post.too_many_hashtags"),
     INVALID_BBOX_RANGE(HttpStatus.BAD_REQUEST, "POST_INVALID_BBOX_RANGE", "error.post.invalid_bbox_range"),
     ;

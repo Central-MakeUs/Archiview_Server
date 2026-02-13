@@ -12,11 +12,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.user.application.archiver.command.FollowCommandService;
 import zero.conflict.archiview.user.application.archiver.query.BlockQueryService;
 import zero.conflict.archiview.user.application.editor.query.EditorProfileQueryService;
 import zero.conflict.archiview.user.application.archiver.query.FollowQueryService;
 import zero.conflict.archiview.user.domain.User;
+import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.BlockDto;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
@@ -28,6 +30,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.BDDMockito.willThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -70,6 +73,26 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andDo(print());
+        }
+
+        @Test
+        @DisplayName("자기 자신 팔로우는 예외")
+        void follow_self_throwsException() throws Exception {
+                willThrow(new DomainException(UserErrorCode.SELF_FOLLOW_NOT_ALLOWED))
+                                .given(followCommandService)
+                                .follow(org.mockito.ArgumentMatchers.any(), eq(ARCHIVER_ID));
+
+                FollowDto.CreateRequest request = FollowDto.CreateRequest.builder()
+                                .editorId(ARCHIVER_ID)
+                                .build();
+
+                mockMvc.perform(post("/api/v1/archivers/follows")
+                                .with(authenticatedArchiver())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.success").value(false))
+                                .andExpect(jsonPath("$.code").value("USER_017"));
         }
 
         @Test

@@ -19,6 +19,10 @@ public class FollowCommandService {
     private final UserRepository userRepository;
 
     public void follow(UUID archiverId, UUID editorId) {
+        if (archiverId.equals(editorId)) {
+            throw new DomainException(UserErrorCode.SELF_FOLLOW_NOT_ALLOWED);
+        }
+
         User archiver = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
         User editor = userRepository.findById(editorId)
