@@ -309,6 +309,8 @@ class PostQueryServiceTest {
                 Place place = Place.builder()
                                 .id(placeId)
                                 .name("인사이트 장소")
+                                .address(Address.of("서울 성동구 성수동 1-1", "서울 성동구 아차산로 1"))
+                                .nearestStationWalkTime("성수역 도보 3분")
                                 .build();
 
                 Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
@@ -330,9 +332,14 @@ class PostQueryServiceTest {
                         throw new RuntimeException(e);
                 }
                 postPlace.addCategory(category);
+                setField(postPlace, "viewCount", 11L);
+                setField(postPlace, "saveCount", 7L);
+                setField(postPlace, "instagramInflowCount", 5L);
+                setField(postPlace, "directionCount", 3L);
 
                 given(postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId))
                                 .willReturn(List.of(postPlace));
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place));
                 given(userClient.getEditorSummaries(List.of(editorId)))
                                 .willReturn(java.util.Map.of(
                                                 editorId,
@@ -349,6 +356,39 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces()).hasSize(1);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
+                assertThat(response.getPlaceName()).isEqualTo("인사이트 장소");
+                assertThat(response.getPlaceImageUrl()).isEqualTo("https://url.com");
+                assertThat(response.getEditorTotal()).isEqualTo(1L);
+                assertThat(response.getAddress().getAddressName()).isEqualTo("서울 성동구 성수동 1-1");
+                assertThat(response.getNearestStationWalkTime()).isEqualTo("성수역 도보 3분");
+                assertThat(response.getStats().getViewCount()).isEqualTo(11L);
+                assertThat(response.getStats().getSaveCount()).isEqualTo(7L);
+                assertThat(response.getStats().getInstagramInflowCount()).isEqualTo(5L);
+                assertThat(response.getStats().getDirectionCount()).isEqualTo(3L);
+        }
+
+        @Test
+        @DisplayName("에디터 인사이트 상세 조회 시 장소 정보가 없으면 예외")
+        void getInsightPlaceDetail_placeNotFound_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                Long placeId = 1L;
+
+                Place anotherPlace = Place.builder().id(99L).name("다른 장소").build();
+                Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페"));
+                PostPlace postPlace = PostPlace.createOf(post, anotherPlace, "설명", "https://url.com", editorId);
+
+                given(postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId))
+                                .willReturn(List.of(postPlace));
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.empty());
+                given(userClient.getEditorSummaries(List.of(editorId)))
+                                .willReturn(java.util.Map.of(
+                                                editorId,
+                                                new UserClient.EditorSummary(editorId, "에디터", "editor_insta")));
+
+                assertThatThrownBy(() -> editorPostQueryService.getInsightPlaceDetail(editorId, placeId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
         }
 
         @Test

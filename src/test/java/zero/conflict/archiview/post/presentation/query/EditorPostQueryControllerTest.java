@@ -11,6 +11,7 @@ import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
+import zero.conflict.archiview.post.domain.Address;
 
 import java.util.List;
 
@@ -70,8 +71,16 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         EditorInsightDto.PostPlaceDetailResponse postPlaceDetail = EditorInsightDto.PostPlaceDetailResponse.of(
                 100L, "에디터", "editor_insta", "https://www.instagram.com/post", List.of("#태그", "#맛집"),
                 "설명", List.of("카테고리"));
-        EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.of(placeId,
-                List.of(postPlaceDetail));
+        EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.builder()
+                .placeId(placeId)
+                .placeName("인사이트 장소")
+                .placeImageUrl("https://image.url")
+                .editorTotal(1L)
+                .address(Address.of("서울 성동구 성수동 1-1", "서울 성동구 아차산로 1"))
+                .nearestStationWalkTime("성수역 도보 3분")
+                .stats(EditorInsightDto.Stats.from(7L, 11L, 5L, 3L))
+                .postPlaces(List.of(postPlaceDetail))
+                .build();
 
         given(editorPostQueryService.getInsightPlaceDetail(org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(placeId)))
@@ -82,6 +91,9 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.placeId").value(placeId))
+                .andExpect(jsonPath("$.data.placeName").value("인사이트 장소"))
+                .andExpect(jsonPath("$.data.stats.viewCount").value(11L))
+                .andExpect(jsonPath("$.data.address.addressName").value("서울 성동구 성수동 1-1"))
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
                 .andExpect(jsonPath("$.data.postPlaces[0].editorName").value("에디터"));
     }

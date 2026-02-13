@@ -182,7 +182,39 @@ public class EditorPostQueryService {
                         postPlace))
                 .toList();
 
-        return EditorInsightDto.PlaceDetailResponse.of(placeId, details);
+        Place place = placeRepository.findById(placeId)
+                .orElseGet(() -> postPlaces.stream()
+                        .map(PostPlace::getPlace)
+                        .filter(candidate -> candidate != null && placeId.equals(candidate.getId()))
+                        .findFirst()
+                        .orElse(null));
+        if (place == null) {
+            throw new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND);
+        }
+
+        EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
+        EditorInsightDto.Stats detailStats = EditorInsightDto.Stats.from(
+                summedStats.getSaveCount(),
+                summedStats.getViewCount(),
+                summedStats.getInstagramInflowCount(),
+                summedStats.getDirectionCount());
+
+        Long editorTotal = (long) postPlaces.stream()
+                .map(PostPlace::getEditorId)
+                .distinct()
+                .count();
+
+        String latestImageUrl = postPlaces.stream()
+                .max(Comparator.comparing(this::getLastUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(PostPlace::getImageUrl)
+                .orElse(null);
+
+        return EditorInsightDto.PlaceDetailResponse.from(
+                place,
+                latestImageUrl,
+                editorTotal,
+                detailStats,
+                details);
     }
 
     private EditorUploadedPlaceDto.PlaceCardResponse toPlaceCardResponse(

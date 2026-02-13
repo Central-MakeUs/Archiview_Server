@@ -226,6 +226,24 @@ public class EditorInsightDto {
                     .build();
         }
 
+        public static PlaceDetailResponse from(
+                Place place,
+                String placeImageUrl,
+                Long editorTotal,
+                Stats stats,
+                List<PostPlaceDetailResponse> postPlaces) {
+            return PlaceDetailResponse.builder()
+                    .placeId(place.getId())
+                    .placeName(place.getName())
+                    .placeImageUrl(placeImageUrl)
+                    .editorTotal(editorTotal)
+                    .address(place.getAddress())
+                    .nearestStationWalkTime(place.getNearestStationWalkTime())
+                    .stats(stats)
+                    .postPlaces(postPlaces)
+                    .build();
+        }
+
         public static PlaceDetailResponse empty(Long placeId) {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
