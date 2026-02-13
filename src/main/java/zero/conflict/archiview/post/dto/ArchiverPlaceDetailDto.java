@@ -1,5 +1,6 @@
 package zero.conflict.archiview.post.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,6 +59,7 @@ public class ArchiverPlaceDetailDto {
                                                         PostPlaceResponse.builder()
                                                                         .postPlaceId(401L)
                                                                         .postId(501L)
+                                                                        .isArchived(true)
                                                                         .editorName("아카이브 마스터")
                                                                         .editorInstagramId("archiview_master")
                                                                         .description("분위기가 너무 좋고 커피가 맛있어요.")
@@ -67,6 +69,7 @@ public class ArchiverPlaceDetailDto {
                                                         PostPlaceResponse.builder()
                                                                         .postPlaceId(402L)
                                                                         .postId(502L)
+                                                                        .isArchived(false)
                                                                         .editorName("에디터A")
                                                                         .editorInstagramId("editor_a")
                                                                         .description("조용해서 대화하기 좋아요.")
@@ -159,11 +162,15 @@ public class ArchiverPlaceDetailDto {
                 private String editorName;
                 @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
                 private String editorInstagramId;
+                @Schema(description = "아카이버 아카이브 여부", example = "true")
+                @JsonProperty("isArchived")
+                private boolean isArchived;
 
                 public static PostPlaceResponse from(
                                 PostPlace postPlace,
                                 String editorName,
-                                String editorInstagramId) {
+                                String editorInstagramId,
+                                boolean isArchived) {
                         Post post = postPlace.getPost();
                         List<String> categories = postPlace.getPostPlaceCategories().stream()
                                         .map(PostPlaceCategory::getCategory)
@@ -181,6 +188,7 @@ public class ArchiverPlaceDetailDto {
                                         .categoryNames(categories)
                                         .editorName(editorName)
                                         .editorInstagramId(editorInstagramId)
+                                        .isArchived(isArchived)
                                         .build();
                 }
         }

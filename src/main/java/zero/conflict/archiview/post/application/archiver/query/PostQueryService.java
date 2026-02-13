@@ -308,6 +308,7 @@ public class PostQueryService {
                                 .toList();
 
                 Map<UUID, UserClient.EditorSummary> editorProfileMap = userClient.getEditorSummaries(editorIds);
+                Set<Long> archivedPostPlaceIds = getArchivedPostPlaceIds(postPlaces, archiverId);
 
                 List<ArchiverPlaceDetailDto.PostPlaceResponse> postPlaceResponses = postPlaces.stream()
                                 .map(pp -> ArchiverPlaceDetailDto.PostPlaceResponse.from(
@@ -317,10 +318,29 @@ public class PostQueryService {
                                                                 : null,
                                                 editorProfileMap.get(pp.getEditorId()) != null
                                                                 ? editorProfileMap.get(pp.getEditorId()).instagramId()
-                                                                : null))
+                                                                : null,
+                                                archivedPostPlaceIds.contains(pp.getId())))
                                 .toList();
 
                 return ArchiverPlaceDetailDto.Response.from(placeResponse, postPlaceResponses);
+        }
+
+        private Set<Long> getArchivedPostPlaceIds(List<PostPlace> postPlaces, UUID archiverId) {
+                if (archiverId == null || postPlaces.isEmpty()) {
+                        return Set.of();
+                }
+
+                List<Long> postPlaceIds = postPlaces.stream()
+                                .map(PostPlace::getId)
+                                .filter(id -> id != null)
+                                .toList();
+                if (postPlaceIds.isEmpty()) {
+                        return Set.of();
+                }
+
+                return postPlaceArchiveRepository.findAllByArchiverIdAndPostPlaceIdIn(archiverId, postPlaceIds).stream()
+                                .map(PostPlaceArchive::getPostPlaceId)
+                                .collect(Collectors.toSet());
         }
 
         public EditorMapDto.Response getMapPinsForArchiver(

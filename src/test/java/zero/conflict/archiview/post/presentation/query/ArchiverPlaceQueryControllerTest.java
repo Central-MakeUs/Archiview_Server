@@ -64,6 +64,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         ArchiverPlaceDetailDto.PostPlaceResponse postPlace = ArchiverPlaceDetailDto.PostPlaceResponse.builder()
                 .postPlaceId(401L)
                 .description("설명")
+                .isArchived(true)
                 .build();
         ArchiverPlaceDetailDto.Response response = ArchiverPlaceDetailDto.Response.from(place, List.of(postPlace));
 
@@ -74,7 +75,8 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.place.placeId").value(301L))
-                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(401L));
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(401L))
+                .andExpect(jsonPath("$.data.postPlaces[0].isArchived").value(true));
     }
 
     @Test

@@ -19,6 +19,7 @@ import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.ArchiverEditorPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
+import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -339,6 +340,48 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
                 assertThat(response.getPostPlaces().get(0).getEditorInstagramId()).isEqualTo("editor_insta");
+                assertThat(response.getPostPlaces().get(0).isArchived()).isFalse();
+        }
+
+        @Test
+        @DisplayName("아카이버용 특정 장소 상세 조회 시 postPlace별 아카이브 여부를 반환한다")
+        void getArchiverPlaceDetail_withArchiveFlag_success() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+                Long placeId = 1L;
+
+                Place place = Place.builder()
+                                .id(placeId)
+                                .name("성수 핫플")
+                                .build();
+                Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
+                PostPlace archivedPostPlace = PostPlace.createOf(post, place, "설명1", "https://url1.com", editorId);
+                PostPlace nonArchivedPostPlace = PostPlace.createOf(post, place, "설명2", "https://url2.com", editorId);
+                setField(archivedPostPlace, "id", 100L);
+                setField(nonArchivedPostPlace, "id", 101L);
+
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place));
+                given(postPlaceRepository.findAllByPlaceId(placeId)).willReturn(List.of(archivedPostPlace, nonArchivedPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId))
+                                .willReturn(new ArchiverVisibilityService.VisibilityFilter(java.util.Set.of(), java.util.Set.of()));
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                org.mockito.ArgumentMatchers.eq(List.of(archivedPostPlace, nonArchivedPostPlace)),
+                                org.mockito.ArgumentMatchers.any()))
+                                .willReturn(List.of(archivedPostPlace, nonArchivedPostPlace));
+                given(userClient.getEditorSummaries(List.of(editorId)))
+                                .willReturn(java.util.Map.of(
+                                                editorId,
+                                                new UserClient.EditorSummary(editorId, "에디터", "editor_insta")));
+                given(postPlaceSaveRepository.findAllByArchiverIdAndPostPlaceIdIn(archiverId, List.of(100L, 101L)))
+                                .willReturn(List.of(PostPlaceArchive.createOf(archiverId, 100L)));
+
+                ArchiverPlaceDetailDto.Response response = postQueryService.getArchiverPlaceDetail(placeId, archiverId);
+
+                assertThat(response.getPostPlaces()).hasSize(2);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
+                assertThat(response.getPostPlaces().get(0).isArchived()).isTrue();
+                assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(101L);
+                assertThat(response.getPostPlaces().get(1).isArchived()).isFalse();
         }
 
         @Test

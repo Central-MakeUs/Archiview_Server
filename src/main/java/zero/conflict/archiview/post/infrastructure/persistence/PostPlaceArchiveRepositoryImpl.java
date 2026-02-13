@@ -33,4 +33,9 @@ public class PostPlaceArchiveRepositoryImpl implements PostPlaceArchiveRepositor
     public List<PostPlaceArchive> findAllByArchiverIdOrderByCreatedAtDesc(UUID archiverId) {
         return postPlaceArchiveJpaRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
     }
+
+    @Override
+    public List<PostPlaceArchive> findAllByArchiverIdAndPostPlaceIdIn(UUID archiverId, List<Long> postPlaceIds) {
+        return postPlaceArchiveJpaRepository.findAllByArchiverIdAndPostPlaceIdIn(archiverId, postPlaceIds);
+    }
 }

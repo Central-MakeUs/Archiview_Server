@@ -14,4 +14,6 @@ public interface PostPlaceArchiveRepository {
     void deleteByArchiverIdAndPostPlaceId(UUID archiverId, Long postPlaceId);
 
     List<PostPlaceArchive> findAllByArchiverIdOrderByCreatedAtDesc(UUID archiverId);
+
+    List<PostPlaceArchive> findAllByArchiverIdAndPostPlaceIdIn(UUID archiverId, List<Long> postPlaceIds);
 }
