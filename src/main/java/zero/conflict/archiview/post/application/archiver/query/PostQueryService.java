@@ -407,9 +407,6 @@ public class PostQueryService {
                         Double latitude,
                         Double longitude,
                         UUID archiverId) {
-                if (!userClient.existsEditorProfile(editorId)) {
-                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
-                }
 
                 validateNearbyCoordinates(filter, latitude, longitude);
 
