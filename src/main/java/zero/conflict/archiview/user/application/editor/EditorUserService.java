@@ -34,6 +34,16 @@ public class EditorUserService implements EditorUserUseCase {
     }
 
     @Override
+    public EditorProfileDto.Response getEditorProfile(UUID editorId) {
+        return editorProfileQueryService.getEditorProfile(editorId);
+    }
+
+    @Override
+    public EditorProfileDto.ArchiverViewResponse getEditorProfileForArchiver(UUID editorId) {
+        return editorProfileQueryService.getEditorProfileForArchiver(editorId);
+    }
+
+    @Override
     public boolean existsInstagramId(String instagramId) {
         return editorProfileQueryService.existsInstagramId(instagramId);
     }
