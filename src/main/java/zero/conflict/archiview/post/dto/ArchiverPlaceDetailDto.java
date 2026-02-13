@@ -1,7 +1,9 @@
 package zero.conflict.archiview.post.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -164,7 +166,13 @@ public class ArchiverPlaceDetailDto {
                 private String editorInstagramId;
                 @Schema(description = "아카이버 아카이브 여부", example = "true")
                 @JsonProperty("isArchived")
+                @Getter(AccessLevel.NONE)
                 private boolean isArchived;
+
+                @JsonIgnore
+                public boolean isArchived() {
+                        return isArchived;
+                }
 
                 public static PostPlaceResponse from(
                                 PostPlace postPlace,
