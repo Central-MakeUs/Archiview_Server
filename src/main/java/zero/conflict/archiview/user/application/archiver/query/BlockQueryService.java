@@ -29,9 +29,7 @@ public class BlockQueryService {
     public BlockDto.ListResponse getMyBlockedEditors(UUID archiverId) {
         User archiver = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
-        if (archiver.getRole() != User.Role.ARCHIVER) {
-            throw new DomainException(UserErrorCode.INVALID_FOLLOWER_ROLE);
-        }
+
 
         List<EditorBlock> blocks = editorBlockRepository.findAllByArchiverId(archiverId);
         if (blocks.isEmpty()) {
