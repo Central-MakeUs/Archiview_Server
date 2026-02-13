@@ -49,8 +49,30 @@ public class PostQueryService {
                         Double latitude,
                         Double longitude) {
                 Position.of(latitude, longitude);
-                return CategoryQueryDto.CategoryPlaceListResponse.from(
-                                categoryPlaceReadRepository.findPlaceSummariesNearby(latitude, longitude, 1000));
+                List<Place> nearbyPlaces = categoryPlaceReadRepository.findPlacesNearby(latitude, longitude, 1000);
+                if (nearbyPlaces.isEmpty()) {
+                        return CategoryQueryDto.CategoryPlaceListResponse.builder()
+                                        .totalCount(0L)
+                                        .places(List.of())
+                                        .build();
+                }
+
+                List<Long> placeIds = nearbyPlaces.stream()
+                                .map(Place::getId)
+                                .toList();
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaceRepository.findAllByPlaceIds(placeIds).stream()
+                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
+                                .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
+
+                List<CategoryQueryDto.CategoryPlaceResponse> places = nearbyPlaces.stream()
+                                .map(place -> toCategoryPlaceResponseIncludingEmpty(place, postPlacesByPlaceId.get(place.getId())))
+                                .sorted(categoryPlaceResponseComparator(postPlacesByPlaceId))
+                                .toList();
+
+                return CategoryQueryDto.CategoryPlaceListResponse.builder()
+                                .totalCount((long) places.size())
+                                .places(places)
+                                .build();
         }
 
         public CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(
@@ -59,23 +81,17 @@ public class PostQueryService {
                         UUID archiverId) {
                 Position.of(latitude, longitude);
 
-                List<CategoryPlaceReadRepository.CategoryPlaceSummaryProjection> nearby = categoryPlaceReadRepository
-                                .findPlaceSummariesNearby(latitude, longitude, 1000);
-                if (nearby.isEmpty()) {
+                List<Place> nearbyPlaces = categoryPlaceReadRepository.findPlacesNearby(latitude, longitude, 1000);
+                if (nearbyPlaces.isEmpty()) {
                         return CategoryQueryDto.CategoryPlaceListResponse.builder()
                                         .totalCount(0L)
                                         .places(List.of())
                                         .build();
                 }
 
-                List<Long> placeIds = nearby.stream()
-                                .map(CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceId)
+                List<Long> placeIds = nearbyPlaces.stream()
+                                .map(Place::getId)
                                 .toList();
-                Map<Long, String> placeNameById = nearby.stream()
-                                .collect(Collectors.toMap(
-                                                CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceId,
-                                                CategoryPlaceReadRepository.CategoryPlaceSummaryProjection::getPlaceName,
-                                                (existing, ignored) -> existing));
 
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService
                                 .getVisibilityFilter(archiverId);
@@ -83,12 +99,14 @@ public class PostQueryService {
                                 postPlaceRepository.findAllByPlaceIds(placeIds),
                                 visibilityFilter);
                 Map<Long, List<PostPlace>> visibleByPlaceId = visiblePostPlaces.stream()
+                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
-                List<CategoryQueryDto.CategoryPlaceResponse> places = placeIds.stream()
-                                .map(placeId -> toCategoryPlaceResponse(placeId, placeNameById.get(placeId),
-                                                visibleByPlaceId.get(placeId)))
+                List<CategoryQueryDto.CategoryPlaceResponse> places = nearbyPlaces.stream()
+                                .map(place -> toCategoryPlaceResponse(place.getId(), place.getName(),
+                                                visibleByPlaceId.get(place.getId())))
                                 .filter(response -> response != null)
+                                .sorted(categoryPlaceResponseComparator(visibleByPlaceId))
                                 .toList();
 
                 return CategoryQueryDto.CategoryPlaceListResponse.builder()
@@ -470,6 +488,44 @@ public class PostQueryService {
                                 .viewCount(viewCount)
                                 .saveCount(saveCount)
                                 .build();
+        }
+
+        private CategoryQueryDto.CategoryPlaceResponse toCategoryPlaceResponseIncludingEmpty(
+                        Place place,
+                        List<PostPlace> postPlaces) {
+                if (place == null) {
+                        return null;
+                }
+                if (postPlaces == null || postPlaces.isEmpty()) {
+                        return CategoryQueryDto.CategoryPlaceResponse.builder()
+                                        .placeId(place.getId())
+                                        .placeName(place.getName())
+                                        .latestDescription(null)
+                                        .viewCount(defaultZero(place.getViewCount()))
+                                        .saveCount(0L)
+                                        .build();
+                }
+                return toCategoryPlaceResponse(place.getId(), place.getName(), postPlaces);
+        }
+
+        private Comparator<CategoryQueryDto.CategoryPlaceResponse> categoryPlaceResponseComparator(
+                        Map<Long, List<PostPlace>> postPlacesByPlaceId) {
+                return Comparator.comparing(
+                                (CategoryQueryDto.CategoryPlaceResponse response) -> getLatestPlaceActivityAt(
+                                                postPlacesByPlaceId.get(response.getPlaceId())),
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                                .thenComparing(CategoryQueryDto.CategoryPlaceResponse::getPlaceId,
+                                                Comparator.nullsLast(Comparator.reverseOrder()));
+        }
+
+        private LocalDateTime getLatestPlaceActivityAt(List<PostPlace> postPlaces) {
+                if (postPlaces == null || postPlaces.isEmpty()) {
+                        return null;
+                }
+                return postPlaces.stream()
+                                .map(this::getLastUpdatedAt)
+                                .max(Comparator.naturalOrder())
+                                .orElse(null);
         }
 
         private EditorMapDto.PlacePinResponse toPlacePin(

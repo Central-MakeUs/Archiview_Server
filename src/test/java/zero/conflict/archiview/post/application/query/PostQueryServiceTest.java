@@ -67,22 +67,28 @@ class PostQueryServiceTest {
         @Mock
         private ArchiverVisibilityService archiverVisibilityService;
 
-        @Mock
-        private CategoryPlaceReadRepository.CategoryPlaceSummaryProjection categoryPlaceSummaryProjection;
-
         @Test
         @DisplayName("좌표 기준 1km 내 장소 목록을 조회한다")
         void getNearbyPlacesWithin1km_success() {
                 // given
                 Double latitude = 37.5445;
                 Double longitude = 127.0560;
-                given(categoryPlaceReadRepository.findPlaceSummariesNearby(latitude, longitude, 1000))
-                                .willReturn(List.of(categoryPlaceSummaryProjection));
-                given(categoryPlaceSummaryProjection.getPlaceId()).willReturn(11L);
-                given(categoryPlaceSummaryProjection.getPlaceName()).willReturn("성수 카페");
-                given(categoryPlaceSummaryProjection.getLatestDescription()).willReturn("최근 설명");
-                given(categoryPlaceSummaryProjection.getViewCount()).willReturn(100L);
-                given(categoryPlaceSummaryProjection.getSaveCount()).willReturn(20L);
+                Place place = Place.builder().id(11L).name("성수 카페").viewCount(100L).build();
+                Post post = Post.builder().id(10L).build();
+                PostPlace postPlace = PostPlace.builder()
+                                .id(21L)
+                                .post(post)
+                                .place(place)
+                                .editorId(UUID.randomUUID())
+                                .description("최근 설명")
+                                .viewCount(100L)
+                                .saveCount(20L)
+                                .build();
+                setField(postPlace, "createdAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
+
+                given(categoryPlaceReadRepository.findPlacesNearby(latitude, longitude, 1000))
+                                .willReturn(List.of(place));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(11L))).willReturn(List.of(postPlace));
 
                 // when
                 CategoryQueryDto.CategoryPlaceListResponse response = postQueryService
@@ -93,7 +99,63 @@ class PostQueryServiceTest {
                 assertThat(response.getTotalCount()).isEqualTo(1L);
                 assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
                 assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
+                assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("최근 설명");
+                assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(100L);
                 assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(20L);
+        }
+
+        @Test
+        @DisplayName("좌표 기준 1km 내 장소 목록 조회(아카이버) - 가시성 필터를 적용한다")
+        void getNearbyPlacesWithin1km_withArchiver_filtersInvisible() {
+                Double latitude = 37.5445;
+                Double longitude = 127.0560;
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+
+                Place visiblePlace = Place.builder().id(11L).name("노출 장소").viewCount(100L).build();
+                Place hiddenPlace = Place.builder().id(12L).name("숨김 장소").viewCount(80L).build();
+                Post post = Post.builder().id(10L).build();
+
+                PostPlace visiblePostPlace = PostPlace.builder()
+                                .id(21L)
+                                .post(post)
+                                .place(visiblePlace)
+                                .editorId(editorId)
+                                .description("노출 설명")
+                                .saveCount(20L)
+                                .build();
+                PostPlace hiddenPostPlace = PostPlace.builder()
+                                .id(22L)
+                                .post(post)
+                                .place(hiddenPlace)
+                                .editorId(editorId)
+                                .description("숨김 설명")
+                                .saveCount(10L)
+                                .build();
+                setField(visiblePostPlace, "createdAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
+                setField(hiddenPostPlace, "createdAt", LocalDateTime.of(2026, 2, 10, 11, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+
+                given(categoryPlaceReadRepository.findPlacesNearby(latitude, longitude, 1000))
+                                .willReturn(List.of(visiblePlace, hiddenPlace));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(11L, 12L)))
+                                .willReturn(List.of(visiblePostPlace, hiddenPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                org.mockito.ArgumentMatchers.eq(List.of(visiblePostPlace, hiddenPostPlace)),
+                                org.mockito.ArgumentMatchers.eq(visibilityFilter)))
+                                .willReturn(List.of(visiblePostPlace));
+
+                CategoryQueryDto.CategoryPlaceListResponse response = postQueryService
+                                .getNearbyPlacesWithin1km(latitude, longitude, archiverId);
+
+                assertThat(response.getTotalCount()).isEqualTo(1L);
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
+                assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("노출 설명");
         }
 
         @Test
