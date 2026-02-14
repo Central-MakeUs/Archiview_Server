@@ -6,7 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import zero.conflict.archiview.post.domain.Category;
 import zero.conflict.archiview.post.domain.PostPlace;
+import zero.conflict.archiview.post.domain.PostPlaceCategory;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -55,6 +57,7 @@ public class ArchiverEditorPostPlaceDto {
                                     .viewCount(210L)
                                     .lastModifiedAt(LocalDateTime.now().minusDays(1))
                                     .imageUrl("https://picsum.photos/400/300?random=31")
+                                    .categoryIds(List.of(1L, 2L))
                                     .build(),
                             PostPlaceResponse.builder()
                                     .postPlaceId(1002L)
@@ -64,6 +67,7 @@ public class ArchiverEditorPostPlaceDto {
                                     .viewCount(95L)
                                     .lastModifiedAt(LocalDateTime.now().minusDays(3))
                                     .imageUrl("https://picsum.photos/400/300?random=32")
+                                    .categoryIds(List.of(3L))
                                     .build()))
                     .build();
         }
@@ -90,8 +94,17 @@ public class ArchiverEditorPostPlaceDto {
         private LocalDateTime lastModifiedAt;
         @Schema(description = "장소 이미지 URL")
         private String imageUrl;
+        @Schema(description = "카테고리 ID 목록", example = "[1, 2]")
+        private List<Long> categoryIds;
 
         public static PostPlaceResponse from(PostPlace postPlace, LocalDateTime lastModifiedAt) {
+            List<Long> categoryIds = postPlace.getPostPlaceCategories().stream()
+                    .map(PostPlaceCategory::getCategory)
+                    .filter(category -> category != null && category.getId() != null)
+                    .map(Category::getId)
+                    .distinct()
+                    .toList();
+
             return PostPlaceResponse.builder()
                     .postPlaceId(postPlace.getId())
                     .placeName(postPlace.getPlace() != null ? postPlace.getPlace().getName() : null)
@@ -100,6 +113,7 @@ public class ArchiverEditorPostPlaceDto {
                     .viewCount(postPlace.getViewCount() == null ? 0L : postPlace.getViewCount())
                     .lastModifiedAt(lastModifiedAt)
                     .imageUrl(postPlace.getImageUrl())
+                    .categoryIds(categoryIds)
                     .build();
         }
     }

@@ -611,7 +611,8 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - LATEST 정렬")
         void getEditorUploadedPostPlaces_latest_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
+                Category korean = Category.builder().id(1L).name("한식").build();
+                Category western = Category.builder().id(2L).name("양식").build();
 
                 Place place1 = Place.builder().id(1L).name("최근 장소").build();
                 Place place2 = Place.builder().id(2L).name("오래된 장소").build();
@@ -627,6 +628,8 @@ class PostQueryServiceTest {
                                 .viewCount(50L)
                                 .imageUrl("https://img1")
                                 .build();
+                latest.addCategory(korean);
+                latest.addCategory(western);
                 PostPlace oldest = PostPlace.builder()
                                 .id(12L)
                                 .post(post)
@@ -637,6 +640,7 @@ class PostQueryServiceTest {
                                 .viewCount(10L)
                                 .imageUrl("https://img2")
                                 .build();
+                oldest.addCategory(korean);
 
                 setField(latest, "lastModifiedAt", LocalDateTime.of(2026, 2, 9, 12, 0, 0));
                 setField(oldest, "lastModifiedAt", LocalDateTime.of(2026, 2, 1, 12, 0, 0));
@@ -649,6 +653,7 @@ class PostQueryServiceTest {
                 assertThat(response.getTotalCount()).isEqualTo(2L);
                 assertThat(response.getPostPlaces()).hasSize(2);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(11L);
+                assertThat(response.getPostPlaces().get(0).getCategoryIds()).containsExactly(1L, 2L);
                 assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(12L);
         }
 
@@ -680,7 +685,7 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 수정시각 없으면 생성시각 사용")
         void getEditorUploadedPostPlaces_fallbackCreatedAt_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
+                Category cafe = Category.builder().id(1L).name("카페").build();
 
                 Place place = Place.builder().id(1L).name("장소").build();
                 Post post = Post.builder().id(1L).build();
@@ -692,6 +697,7 @@ class PostQueryServiceTest {
                                 .saveCount(null)
                                 .viewCount(null)
                                 .build();
+                postPlace.addCategory(cafe);
                 setField(postPlace, "createdAt", LocalDateTime.of(2026, 2, 3, 8, 30, 0));
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(postPlace));
 
@@ -703,6 +709,7 @@ class PostQueryServiceTest {
                                 .isEqualTo(LocalDateTime.of(2026, 2, 3, 8, 30, 0));
                 assertThat(response.getPostPlaces().get(0).getSaveCount()).isEqualTo(0L);
                 assertThat(response.getPostPlaces().get(0).getViewCount()).isEqualTo(0L);
+                assertThat(response.getPostPlaces().get(0).getCategoryIds()).containsExactly(1L);
         }
 
         @Test

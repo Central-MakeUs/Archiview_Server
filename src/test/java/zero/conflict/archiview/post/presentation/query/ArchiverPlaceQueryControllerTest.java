@@ -131,6 +131,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .saveCount(20L)
                 .viewCount(100L)
                 .imageUrl("https://img.url")
+                .categoryIds(List.of(1L, 2L))
                 .build();
         ArchiverEditorPostPlaceDto.ListResponse response = ArchiverEditorPostPlaceDto.ListResponse.builder()
                 .totalCount(1L)
@@ -149,7 +150,9 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(11L))
                 .andExpect(jsonPath("$.data.postPlaces[0].placeName").value("성수 감성 카페"))
                 .andExpect(jsonPath("$.data.postPlaces[0].saveCount").value(20L))
-                .andExpect(jsonPath("$.data.postPlaces[0].viewCount").value(100L));
+                .andExpect(jsonPath("$.data.postPlaces[0].viewCount").value(100L))
+                .andExpect(jsonPath("$.data.postPlaces[0].categoryIds[0]").value(1L))
+                .andExpect(jsonPath("$.data.postPlaces[0].categoryIds[1]").value(2L));
     }
 
     @Test
