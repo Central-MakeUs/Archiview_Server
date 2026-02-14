@@ -70,7 +70,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         Long placeId = 1L;
         EditorInsightDto.PostPlaceDetailResponse postPlaceDetail = EditorInsightDto.PostPlaceDetailResponse.of(
                 100L, "에디터", "editor_insta", "https://www.instagram.com/post", List.of("#태그", "#맛집"),
-                "설명", List.of(1L));
+                "설명", "https://postplace-image.url", List.of(1L));
         EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.builder()
                 .placeId(placeId)
                 .placeName("인사이트 장소")
@@ -95,7 +95,8 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.data.stats.viewCount").value(11L))
                 .andExpect(jsonPath("$.data.address.addressName").value("서울 성동구 성수동 1-1"))
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(100L))
-                .andExpect(jsonPath("$.data.postPlaces[0].editorName").value("에디터"));
+                .andExpect(jsonPath("$.data.postPlaces[0].editorName").value("에디터"))
+                .andExpect(jsonPath("$.data.postPlaces[0].imageUrl").value("https://postplace-image.url"));
     }
 
     @Test

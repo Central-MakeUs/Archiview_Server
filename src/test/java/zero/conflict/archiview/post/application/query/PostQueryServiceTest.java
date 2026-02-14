@@ -356,6 +356,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces()).hasSize(1);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
+                assertThat(response.getPostPlaces().get(0).getImageUrl()).isEqualTo("https://url.com");
                 assertThat(response.getPlaceName()).isEqualTo("인사이트 장소");
                 assertThat(response.getPlaceImageUrl()).isEqualTo("https://url.com");
                 assertThat(response.getEditorTotal()).isEqualTo(1L);

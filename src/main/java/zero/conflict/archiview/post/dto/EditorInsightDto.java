@@ -272,6 +272,7 @@ public class EditorInsightDto {
                                     .postUrl("https://instagram.com/p/sample1")
                                     .postHashTags(List.of("#성수카페", "#감성"))
                                     .description("채광이 너무 좋은 곳이에요.")
+                                    .imageUrl("https://picsum.photos/400/300?random=99")
                                     .build()))
                     .build();
         }
@@ -294,12 +295,14 @@ public class EditorInsightDto {
         private List<String> postHashTags;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
+        @Schema(description = "장소 이미지 URL")
+        private String imageUrl;
         @Schema(description = "장소 카테고리 ID 목록", example = "[1, 2]")
         private List<Long> categoryIds;
 
         public static PostPlaceDetailResponse of(Long postPlaceId, String editorName, String editorInstagramId,
                 String postUrl,
-                List<String> postHashTags, String description, List<Long> categoryIds) {
+                List<String> postHashTags, String description, String imageUrl, List<Long> categoryIds) {
             return PostPlaceDetailResponse.builder()
                     .postPlaceId(postPlaceId)
                     .editorName(editorName)
@@ -307,6 +310,7 @@ public class EditorInsightDto {
                     .postUrl(postUrl)
                     .postHashTags(postHashTags)
                     .description(description)
+                    .imageUrl(imageUrl)
                     .categoryIds(categoryIds)
                     .build();
         }
@@ -328,6 +332,7 @@ public class EditorInsightDto {
                     .postUrl(post != null ? post.getUrl() : null)
                     .postHashTags(post != null ? post.getHashTags() : null)
                     .description(postPlace.getDescription())
+                    .imageUrl(postPlace.getImageUrl())
                     .categoryIds(categoryIds)
                     .build();
         }
