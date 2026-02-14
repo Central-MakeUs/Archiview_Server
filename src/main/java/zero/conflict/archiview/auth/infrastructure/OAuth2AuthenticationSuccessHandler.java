@@ -3,6 +3,7 @@ package zero.conflict.archiview.auth.infrastructure;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -15,11 +16,13 @@ import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.infrastructure.persistence.DevLoginRedirectAllowlistJpaRepository;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+    private static final String DEV_LOGIN_STATE_SESSION_KEY = "OAUTH2_DEV_LOGIN_STATE_MAP";
 
     private final JwtTokenProvider jwtTokenProvider;
     private final DevLoginRedirectAllowlistJpaRepository devLoginRedirectAllowlistJpaRepository;
@@ -50,8 +53,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
         OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(request,
                 response);
-        boolean devRequested = authorizationRequest != null
-                && Boolean.TRUE.equals(authorizationRequest.getAttributes().get("dev"));
+        boolean devRequested = isDevRequestedByState(request);
+        if (!devRequested && authorizationRequest != null) {
+            devRequested = Boolean.TRUE.equals(authorizationRequest.getAttributes().get("dev"));
+        }
         boolean devAllowed = isDevAllowedEmail(oAuth2User.getUsername());
         String resolvedFrontendUrl = (devRequested && devAllowed) ? devFrontendUrl : frontendUrl;
 
@@ -72,5 +77,28 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             return false;
         }
         return devLoginRedirectAllowlistJpaRepository.existsByEmailIgnoreCaseAndEnabledTrue(email);
+    }
+
+    private boolean isDevRequestedByState(HttpServletRequest request) {
+        String state = request.getParameter("state");
+        if (state == null || state.isBlank()) {
+            return false;
+        }
+
+        HttpSession session = request.getSession(false);
+        if (session == null) {
+            return false;
+        }
+
+        Object stateMapObject = session.getAttribute(DEV_LOGIN_STATE_SESSION_KEY);
+        if (!(stateMapObject instanceof Map<?, ?> stateMap)) {
+            return false;
+        }
+
+        Object requested = stateMap.remove(state);
+        if (stateMap.isEmpty()) {
+            session.removeAttribute(DEV_LOGIN_STATE_SESSION_KEY);
+        }
+        return Boolean.TRUE.equals(requested);
     }
 }

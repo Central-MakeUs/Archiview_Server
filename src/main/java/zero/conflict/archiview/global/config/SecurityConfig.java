@@ -29,6 +29,7 @@ import java.util.Map;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+        private static final String DEV_LOGIN_STATE_SESSION_KEY = "OAUTH2_DEV_LOGIN_STATE_MAP";
 
         private final CustomOAuth2UserService customOAuth2UserService;
         private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
@@ -120,6 +121,19 @@ public class SecurityConfig {
                                 }
                                 if ("true".equalsIgnoreCase(request.getParameter("dev"))) {
                                         attributes.put("dev", true);
+                                        String state = authorizationRequest.getState();
+                                        if (state != null && !state.isBlank()) {
+                                                @SuppressWarnings("unchecked")
+                                                Map<String, Boolean> devStateMap = (Map<String, Boolean>) request
+                                                                .getSession(true)
+                                                                .getAttribute(DEV_LOGIN_STATE_SESSION_KEY);
+                                                if (devStateMap == null) {
+                                                        devStateMap = new HashMap<>();
+                                                }
+                                                devStateMap.put(state, true);
+                                                request.getSession(true).setAttribute(DEV_LOGIN_STATE_SESSION_KEY,
+                                                                devStateMap);
+                                        }
                                 }
 
                                 return OAuth2AuthorizationRequest.from(authorizationRequest)
