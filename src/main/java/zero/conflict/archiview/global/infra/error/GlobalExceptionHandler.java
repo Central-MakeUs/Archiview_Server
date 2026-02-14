@@ -1,6 +1,7 @@
 package zero.conflict.archiview.global.infra.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import zero.conflict.archiview.global.error.DomainErrorCode;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
@@ -17,6 +20,17 @@ import zero.conflict.archiview.user.domain.error.UserErrorCode;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
+    public ResponseEntity<ApiResponse<Void>> handleApiNotFound(Exception e, HttpServletRequest request) throws Exception {
+        if (!isApiPath(request)) {
+            throw e;
+        }
+
+        DomainErrorCode errorCode = UnexpectedErrorCode.API_NOT_FOUND;
+        ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
+    }
 
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<ApiResponse<Void>> handleDomainException(DomainException e) {
@@ -77,5 +91,11 @@ public class GlobalExceptionHandler {
             cause = cause.getCause();
         }
         return false;
+    }
+
+    private boolean isApiPath(HttpServletRequest request) {
+        return request != null
+                && request.getRequestURI() != null
+                && request.getRequestURI().startsWith("/api/");
     }
 }
