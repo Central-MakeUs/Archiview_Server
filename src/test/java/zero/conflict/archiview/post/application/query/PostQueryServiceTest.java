@@ -916,7 +916,11 @@ class PostQueryServiceTest {
                 given(archiverVisibilityService.isVisible(pp1, visibilityFilter)).willReturn(true);
                 given(archiverVisibilityService.isVisible(pp2, visibilityFilter)).willReturn(true);
 
-                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(
+                                MapFilter.ALL,
+                                null,
+                                null,
+                                archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(2L);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(12L);
@@ -949,7 +953,11 @@ class PostQueryServiceTest {
                 given(archiverVisibilityService.isVisible(visible, visibilityFilter)).willReturn(true);
                 given(archiverVisibilityService.isVisible(hidden, visibilityFilter)).willReturn(false);
 
-                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(
+                                MapFilter.ALL,
+                                null,
+                                null,
+                                archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(1L);
                 assertThat(response.getPostPlaces()).hasSize(1);
@@ -962,14 +970,76 @@ class PostQueryServiceTest {
                 UUID archiverId = UUID.randomUUID();
                 given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId)).willReturn(List.of());
 
-                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(archiverId);
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(
+                                MapFilter.ALL,
+                                null,
+                                null,
+                                archiverId);
 
                 assertThat(response.getTotalCount()).isEqualTo(0L);
                 assertThat(response.getPostPlaces()).isEmpty();
         }
 
         @Test
-        @DisplayName("아카이버 아카이브 지도 핀 조회 - 카테고리/근처 필터를 적용한다")
+        @DisplayName("아카이버 아카이브 목록 조회 - NEARBY 필터를 적용한다")
+        void getMyArchivedPostPlaces_nearbyFilter() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+
+                Place nearPlace = Place.builder()
+                                .id(101L)
+                                .name("근처 카페")
+                                .position(Position.of(37.5449, 127.0562))
+                                .build();
+                Place farPlace = Place.builder()
+                                .id(102L)
+                                .name("먼 카페")
+                                .position(Position.of(37.5649, 127.0762))
+                                .build();
+
+                PostPlace nearPostPlace = PostPlace.builder().id(11L).post(post).place(nearPlace).editorId(editorId).build();
+                PostPlace farPostPlace = PostPlace.builder().id(12L).post(post).place(farPlace).editorId(editorId).build();
+                PostPlaceArchive saveNear = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(11L).build();
+                PostPlaceArchive saveFar = PostPlaceArchive.builder().archiverId(archiverId).postPlaceId(12L).build();
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+                given(postPlaceSaveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId))
+                                .willReturn(List.of(saveNear, saveFar));
+                given(postPlaceRepository.findAllByIds(List.of(11L, 12L))).willReturn(List.of(nearPostPlace, farPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.isVisible(nearPostPlace, visibilityFilter)).willReturn(true);
+
+                ArchiverArchivedPostPlaceDto.ListResponse response = postQueryService.getMyArchivedPostPlaces(
+                                MapFilter.NEARBY,
+                                37.5445,
+                                127.0560,
+                                archiverId);
+
+                assertThat(response.getTotalCount()).isEqualTo(1L);
+                assertThat(response.getPostPlaces()).hasSize(1);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(11L);
+        }
+
+        @Test
+        @DisplayName("아카이버 아카이브 목록 조회 - NEARBY 좌표 누락 시 예외")
+        void getMyArchivedPostPlaces_nearbyWithoutCoordinates_throwsException() {
+                UUID archiverId = UUID.randomUUID();
+
+                assertThatThrownBy(() -> postQueryService.getMyArchivedPostPlaces(
+                                MapFilter.NEARBY,
+                                null,
+                                127.0560,
+                                archiverId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.INVALID_POSITION_LATITUDE);
+        }
+
+        @Test
+        @DisplayName("아카이버 아카이브 지도 핀 조회 - 근처 필터를 적용한다")
         void getMyArchivedMapPins_success() {
                 UUID archiverId = UUID.randomUUID();
                 UUID editorId = UUID.randomUUID();
@@ -1010,7 +1080,6 @@ class PostQueryServiceTest {
 
                 EditorMapDto.Response response = postQueryService.getMyArchivedMapPins(
                                 MapFilter.NEARBY,
-                                List.of(1L, 2L),
                                 37.5445,
                                 127.0560,
                                 archiverId);
@@ -1027,7 +1096,6 @@ class PostQueryServiceTest {
 
                 assertThatThrownBy(() -> postQueryService.getMyArchivedMapPins(
                                 MapFilter.NEARBY,
-                                null,
                                 null,
                                 127.0560,
                                 archiverId))

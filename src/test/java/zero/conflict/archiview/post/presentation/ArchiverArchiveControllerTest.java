@@ -72,9 +72,14 @@ class ArchiverArchiveControllerTest extends ControllerTestSupport {
                 .archivedAt(LocalDateTime.of(2026, 2, 10, 12, 0, 0))
                 .build();
         ArchiverArchivedPostPlaceDto.ListResponse response = ArchiverArchivedPostPlaceDto.ListResponse.from(List.of(item));
-        given(postQueryService.getMyArchivedPostPlaces(any(UUID.class))).willReturn(response);
+        given(postQueryService.getMyArchivedPostPlaces(
+                eq(EditorMapDto.MapFilter.ALL),
+                isNull(),
+                isNull(),
+                any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/archives/post-places")
+                        .queryParam("filter", "ALL")
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -96,15 +101,13 @@ class ArchiverArchiveControllerTest extends ControllerTestSupport {
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
         given(postQueryService.getMyArchivedMapPins(
                 eq(EditorMapDto.MapFilter.ALL),
-                eq(List.of(1L, 2L)),
                 isNull(),
                 isNull(),
                 any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/archivers/archives/post-places/map/places")
                         .with(authenticatedUser())
-                        .queryParam("filter", "ALL")
-                        .queryParam("categoryIds", "1", "2"))
+                        .queryParam("filter", "ALL"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.pins[0].placeId").value(1L))

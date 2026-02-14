@@ -43,11 +43,14 @@ public interface ArchiverPostUseCase {
 
     void unarchivePostPlace(UUID archiverId, Long postPlaceId);
 
-    ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(UUID archiverId);
+    ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(
+            EditorMapDto.MapFilter filter,
+            Double latitude,
+            Double longitude,
+            UUID archiverId);
 
     EditorMapDto.Response getMyArchivedMapPins(
             EditorMapDto.MapFilter filter,
-            List<Long> categoryIds,
             Double latitude,
             Double longitude,
             UUID archiverId);

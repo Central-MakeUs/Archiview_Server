@@ -157,7 +157,13 @@ public class PostQueryService {
                 return getHotPlaces(limit, null);
         }
 
-        public ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(UUID archiverId) {
+        public ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(
+                        MapFilter filter,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId) {
+                validateNearbyCoordinates(filter, latitude, longitude);
+
                 List<PostPlaceArchive> archives = postPlaceArchiveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
                 if (archives.isEmpty()) {
                         return ArchiverArchivedPostPlaceDto.ListResponse.empty();
@@ -173,6 +179,13 @@ public class PostQueryService {
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = archiverVisibilityService
                                 .getVisibilityFilter(archiverId);
                 List<ArchiverArchivedPostPlaceDto.ArchivedPostPlaceResponse> responses = archives.stream()
+                                .filter(archive -> matchNearby(
+                                                postPlaceById.get(archive.getPostPlaceId()) != null
+                                                                ? postPlaceById.get(archive.getPostPlaceId()).getPlace()
+                                                                : null,
+                                                filter,
+                                                latitude,
+                                                longitude))
                                 .map(archive -> toArchivedPostPlaceResponse(
                                                 archive,
                                                 postPlaceById.get(archive.getPostPlaceId()),
@@ -185,7 +198,6 @@ public class PostQueryService {
 
         public EditorMapDto.Response getMyArchivedMapPins(
                         MapFilter filter,
-                        List<Long> categoryIds,
                         Double latitude,
                         Double longitude,
                         UUID archiverId) {
@@ -227,7 +239,6 @@ public class PostQueryService {
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
                 List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
-                                .filter(entry -> matchAllCategories(entry.getValue(), categoryIds))
                                 .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
                                 .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
                                 .filter(pin -> pin != null)

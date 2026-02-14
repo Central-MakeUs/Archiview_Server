@@ -102,18 +102,21 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     }
 
     @Override
-    public ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(UUID archiverId) {
-        return postQueryService.getMyArchivedPostPlaces(archiverId);
+    public ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(
+            EditorMapDto.MapFilter filter,
+            Double latitude,
+            Double longitude,
+            UUID archiverId) {
+        return postQueryService.getMyArchivedPostPlaces(filter, latitude, longitude, archiverId);
     }
 
     @Override
     public EditorMapDto.Response getMyArchivedMapPins(
             EditorMapDto.MapFilter filter,
-            List<Long> categoryIds,
             Double latitude,
             Double longitude,
             UUID archiverId) {
-        return postQueryService.getMyArchivedMapPins(filter, categoryIds, latitude, longitude, archiverId);
+        return postQueryService.getMyArchivedMapPins(filter, latitude, longitude, archiverId);
     }
 
     @Override
