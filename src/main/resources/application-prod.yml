@@ -77,3 +77,11 @@ logging:
   level:
     zero.conflict.archiview: INFO
     org.springframework.security: WARN
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        http-only: true
+        same-site: None

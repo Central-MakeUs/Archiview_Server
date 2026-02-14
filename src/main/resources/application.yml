@@ -24,7 +24,7 @@ spring:
       client:
         provider:
           apple:
-            authorization-uri: https://appleid.apple.com/auth/authorize
+            authorization-uri: https://appleid.apple.com/auth/authorize?response_mode=form_post
             token-uri: https://appleid.apple.com/auth/token
             jwk-set-uri: https://appleid.apple.com/auth/keys
             user-name-attribute: sub

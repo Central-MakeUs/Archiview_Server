@@ -44,7 +44,7 @@ public class SecurityConfig {
                                 .formLogin(AbstractHttpConfigurer::disable)
                                 .httpBasic(AbstractHttpConfigurer::disable)
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/", "/error", "/favicon.ico", "/health").permitAll()
                                                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
