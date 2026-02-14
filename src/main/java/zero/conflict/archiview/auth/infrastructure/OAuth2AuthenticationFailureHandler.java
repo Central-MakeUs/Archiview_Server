@@ -24,7 +24,14 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException, ServletException {
-        log.error("OAuth2 로그인 실패", exception);
+        String state = request.getParameter("state");
+        String sessionId = request.getRequestedSessionId();
+        log.error(
+                "OAuth2 로그인 실패 - uri: {}, statePresent: {}, requestedSessionIdPresent: {}",
+                request.getRequestURI(),
+                state != null && !state.isBlank(),
+                sessionId != null && !sessionId.isBlank(),
+                exception);
 
         Map<String, Object> errorResponse = new HashMap<>();
         errorResponse.put("error", "OAuth2 인증 실패");
@@ -35,4 +42,3 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
     }
 }
-
