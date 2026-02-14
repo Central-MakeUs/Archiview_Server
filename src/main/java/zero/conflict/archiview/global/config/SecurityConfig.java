@@ -9,7 +9,9 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.config.Customizer;
@@ -59,6 +61,8 @@ public class SecurityConfig {
                                                 .anyRequest().authenticated())
                                 .oauth2Login(oauth2 -> oauth2
                                                 .authorizationEndpoint(authorization -> authorization
+                                                                .authorizationRequestRepository(
+                                                                                authorizationRequestRepository())
                                                                 .authorizationRequestResolver(
                                                                                 customAuthorizationRequestResolver(
                                                                                                 http.getSharedObject(
@@ -70,6 +74,11 @@ public class SecurityConfig {
                                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
                 return http.build();
+        }
+
+        @Bean
+        public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
+                return new HttpSessionOAuth2AuthorizationRequestRepository();
         }
 
         @Bean
@@ -103,13 +112,19 @@ public class SecurityConfig {
 
                                 Map<String, Object> additionalParameters = new HashMap<>(
                                                 authorizationRequest.getAdditionalParameters());
+                                Map<String, Object> attributes = new HashMap<>(
+                                                authorizationRequest.getAttributes());
                                 String role = request.getParameter("role");
                                 if (role != null) {
                                         additionalParameters.put("role", role);
                                 }
+                                if ("true".equalsIgnoreCase(request.getParameter("dev"))) {
+                                        attributes.put("dev", true);
+                                }
 
                                 return OAuth2AuthorizationRequest.from(authorizationRequest)
                                                 .additionalParameters(additionalParameters)
+                                                .attributes(attributes)
                                                 .build();
                         }
                 };

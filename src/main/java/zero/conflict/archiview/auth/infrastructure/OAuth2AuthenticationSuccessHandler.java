@@ -6,9 +6,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.security.oauth2.client.web.HttpSessionOAuth2AuthorizationRequestRepository;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.auth.infrastructure.persistence.DevLoginRedirectAllowlistJpaRepository;
 
 import java.io.IOException;
 
@@ -18,9 +22,14 @@ import java.io.IOException;
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final DevLoginRedirectAllowlistJpaRepository devLoginRedirectAllowlistJpaRepository;
+    private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository =
+            new HttpSessionOAuth2AuthorizationRequestRepository();
 
-    @org.springframework.beans.factory.annotation.Value("${auth.frontend-url:http://localhost:3000/}")
+    @org.springframework.beans.factory.annotation.Value("${auth.frontend-url:https://archiview.space/}")
     private String frontendUrl;
+    @org.springframework.beans.factory.annotation.Value("${auth.dev-frontend-url:http://localhost:3000/}")
+    private String devFrontendUrl;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -39,12 +48,29 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             case GUEST -> "term-agree/";
         };
 
-        String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(frontendUrl)
+        OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(request,
+                response);
+        boolean devRequested = authorizationRequest != null
+                && Boolean.TRUE.equals(authorizationRequest.getAttributes().get("dev"));
+        boolean devAllowed = isDevAllowedEmail(oAuth2User.getUsername());
+        String resolvedFrontendUrl = (devRequested && devAllowed) ? devFrontendUrl : frontendUrl;
+
+        log.info("OAuth2 로그인 리다이렉트 대상 결정 - devRequested: {}, devAllowed: {}, frontendUrl: {}",
+                devRequested, devAllowed, resolvedFrontendUrl);
+
+        String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(resolvedFrontendUrl)
                 .path(targetPath)
                 .queryParam("accessToken", accessToken)
                 .queryParam("refreshToken", refreshToken)
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
+    }
+
+    private boolean isDevAllowedEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return false;
+        }
+        return devLoginRedirectAllowlistJpaRepository.existsByEmailIgnoreCaseAndEnabledTrue(email);
     }
 }
