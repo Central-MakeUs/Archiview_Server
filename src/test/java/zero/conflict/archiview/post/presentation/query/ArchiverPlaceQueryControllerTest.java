@@ -175,7 +175,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .name("한식당")
                 .latitude(37.5445)
                 .longitude(127.0560)
-                .categories(List.of("한식", "양식"))
+                .categoryIds(List.of(1L, 2L))
                 .build();
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
 

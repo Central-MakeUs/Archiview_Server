@@ -35,17 +35,17 @@ public class EditorMapDto {
         private Double latitude;
         @Schema(description = "경도")
         private Double longitude;
-        @Schema(description = "장소 카테고리 목록")
-        private List<String> categories;
+        @Schema(description = "장소 카테고리 ID 목록")
+        private List<Long> categoryIds;
 
         public static PlacePinResponse from(
                 Place place,
                 List<PostPlace> postPlaces) {
-            List<String> categoryNames = postPlaces.stream()
+            List<Long> categoryIds = postPlaces.stream()
                     .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
                     .map(PostPlaceCategory::getCategory)
-                    .filter(category -> category != null && category.getName() != null)
-                    .map(category -> category.getName())
+                    .filter(category -> category != null && category.getId() != null)
+                    .map(category -> category.getId())
                     .distinct()
                     .toList();
             return PlacePinResponse.builder()
@@ -55,7 +55,7 @@ public class EditorMapDto {
                     .phoneNumber(place.getPhoneNumber())
                     .latitude(place.getPosition().getLatitude())
                     .longitude(place.getPosition().getLongitude())
-                    .categories(categoryNames)
+                    .categoryIds(categoryIds)
                     .build();
         }
     }
@@ -90,14 +90,14 @@ public class EditorMapDto {
                                     .name("성수동 힙플레이스")
                                     .latitude(37.5445)
                                     .longitude(127.0560)
-                                    .categories(List.of("카페", "인테리어"))
+                                    .categoryIds(List.of(1L, 2L))
                                     .build(),
                             PlacePinResponse.builder()
                                     .placeId(2L)
                                     .name("연남동 숨은 맛집")
                                     .latitude(37.5615)
                                     .longitude(126.9249)
-                                    .categories(List.of("맛집", "일식"))
+                                    .categoryIds(List.of(3L, 4L))
                                     .build()))
                     .build();
         }

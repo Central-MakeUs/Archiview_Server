@@ -113,8 +113,6 @@ public class EditorPostByPostPlaceDto {
 
         @Schema(description = "카테고리 ID 목록")
         private List<Long> categoryIds;
-        @Schema(description = "카테고리명 목록")
-        private List<String> categoryNames;
 
         public static PostPlaceResponse from(PostPlace postPlace) {
             Place place = postPlace.getPlace();
@@ -147,7 +145,6 @@ public class EditorPostByPostPlaceDto {
                     .placeCreatedAt(place != null ? place.getCreatedAt() : null)
                     .placeLastModifiedAt(place != null ? place.getLastModifiedAt() : null)
                     .categoryIds(categories.stream().map(Category::getId).toList())
-                    .categoryNames(categories.stream().map(Category::getName).toList())
                     .build();
         }
 
@@ -176,7 +173,6 @@ public class EditorPostByPostPlaceDto {
                     .placeCreatedAt(now.minusMonths(2))
                     .placeLastModifiedAt(now.minusDays(2))
                     .categoryIds(List.of(1L, 2L))
-                    .categoryNames(List.of("카페", "디저트"))
                     .build();
         }
 

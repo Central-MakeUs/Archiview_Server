@@ -226,7 +226,7 @@ class PostQueryServiceTest {
                 // then
                 assertThat(response.getPins()).hasSize(1);
                 assertThat(response.getPins().get(0).getName()).isEqualTo("식당");
-                assertThat(response.getPins().get(0).getCategories()).containsExactly("한식");
+                assertThat(response.getPins().get(0).getCategoryIds()).containsExactly(1L);
         }
 
         @Test
@@ -524,7 +524,7 @@ class PostQueryServiceTest {
 
                 assertThat(response.getPlaces()).hasSize(1);
                 assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.complete");
-                assertThat(response.getPlaces().get(0).getCategoryNames()).containsExactly("카페");
+                assertThat(response.getPlaces().get(0).getCategoryIds()).containsExactly(1L);
                 assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#완비");
         }
 
@@ -604,7 +604,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces()).hasSize(1);
                 assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.latest");
                 assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#최신");
-                assertThat(response.getPlaces().get(0).getCategoryNames()).isEmpty();
+                assertThat(response.getPlaces().get(0).getCategoryIds()).isEmpty();
         }
 
         @Test

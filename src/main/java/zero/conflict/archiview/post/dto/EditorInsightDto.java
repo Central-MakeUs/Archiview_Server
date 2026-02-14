@@ -117,7 +117,7 @@ public class EditorInsightDto {
                                     .placeName("샘플 카페 성수")
                                     .placeImageUrl("https://picsum.photos/400/300?random=1")
                                     .editorSummary("성수동에서 가장 힙한 분위기의 카페입니다.")
-                                    .categories(List.of("카페", "디저트"))
+                                    .categoryIds(List.of(1L, 2L))
                                     .hashTags(List.of("#성수카페", "#감성"))
                                     .stats(Stats.builder().viewCount(120L).saveCount(45L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(1))
@@ -127,7 +127,7 @@ public class EditorInsightDto {
                                     .placeName("연남동 맛집")
                                     .placeImageUrl("https://picsum.photos/400/300?random=2")
                                     .editorSummary("웨이팅이 아깝지 않은 정통 일식당입니다.")
-                                    .categories(List.of("맛집"))
+                                    .categoryIds(List.of(3L))
                                     .hashTags(List.of("#연남동", "#맛집"))
                                     .stats(Stats.builder().viewCount(350L).saveCount(120L).build())
                                     .updatedAt(LocalDateTime.now().minusDays(2))
@@ -154,8 +154,8 @@ public class EditorInsightDto {
         private String placeImageUrl;
         @Schema(description = "에디터 요약", example = "성수동 감성 카페의 정석")
         private String editorSummary;
-        @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"디저트\"]")
-        private List<String> categories;
+        @Schema(description = "장소 카테고리 ID 목록", example = "[1, 2]")
+        private List<Long> categoryIds;
         @Schema(description = "장소 해시태그 1~3개", example = "[\"#성수카페\", \"#감성\", \"#데이트코스\"]")
         private List<String> hashTags;
         private Stats stats;
@@ -182,10 +182,10 @@ public class EditorInsightDto {
                 PostPlace postPlace,
                 Stats stats,
                 LocalDateTime updatedAt) {
-            List<String> categories = postPlace.getPostPlaceCategories().stream()
+            List<Long> categoryIds = postPlace.getPostPlaceCategories().stream()
                     .map(PostPlaceCategory::getCategory)
-                    .filter(category -> category != null && category.getName() != null)
-                    .map(category -> category.getName())
+                    .filter(category -> category != null && category.getId() != null)
+                    .map(category -> category.getId())
                     .distinct()
                     .toList();
             Post post = postPlace.getPost();
@@ -196,7 +196,7 @@ public class EditorInsightDto {
                     .phoneNumber(place.getPhoneNumber())
                     .placeImageUrl(postPlace.getImageUrl())
                     .editorSummary(postPlace.getDescription())
-                    .categories(categories)
+                    .categoryIds(categoryIds)
                     .hashTags(post != null ? post.getHashTags() : null)
                     .stats(stats)
                     .updatedAt(updatedAt)
@@ -294,12 +294,12 @@ public class EditorInsightDto {
         private List<String> postHashTags;
         @Schema(description = "에디터의 장소 설명", example = "분위기가 너무 좋고 커피가 맛있어요.")
         private String description;
-        @Schema(description = "장소 카테고리 목록", example = "[\"카페\", \"데이트\"]")
-        private List<String> categories;
+        @Schema(description = "장소 카테고리 ID 목록", example = "[1, 2]")
+        private List<Long> categoryIds;
 
         public static PostPlaceDetailResponse of(Long postPlaceId, String editorName, String editorInstagramId,
                 String postUrl,
-                List<String> postHashTags, String description, List<String> categories) {
+                List<String> postHashTags, String description, List<Long> categoryIds) {
             return PostPlaceDetailResponse.builder()
                     .postPlaceId(postPlaceId)
                     .editorName(editorName)
@@ -307,7 +307,7 @@ public class EditorInsightDto {
                     .postUrl(postUrl)
                     .postHashTags(postHashTags)
                     .description(description)
-                    .categories(categories)
+                    .categoryIds(categoryIds)
                     .build();
         }
 
@@ -316,10 +316,10 @@ public class EditorInsightDto {
                 String editorInstagramId,
                 PostPlace postPlace) {
             Post post = postPlace.getPost();
-            List<String> categories = postPlace.getPostPlaceCategories().stream()
+            List<Long> categoryIds = postPlace.getPostPlaceCategories().stream()
                     .map(PostPlaceCategory::getCategory)
-                    .filter(category -> category != null)
-                    .map(category -> category.getName())
+                    .filter(category -> category != null && category.getId() != null)
+                    .map(category -> category.getId())
                     .toList();
             return PostPlaceDetailResponse.builder()
                     .postPlaceId(postPlace.getId())
@@ -328,7 +328,7 @@ public class EditorInsightDto {
                     .postUrl(post != null ? post.getUrl() : null)
                     .postHashTags(post != null ? post.getHashTags() : null)
                     .description(postPlace.getDescription())
-                    .categories(categories)
+                    .categoryIds(categoryIds)
                     .build();
         }
     }

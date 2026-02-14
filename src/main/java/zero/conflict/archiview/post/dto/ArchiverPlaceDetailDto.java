@@ -66,7 +66,7 @@ public class ArchiverPlaceDetailDto {
                                                                         .editorInstagramId("archiview_master")
                                                                         .description("분위기가 너무 좋고 커피가 맛있어요.")
                                                                         .imageUrl("https://picsum.photos/400/300?random=31")
-                                                                        .categoryNames(List.of("카페", "디저트"))
+                                                                        .categoryIds(List.of(1L, 2L))
                                                                         .build(),
                                                         PostPlaceResponse.builder()
                                                                         .postPlaceId(402L)
@@ -76,7 +76,7 @@ public class ArchiverPlaceDetailDto {
                                                                         .editorInstagramId("editor_a")
                                                                         .description("조용해서 대화하기 좋아요.")
                                                                         .imageUrl("https://picsum.photos/400/300?random=32")
-                                                                        .categoryNames(List.of("카페"))
+                                                                        .categoryIds(List.of(1L))
                                                                         .build()))
                                         .build();
                 }
@@ -158,8 +158,8 @@ public class ArchiverPlaceDetailDto {
                 private String description;
                 @Schema(description = "이미지 URL")
                 private String imageUrl;
-                @Schema(description = "카테고리명 목록")
-                private List<String> categoryNames;
+                @Schema(description = "카테고리 ID 목록")
+                private List<Long> categoryIds;
                 @Schema(description = "에디터 이름", example = "아카이브 마스터")
                 private String editorName;
                 @Schema(description = "에디터 인스타그램 ID", example = "archiview_master")
@@ -180,11 +180,10 @@ public class ArchiverPlaceDetailDto {
                                 String editorInstagramId,
                                 boolean isArchived) {
                         Post post = postPlace.getPost();
-                        List<String> categories = postPlace.getPostPlaceCategories().stream()
+                        List<Long> categoryIds = postPlace.getPostPlaceCategories().stream()
                                         .map(PostPlaceCategory::getCategory)
-                                        .filter(category -> category != null)
-                                        .map(category -> category.getName())
-                                        .filter(name -> name != null)
+                                        .filter(category -> category != null && category.getId() != null)
+                                        .map(category -> category.getId())
                                         .toList();
                         return PostPlaceResponse.builder()
                                         .postPlaceId(postPlace.getId())
@@ -193,7 +192,7 @@ public class ArchiverPlaceDetailDto {
                                         .hashTags(post != null ? post.getHashTags() : null)
                                         .description(postPlace.getDescription())
                                         .imageUrl(postPlace.getImageUrl())
-                                        .categoryNames(categories)
+                                        .categoryIds(categoryIds)
                                         .editorName(editorName)
                                         .editorInstagramId(editorInstagramId)
                                         .isArchived(isArchived)

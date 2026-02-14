@@ -70,7 +70,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         Long placeId = 1L;
         EditorInsightDto.PostPlaceDetailResponse postPlaceDetail = EditorInsightDto.PostPlaceDetailResponse.of(
                 100L, "에디터", "editor_insta", "https://www.instagram.com/post", List.of("#태그", "#맛집"),
-                "설명", List.of("카테고리"));
+                "설명", List.of(1L));
         EditorInsightDto.PlaceDetailResponse response = EditorInsightDto.PlaceDetailResponse.builder()
                 .placeId(placeId)
                 .placeName("인사이트 장소")
@@ -106,7 +106,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .name("서울숲 브루어스")
                 .latitude(37.5468)
                 .longitude(127.0437)
-                .categories(List.of("카페"))
+                .categoryIds(List.of(1L))
                 .build();
         EditorMapDto.Response response = EditorMapDto.Response.from(List.of(pin));
 
@@ -161,7 +161,6 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .placeUrl("https://place.url")
                 .phoneNumber("02-1234-5678")
                 .categoryIds(List.of(1L, 2L))
-                .categoryNames(List.of("카페", "디저트"))
                 .build();
         EditorPostByPostPlaceDto.Response response = EditorPostByPostPlaceDto.Response.builder()
                 .postId(10L)
