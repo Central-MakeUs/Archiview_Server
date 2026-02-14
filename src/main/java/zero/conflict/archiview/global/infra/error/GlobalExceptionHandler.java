@@ -1,6 +1,7 @@
 package zero.conflict.archiview.global.infra.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import io.sentry.Sentry;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -72,8 +73,15 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception e, HttpServletRequest request) {
         log.error("Unexpected Exception: ", e);
+        Sentry.withScope(scope -> {
+            if (request != null) {
+                scope.setTag("http.method", request.getMethod());
+                scope.setTag("http.path", request.getRequestURI());
+            }
+            Sentry.captureException(e);
+        });
 
         DomainErrorCode errorCode = UnexpectedErrorCode.UNEXPECTED_ERROR;
         ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), errorCode.getMessage());

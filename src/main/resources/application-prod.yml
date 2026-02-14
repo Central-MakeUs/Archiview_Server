@@ -85,3 +85,7 @@ server:
         secure: true
         http-only: true
         same-site: None
+
+sentry:
+  enabled: true
+  environment: ${SENTRY_ENVIRONMENT:production}

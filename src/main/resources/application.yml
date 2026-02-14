@@ -88,3 +88,10 @@ outbox:
       fixed-delay-ms: 3600000
       retention-days: 7
       batch-size: 500
+
+sentry:
+  enabled: false
+  dsn: ${SENTRY_DSN:}
+  environment: ${SENTRY_ENVIRONMENT:local}
+  release: ${SENTRY_RELEASE:unknown}
+  send-default-pii: true
