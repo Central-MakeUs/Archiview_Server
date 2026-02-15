@@ -13,9 +13,12 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
+import zero.conflict.archiview.auth.domain.DevLoginRedirectAllowlist;
 import zero.conflict.archiview.auth.infrastructure.persistence.DevLoginRedirectAllowlistJpaRepository;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 @Slf4j
@@ -58,7 +61,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             devRequested = Boolean.TRUE.equals(authorizationRequest.getAttributes().get("dev"));
         }
         boolean devAllowed = isDevAllowedEmail(oAuth2User.getUsername());
-        String resolvedFrontendUrl = (devRequested && devAllowed) ? devFrontendUrl : frontendUrl;
+        String resolvedFrontendUrl = frontendUrl;
+        if (devRequested && devAllowed) {
+            resolvedFrontendUrl = resolveDevFrontendUrl(oAuth2User.getUsername());
+        }
 
         log.info("OAuth2 로그인 리다이렉트 대상 결정 - devRequested: {}, devAllowed: {}, frontendUrl: {}",
                 devRequested, devAllowed, resolvedFrontendUrl);
@@ -77,6 +83,36 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             return false;
         }
         return devLoginRedirectAllowlistJpaRepository.existsByEmailIgnoreCaseAndEnabledTrue(email);
+    }
+
+    private String resolveDevFrontendUrl(String email) {
+        return devLoginRedirectAllowlistJpaRepository.findByEmailIgnoreCaseAndEnabledTrue(email)
+                .map(DevLoginRedirectAllowlist::getRedirectUrl)
+                .filter(this::isValidRedirectBaseUrl)
+                .orElse(devFrontendUrl);
+    }
+
+    private boolean isValidRedirectBaseUrl(String redirectUrl) {
+        if (redirectUrl == null || redirectUrl.isBlank()) {
+            return false;
+        }
+        try {
+            URI uri = new URI(redirectUrl.trim());
+            String scheme = uri.getScheme();
+            if (scheme == null || (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))) {
+                return false;
+            }
+            if (uri.getHost() == null || uri.getHost().isBlank()) {
+                return false;
+            }
+            if (uri.getUserInfo() != null || uri.getFragment() != null) {
+                return false;
+            }
+            return true;
+        } catch (URISyntaxException e) {
+            log.warn("허용되지 않은 dev redirectUrl 형식 - value: {}", redirectUrl);
+            return false;
+        }
     }
 
     private boolean isDevRequestedByState(HttpServletRequest request) {

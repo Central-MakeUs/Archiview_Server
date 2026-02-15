@@ -32,4 +32,7 @@ public class DevLoginRedirectAllowlist extends BaseTimeEntity {
     @Column(nullable = false)
     @Builder.Default
     private boolean enabled = true;
+
+    @Column(length = 500)
+    private String redirectUrl;
 }
