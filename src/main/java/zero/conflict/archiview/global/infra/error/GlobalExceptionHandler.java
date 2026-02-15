@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import zero.conflict.archiview.global.error.DomainErrorCode;
@@ -70,6 +71,15 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Void> response = ApiResponse.fail("VALIDATION_ERROR", "입력값이 올바르지 않습니다.");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodNotSupportedException(HttpRequestMethodNotSupportedException e) {
+        log.error("HttpRequestMethodNotSupportedException: ", e);
+
+        DomainErrorCode errorCode = UnexpectedErrorCode.METHOD_NOT_ALLOWED;
+        ApiResponse<Void> response = ApiResponse.fail(errorCode.getCode(), errorCode.getMessage());
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(response);
     }
 
     @ExceptionHandler(Exception.class)

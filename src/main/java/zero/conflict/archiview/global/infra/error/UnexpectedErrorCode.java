@@ -10,7 +10,8 @@ import zero.conflict.archiview.global.error.DomainErrorCode;
 public enum UnexpectedErrorCode implements DomainErrorCode {
 
     UNEXPECTED_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 오류가 발생했습니다."),
-    API_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 API를 찾을 수 없습니다.")
+    API_NOT_FOUND(HttpStatus.NOT_FOUND, "요청하신 API를 찾을 수 없습니다."),
+    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "요청하신 경로에서 허용되지 않는 메서드입니다.")
 
 
     ;

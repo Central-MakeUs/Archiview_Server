@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import zero.conflict.archiview.ControllerTestSupport;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -24,5 +25,15 @@ class GlobalExceptionHandlerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.code").value("API_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("요청하신 API를 찾을 수 없습니다."));
     }
-}
 
+    @Test
+    @DisplayName("허용되지 않은 메서드 요청 시 405와 METHOD_NOT_ALLOWED를 반환한다")
+    void methodNotAllowed_returnsMethodNotAllowed() throws Exception {
+        mockMvc.perform(post("/api/v1/archivers/follows")
+                        .with(authenticatedUser()))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.message").value("요청하신 경로에서 허용되지 않는 메서드입니다."));
+    }
+}
