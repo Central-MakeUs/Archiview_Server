@@ -9,4 +9,5 @@ public interface ArchiverProfileRepository {
     ArchiverProfile save(ArchiverProfile archiverProfile);
 
     Optional<ArchiverProfile> findByUserId(UUID userId);
+    void deleteByUserId(UUID userId);
 }

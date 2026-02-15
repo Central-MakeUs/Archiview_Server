@@ -43,6 +43,10 @@ public class EditorProfileDto {
     @Builder
     @Schema(name = "EditorProfileResponse", description = "에디터 프로필 정보 응답")
     public static class Response {
+        @Schema(description = "탈퇴 여부", example = "false")
+        private boolean withdrawn;
+        @Schema(description = "탈퇴 상태 메시지", example = "탈퇴한 회원")
+        private String withdrawnMessage;
         @Schema(description = "에디터 닉네임", example = "맛집탐방가")
         private String nickname;
         @Schema(description = "인스타그램 ID", example = "editor_insta")
@@ -58,6 +62,8 @@ public class EditorProfileDto {
 
         public static Response from(EditorProfile profile) {
             return Response.builder()
+                    .withdrawn(false)
+                    .withdrawnMessage(null)
                     .nickname(profile.getNickname())
                     .instagramId(profile.getInstagramId())
                     .instagramUrl(profile.getInstagramUrl())
@@ -71,12 +77,21 @@ public class EditorProfileDto {
 
         public static Response mock() {
             return Response.builder()
+                    .withdrawn(false)
+                    .withdrawnMessage(null)
                     .nickname("맛집탐방가")
                     .instagramId("editor_insta")
                     .instagramUrl("https://www.instagram.com/editor_insta")
                     .introduction("서울의 숨은 맛집을 기록합니다.")
                     .hashtags(java.util.List.of("#성수카페", "#디저트맛집"))
                     .profileImageUrl("https://picsum.photos/200/200?random=41")
+                    .build();
+        }
+
+        public static Response withdrawn() {
+            return Response.builder()
+                    .withdrawn(true)
+                    .withdrawnMessage("탈퇴한 회원")
                     .build();
         }
     }

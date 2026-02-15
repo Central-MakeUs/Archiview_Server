@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -37,6 +38,9 @@ public class User extends BaseTimeEntity {
     @Column(nullable = false)
     private Role role;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public enum OAuthProvider {
         GOOGLE, APPLE, KAKAO
     }
@@ -51,5 +55,24 @@ public class User extends BaseTimeEntity {
 
     public void assignRole(Role role) {
         this.role = role;
+    }
+
+    public void markDeleted(LocalDateTime deletedAt) {
+        if (this.deletedAt != null) {
+            return;
+        }
+        LocalDateTime now = deletedAt != null ? deletedAt : LocalDateTime.now();
+        this.deletedAt = now;
+
+        long epochMillis = now.atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli();
+        String suffix = (this.id != null ? this.id.toString() : "unknown") + "-" + epochMillis;
+        this.email = "withdrawn+" + suffix + "@archiview.local";
+        this.providerId = "withdrawn:" + suffix;
+        this.name = "탈퇴한 회원";
+        this.role = Role.GUEST;
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 }

@@ -25,7 +25,7 @@ public class UserClientAdapter implements UserClient {
 
     @Override
     public boolean existsUser(UUID userId) {
-        return userJpaRepository.existsById(userId);
+        return userJpaRepository.existsByIdAndDeletedAtIsNull(userId);
     }
 
     @Override

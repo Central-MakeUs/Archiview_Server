@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface ArchiverProfileJpaRepository extends JpaRepository<ArchiverProfile, Long> {
     Optional<ArchiverProfile> findByUser_Id(UUID userId);
+    void deleteByUser_Id(UUID userId);
 }

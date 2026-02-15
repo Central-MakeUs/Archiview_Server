@@ -16,7 +16,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLRestriction;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "editor_profiles")
@@ -24,6 +27,7 @@ import zero.conflict.archiview.global.domain.BaseTimeEntity;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @SuperBuilder
+@SQLRestriction("deleted_at IS NULL")
 public class EditorProfile extends BaseTimeEntity {
 
     @Id
@@ -51,6 +55,9 @@ public class EditorProfile extends BaseTimeEntity {
     @Embedded
     private Hashtags hashtags;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     public static EditorProfile createOf(User user, String nickname, String introduction, String instagramId,
             String instagramUrl, String profileImageUrl, Hashtags hashtags) {
         return EditorProfile.builder()
@@ -76,5 +83,15 @@ public class EditorProfile extends BaseTimeEntity {
 
     public java.util.UUID getUserId() {
         return user != null ? user.getId() : null;
+    }
+
+    public void markDeleted(LocalDateTime deletedAt) {
+        if (this.deletedAt == null) {
+            this.deletedAt = deletedAt != null ? deletedAt : LocalDateTime.now();
+        }
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 }

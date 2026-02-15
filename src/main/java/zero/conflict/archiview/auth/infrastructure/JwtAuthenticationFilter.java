@@ -43,18 +43,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
 
                 java.util.UUID userId = jwtTokenProvider.getUserIdFromToken(token);
-                userRepository.findById(userId).ifPresent(user -> {
-                    CustomOAuth2User oAuth2User = new CustomOAuth2User(user, new HashMap<>());
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(
-                                    oAuth2User,
-                                    null,
-                                    Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
-                            );
+                var userOptional = userRepository.findById(userId);
+                if (userOptional.isEmpty()) {
+                    writeUnauthorizedResponse(response, "INVALID_ACCESS_TOKEN", "유효하지 않은 Access Token입니다.");
+                    return;
+                }
 
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    log.debug("JWT 인증 성공 - 사용자 ID: {}", userId);
-                });
+                var user = userOptional.get();
+                CustomOAuth2User oAuth2User = new CustomOAuth2User(user, new HashMap<>());
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                oAuth2User,
+                                null,
+                                Collections.singleton(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                        );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("JWT 인증 성공 - 사용자 ID: {}", userId);
             } catch (Exception e) {
                 log.warn("JWT 인증 실패", e);
                 writeUnauthorizedResponse(response, "INVALID_ACCESS_TOKEN", "유효하지 않은 Access Token입니다.");

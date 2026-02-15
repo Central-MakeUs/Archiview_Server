@@ -17,4 +17,6 @@ public interface EditorProfileJpaRepository extends JpaRepository<EditorProfile,
     boolean existsByNickname(String nickname);
 
     boolean existsByInstagramId(String instagramId);
+
+    void deleteByUser_Id(UUID userId);
 }

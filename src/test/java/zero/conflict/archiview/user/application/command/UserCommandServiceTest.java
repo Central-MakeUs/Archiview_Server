@@ -20,6 +20,7 @@ import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -237,6 +238,50 @@ class UserCommandServiceTest {
         assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
         verify(editorProfileRepository, never()).existsByUserId(userId);
         verify(userRepository, never()).save(user);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 프로필과 사용자를 삭제한다")
+    void withdraw_success() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000120");
+        User user = createUser(userId, User.Role.EDITOR);
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileRepository.findByUserId(userId)).willReturn(Optional.empty());
+        given(archiverProfileRepository.findByUserId(userId)).willReturn(Optional.empty());
+
+        userCommandService.withdraw(userId);
+
+        assertThat(user.isDeleted()).isTrue();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 사용자가 없으면 USER_NOT_FOUND 예외를 반환한다")
+    void withdraw_userNotFound_throwsException() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000121");
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+        given(userRepository.findByIdIncludingDeleted(userId)).willReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userCommandService.withdraw(userId))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(UserErrorCode.USER_NOT_FOUND);
+    }
+
+    @Test
+    @DisplayName("이미 탈퇴한 사용자는 회원 탈퇴 요청 시 idempotent 하게 성공한다")
+    void withdraw_alreadyDeleted_idempotent() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000122");
+        User user = createUser(userId, User.Role.EDITOR);
+        user.markDeleted(LocalDateTime.now());
+
+        given(userRepository.findById(userId)).willReturn(Optional.empty());
+        given(userRepository.findByIdIncludingDeleted(userId)).willReturn(Optional.of(user));
+
+        userCommandService.withdraw(userId);
+
+        verify(userRepository, never()).save(any());
     }
 
     private User createUser(UUID userId, User.Role role) {

@@ -54,4 +54,9 @@ public class EditorProfileRepositoryImpl implements EditorProfileRepository {
     public boolean existsByInstagramId(String instagramId) {
         return editorProfileJpaRepository.existsByInstagramId(instagramId);
     }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        editorProfileJpaRepository.deleteByUser_Id(userId);
+    }
 }

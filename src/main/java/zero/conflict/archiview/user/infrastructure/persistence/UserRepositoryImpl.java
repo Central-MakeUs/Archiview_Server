@@ -21,26 +21,36 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public Optional<User> findById(UUID id) {
+        return userJpaRepository.findByIdAndDeletedAtIsNull(id);
+    }
+
+    @Override
+    public Optional<User> findByIdIncludingDeleted(UUID id) {
         return userJpaRepository.findById(id);
     }
 
     @Override
     public Optional<User> findByEmail(String email) {
-        return userJpaRepository.findByEmail(email);
+        return userJpaRepository.findByEmailAndDeletedAtIsNull(email);
     }
 
     @Override
     public Optional<User> findByProviderAndProviderId(User.OAuthProvider provider, String providerId) {
-        return userJpaRepository.findByProviderAndProviderId(provider, providerId);
+        return userJpaRepository.findByProviderAndProviderIdAndDeletedAtIsNull(provider, providerId);
     }
 
     @Override
     public boolean existsByEmail(String email) {
-        return userJpaRepository.existsByEmail(email);
+        return userJpaRepository.existsByEmailAndDeletedAtIsNull(email);
     }
 
     @Override
     public boolean existsByUserId(UUID userId) {
-        return userJpaRepository.existsById(userId);
+        return userJpaRepository.existsByIdAndDeletedAtIsNull(userId);
+    }
+
+    @Override
+    public void deleteById(UUID userId) {
+        userJpaRepository.deleteById(userId);
     }
 }

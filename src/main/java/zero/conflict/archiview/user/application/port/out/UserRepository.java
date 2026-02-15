@@ -8,9 +8,11 @@ import java.util.UUID;
 public interface UserRepository {
     User save(User user);
     Optional<User> findById(UUID id);
+    Optional<User> findByIdIncludingDeleted(UUID id);
     Optional<User> findByEmail(String email);
     Optional<User> findByProviderAndProviderId(User.OAuthProvider provider, String providerId);
     boolean existsByEmail(String email);
 
     boolean existsByUserId(UUID userId);
+    void deleteById(UUID userId);
 }

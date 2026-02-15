@@ -50,4 +50,12 @@ public class UserCommandController {
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         return ResponseEntity.ok(ApiResponse.success(editorUserUseCase.switchRole(oAuth2User.getUserId(), request)));
     }
+
+    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다.")
+    @DeleteMapping("/me")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        editorUserUseCase.withdraw(oAuth2User.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

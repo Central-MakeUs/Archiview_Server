@@ -62,4 +62,9 @@ public class EditorUserService implements EditorUserUseCase {
     public UserDto.SwitchRoleResponse switchRole(UUID userId, UserDto.SwitchRoleRequest request) {
         return userCommandService.switchRole(userId, request);
     }
+
+    @Override
+    public void withdraw(UUID userId) {
+        userCommandService.withdraw(userId);
+    }
 }

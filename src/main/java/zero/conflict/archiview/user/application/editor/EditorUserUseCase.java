@@ -24,4 +24,6 @@ public interface EditorUserUseCase {
     void completeOnboarding(UUID userId, UserDto.OnboardingRequest request);
 
     UserDto.SwitchRoleResponse switchRole(UUID userId, UserDto.SwitchRoleRequest request);
+
+    void withdraw(UUID userId);
 }

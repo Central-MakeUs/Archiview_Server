@@ -15,4 +15,5 @@ public interface EditorProfileRepository {
     boolean existsByUserId(UUID userId);
     boolean existsByNickname(String nickname);
     boolean existsByInstagramId(String instagramId);
+    void deleteByUserId(UUID userId);
 }

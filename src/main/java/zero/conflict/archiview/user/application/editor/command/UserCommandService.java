@@ -109,6 +109,23 @@ public class UserCommandService {
                 .build();
     }
 
+    @Transactional
+    public void withdraw(java.util.UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseGet(() -> userRepository.findByIdIncludingDeleted(userId)
+                        .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND)));
+
+        if (user.isDeleted()) {
+            return;
+        }
+
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        editorProfileRepository.findByUserId(userId).ifPresent(profile -> profile.markDeleted(now));
+        archiverProfileRepository.findByUserId(userId).ifPresent(profile -> profile.markDeleted(now));
+        user.markDeleted(now);
+        userRepository.save(user);
+    }
+
     private void validateSwitchTargetRole(User.Role targetRole) {
         if (targetRole != User.Role.ARCHIVER && targetRole != User.Role.EDITOR) {
             throw new DomainException(UserErrorCode.INVALID_ROLE_SWITCH_TARGET);

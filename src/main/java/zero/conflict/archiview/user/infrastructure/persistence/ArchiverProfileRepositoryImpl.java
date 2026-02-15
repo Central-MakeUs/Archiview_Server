@@ -23,4 +23,9 @@ public class ArchiverProfileRepositoryImpl implements ArchiverProfileRepository 
     public Optional<ArchiverProfile> findByUserId(UUID userId) {
         return archiverProfileJpaRepository.findByUser_Id(userId);
     }
+
+    @Override
+    public void deleteByUserId(UUID userId) {
+        archiverProfileJpaRepository.deleteByUser_Id(userId);
+    }
 }
