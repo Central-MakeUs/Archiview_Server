@@ -41,6 +41,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .latitude(Double.valueOf("37.5665"))
                 .longitude(Double.valueOf("126.9780"))
                 .nearestStationWalkTime("도보 5분")
+                .phoneNumber("02-1234-5678")
                 .build();
 
         PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -49,11 +50,18 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .placeInfoRequestList(Collections.singletonList(placeInfo))
                 .build();
 
+        PostCommandDto.Response.PlaceInfoResponse placeResponse = PostCommandDto.Response.PlaceInfoResponse.builder()
+                .placeId(11L)
+                .placeName("테스트 장소")
+                .name("테스트 장소")
+                .phoneNumber("02-1234-5678")
+                .build();
+
         PostCommandDto.Response mockResponse = PostCommandDto.Response.builder()
                 .postId(1L)
                 .url("https://www.instagram.com/post")
                 .hashTags(java.util.List.of("#테스트", "#여행"))
-                .placeInfoResponseList(Collections.emptyList())
+                .placeInfoResponseList(Collections.singletonList(placeResponse))
                 .build();
 
         given(postCommandService.createPost(any(PostCommandDto.Request.class),
@@ -66,7 +74,8 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.postId").value(1));
+                .andExpect(jsonPath("$.data.postId").value(1))
+                .andExpect(jsonPath("$.data.placeInfoResponseList[0].phoneNumber").value("02-1234-5678"));
     }
 
     @Test

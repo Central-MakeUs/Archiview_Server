@@ -152,6 +152,9 @@ public class PostCommandService {
                         Place newPlace = createPlace(placeInfo);
                         return placeRepository.save(newPlace);
                     });
+            if (savedPlace.updatePhoneNumberIfMissing(placeInfo.getPhoneNumber())) {
+                placeRepository.save(savedPlace);
+            }
 
             PostPlace postPlace = PostPlace.createOf(
                     post,

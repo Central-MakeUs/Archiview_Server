@@ -309,6 +309,7 @@ class PostQueryServiceTest {
                 Place place = Place.builder()
                                 .id(placeId)
                                 .name("인사이트 장소")
+                                .phoneNumber("02-1234-5678")
                                 .address(Address.of("서울 성동구 성수동 1-1", "서울 성동구 아차산로 1"))
                                 .nearestStationWalkTime("성수역 도보 3분")
                                 .build();
@@ -358,6 +359,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
                 assertThat(response.getPostPlaces().get(0).getImageUrl()).isEqualTo("https://url.com");
                 assertThat(response.getPlaceName()).isEqualTo("인사이트 장소");
+                assertThat(response.getPhoneNumber()).isEqualTo("02-1234-5678");
                 assertThat(response.getPlaceImageUrl()).isEqualTo("https://url.com");
                 assertThat(response.getEditorTotal()).isEqualTo(1L);
                 assertThat(response.getAddress().getAddressName()).isEqualTo("서울 성동구 성수동 1-1");
@@ -411,6 +413,7 @@ class PostQueryServiceTest {
                 Place place = Place.builder()
                                 .id(placeId)
                                 .name("성수 핫플")
+                                .phoneNumber("02-1234-5678")
                                 .build();
 
                 Post post = Post.createOf(editorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
@@ -440,6 +443,7 @@ class PostQueryServiceTest {
 
                 // then
                 assertThat(response.getPlace().getPlaceId()).isEqualTo(placeId);
+                assertThat(response.getPlace().getPhoneNumber()).isEqualTo("02-1234-5678");
                 assertThat(response.getPostPlaces()).hasSize(1);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");

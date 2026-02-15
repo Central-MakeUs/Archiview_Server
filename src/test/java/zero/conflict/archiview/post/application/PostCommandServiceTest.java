@@ -72,6 +72,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
                                 .nearestStationWalkTime("도보 5분")
+                                .phoneNumber("02-1234-5678")
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -87,7 +88,9 @@ class PostCommandServiceTest {
                                 placeInfoRequest.getPlaceName(),
                                 Address.of(placeInfoRequest.getAddressName(), placeInfoRequest.getRoadAddressName()),
                                 Position.of(placeInfoRequest.getLatitude(), placeInfoRequest.getLongitude()),
-                                placeInfoRequest.getNearestStationWalkTime());
+                                placeInfoRequest.getNearestStationWalkTime(),
+                                null,
+                                placeInfoRequest.getPhoneNumber());
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
@@ -106,6 +109,7 @@ class PostCommandServiceTest {
                 assertThat(response.getHashTags()).isEqualTo(hashTags);
                 assertThat(response.getPlaceInfoResponseList()).hasSize(1);
                 assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("테스트 장소");
+                assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1234-5678");
 
                 verify(postRepository).save(any(Post.class));
                 verify(placeRepository).findByPosition(any(Position.class));
@@ -130,6 +134,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
                                 .nearestStationWalkTime("도보 3분")
+                                .phoneNumber("02-1234-0000")
                                 .build();
 
                 PostCommandDto.Request request = PostCommandDto.Request.builder()
@@ -160,11 +165,93 @@ class PostCommandServiceTest {
                 // then
                 assertThat(response.getPlaceInfoResponseList()).hasSize(1);
                 assertThat(response.getPlaceInfoResponseList().get(0).getName()).isEqualTo("기존 장소");
+                assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1234-0000");
 
                 verify(postRepository).save(any(Post.class));
                 verify(placeRepository).findByPosition(any(Position.class));
-                verify(placeRepository, never()).save(any(Place.class)); // 새로운 Place는 저장되지 않아야 함
+                verify(placeRepository).save(existingPlace);
                 verify(postPlacesRepository).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("Post 생성 시 기존 Place 전화번호가 없으면 요청 전화번호로 보강한다")
+        void createPost_withExistingPlaceWithoutPhone_updatesPhoneNumber() {
+                UUID editorId = UUID.randomUUID();
+                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .placeName("기존 장소")
+                                .description("설명")
+                                .addressName("서울시 종로구 묘동 123-45")
+                                .roadAddressName("서울시 종로구 묘동길 1")
+                                .latitude(Double.valueOf("37.5700"))
+                                .longitude(Double.valueOf("126.9800"))
+                                .phoneNumber("02-1111-2222")
+                                .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url("https://www.instagram.com/post2")
+                                .hashTags(List.of("#맛집"))
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
+
+                Post savedPost = Post.createOf(editorId, request.getUrl(), request.getHashTags());
+                Place existingPlace = Place.createOf(
+                                "기존 장소",
+                                Address.of("서울시 종로구 묘동 123-45", "서울시 종로구 묘동길 1"),
+                                Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
+                                "도보 3분");
+
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                given(userClient.existsUser(editorId)).willReturn(true);
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(postPlacesRepository.save(any(PostPlace.class)))
+                                .willAnswer(invocation -> invocation.getArgument(0));
+
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+
+                assertThat(response.getPlaceInfoResponseList()).hasSize(1);
+                assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1111-2222");
+                verify(placeRepository).save(existingPlace);
+        }
+
+        @Test
+        @DisplayName("Post 생성 시 기존 Place 전화번호가 있으면 요청값으로 덮어쓰지 않는다")
+        void createPost_withExistingPlaceWithPhone_keepsOriginalPhoneNumber() {
+                UUID editorId = UUID.randomUUID();
+                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .placeName("기존 장소")
+                                .description("설명")
+                                .addressName("서울시 종로구 묘동 123-45")
+                                .roadAddressName("서울시 종로구 묘동길 1")
+                                .latitude(Double.valueOf("37.5700"))
+                                .longitude(Double.valueOf("126.9800"))
+                                .phoneNumber("02-9999-9999")
+                                .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url("https://www.instagram.com/post3")
+                                .hashTags(List.of("#카페"))
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
+
+                Post savedPost = Post.createOf(editorId, request.getUrl(), request.getHashTags());
+                Place existingPlace = Place.createOf(
+                                "기존 장소",
+                                Address.of("서울시 종로구 묘동 123-45", "서울시 종로구 묘동길 1"),
+                                Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
+                                "도보 3분",
+                                null,
+                                "02-1234-5678");
+
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                given(userClient.existsUser(editorId)).willReturn(true);
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(postPlacesRepository.save(any(PostPlace.class)))
+                                .willAnswer(invocation -> invocation.getArgument(0));
+
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+
+                assertThat(response.getPlaceInfoResponseList()).hasSize(1);
+                assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1234-5678");
+                verify(placeRepository, never()).save(existingPlace);
         }
 
         @Test

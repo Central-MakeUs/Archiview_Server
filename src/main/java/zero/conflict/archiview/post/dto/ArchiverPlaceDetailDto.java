@@ -47,6 +47,7 @@ public class ArchiverPlaceDetailDto {
                                         .place(PlaceResponse.builder()
                                                         .placeId(301L)
                                                         .name("성수 핫플 카페")
+                                                        .phoneNumber("02-1234-5678")
                                                         .addressName("서울특별시 성동구 성수동 123-45")
                                                         .roadAddressName("서울특별시 성동구 아차산로 123")
                                                         .latitude(37.5445)

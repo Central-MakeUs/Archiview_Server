@@ -80,6 +80,18 @@ public class Place extends BaseTimeEntity {
         return this.position.equals(other.getPosition());
     }
 
+    public boolean updatePhoneNumberIfMissing(String newPhoneNumber) {
+        if (!isBlank(this.phoneNumber) || isBlank(newPhoneNumber)) {
+            return false;
+        }
+        this.phoneNumber = newPhoneNumber;
+        return true;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
     private void validateName(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new DomainException(PostErrorCode.INVALID_PLACE_NAME);
