@@ -24,7 +24,11 @@ import zero.conflict.archiview.global.infra.s3.S3Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -94,10 +98,54 @@ public class PostCommandService {
         post.update(request.getUrl(), request.getHashTags());
         postRepository.save(post);
 
-        postPlacesRepository.deleteAllByPostId(postId);
+        List<PostPlace> existingPostPlaces = postPlacesRepository.findAllByPostId(postId);
+        Map<Long, PostPlace> existingById = new HashMap<>();
+        for (PostPlace existingPostPlace : existingPostPlaces) {
+            if (existingPostPlace.getId() != null) {
+                existingById.put(existingPostPlace.getId(), existingPostPlace);
+            }
+        }
 
-        List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
-                request.getPlaceInfoRequestList(), post, editorId);
+        Set<Long> requestedPostPlaceIds = new HashSet<>();
+        for (PostCommandDto.Request.PlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
+            Long requestedId = placeInfo.getPostPlaceId();
+            if (requestedId == null) {
+                continue;
+            }
+            if (!requestedPostPlaceIds.add(requestedId) || !existingById.containsKey(requestedId)) {
+                throw new DomainException(PostErrorCode.POST_INVALID_UPDATE_POST_PLACE_ID);
+            }
+        }
+
+        List<Long> deletedPostPlaceIds = existingById.keySet().stream()
+                .filter(existingId -> !requestedPostPlaceIds.contains(existingId))
+                .toList();
+        postPlacesRepository.deleteAllByIdIn(deletedPostPlaceIds);
+
+        List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = new ArrayList<>();
+        for (PostCommandDto.Request.PlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
+            Place savedPlace = getOrCreatePlace(placeInfo);
+            List<Category> categories = resolveCategories(placeInfo.getCategoryIds());
+
+            Long requestedPostPlaceId = placeInfo.getPostPlaceId();
+            if (requestedPostPlaceId == null) {
+                PostPlace postPlace = PostPlace.createOf(
+                        post,
+                        savedPlace,
+                        placeInfo.getDescription(),
+                        placeInfo.getImageUrl(),
+                        editorId);
+                postPlace.replaceCategories(categories);
+                postPlacesRepository.save(postPlace);
+            } else {
+                PostPlace existingPostPlace = existingById.get(requestedPostPlaceId);
+                existingPostPlace.update(savedPlace, placeInfo.getDescription(), placeInfo.getImageUrl());
+                existingPostPlace.replaceCategories(categories);
+                postPlacesRepository.save(existingPostPlace);
+            }
+            placeInfoResponses.add(mapPlaceToResponse(savedPlace));
+        }
+
         List<Long> placeIds = placeInfoResponses.stream()
                 .map(PostCommandDto.Response.PlaceInfoResponse::getPlaceId)
                 .toList();
@@ -142,35 +190,15 @@ public class PostCommandService {
 
         for (int i = 0; i < placeInfoRequests.size(); i++) {
             PostCommandDto.Request.PlaceInfoRequest placeInfo = placeInfoRequests.get(i);
-            Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
-
-            String imageUrl = placeInfo.getImageUrl();
-
-            // 기존 Place 찾기 또는 새로 생성
-            Place savedPlace = placeRepository.findByPosition(position)
-                    .orElseGet(() -> {
-                        Place newPlace = createPlace(placeInfo);
-                        return placeRepository.save(newPlace);
-                    });
-            if (savedPlace.updatePhoneNumberIfMissing(placeInfo.getPhoneNumber())) {
-                placeRepository.save(savedPlace);
-            }
+            Place savedPlace = getOrCreatePlace(placeInfo);
 
             PostPlace postPlace = PostPlace.createOf(
                     post,
                     savedPlace,
                     placeInfo.getDescription(),
-                    imageUrl,
+                    placeInfo.getImageUrl(),
                     editorId);
-
-            List<Long> categoryIds = placeInfo.getCategoryIds();
-            if (categoryIds != null && !categoryIds.isEmpty()) {
-                for (Long categoryId : categoryIds) {
-                    Category category = categoryRepository.findById(categoryId)
-                            .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
-                    postPlace.addCategory(category);
-                }
-            }
+            postPlace.replaceCategories(resolveCategories(placeInfo.getCategoryIds()));
             postPlacesRepository.save(postPlace);
 
             responses.add(mapPlaceToResponse(savedPlace));
@@ -191,6 +219,32 @@ public class PostCommandService {
                 placeInfo.getNearestStationWalkTime(),
                 placeInfo.getPlaceUrl(),
                 placeInfo.getPhoneNumber());
+    }
+
+    private Place getOrCreatePlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
+        Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
+        Place savedPlace = placeRepository.findByPosition(position)
+                .orElseGet(() -> {
+                    Place newPlace = createPlace(placeInfo);
+                    return placeRepository.save(newPlace);
+                });
+        if (savedPlace.updatePhoneNumberIfMissing(placeInfo.getPhoneNumber())) {
+            return placeRepository.save(savedPlace);
+        }
+        return savedPlace;
+    }
+
+    private List<Category> resolveCategories(List<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            return List.of();
+        }
+        List<Category> categories = new ArrayList<>();
+        for (Long categoryId : categoryIds) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
+            categories.add(category);
+        }
+        return categories;
     }
 
     private static PostCommandDto.Response mapPostToResponse(

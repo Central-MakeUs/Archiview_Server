@@ -12,6 +12,8 @@ public interface PostPlaceRepository {
 
     void deleteAllByPostId(Long postId);
 
+    void deleteAllByIdIn(List<Long> postPlaceIds);
+
     void markDeletedAllByPostId(Long postId, UUID actorId, LocalDateTime deletedAt);
 
     java.util.Optional<PostPlace> findById(Long postPlaceId);

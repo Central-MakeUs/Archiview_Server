@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.domain.*;
@@ -15,6 +16,7 @@ import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
 import java.util.List;
 import java.util.Optional;
@@ -306,6 +308,197 @@ class PostCommandServiceTest {
                 verify(placeRepository, times(2)).findByPosition(any(Position.class));
                 verify(placeRepository, times(2)).save(any(Place.class));
                 verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("게시글 수정 시 postPlaceId 기준으로 수정/삭제/신규생성을 수행한다")
+        void updatePost_diffUpdateDeleteAndCreate_success() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 30L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/original"))
+                                .hashTags(HashTags.from(List.of("#원본")))
+                                .isDeleted(false)
+                                .build();
+
+                Place existingPlace = Place.builder()
+                                .id(100L)
+                                .name("기존 장소")
+                                .address(Address.of("기존 지번", "기존 도로명"))
+                                .position(Position.of(37.1, 127.1))
+                                .phoneNumber("02-1111-1111")
+                                .build();
+                Place removedPlace = Place.builder()
+                                .id(101L)
+                                .name("삭제될 장소")
+                                .address(Address.of("삭제 지번", "삭제 도로명"))
+                                .position(Position.of(37.2, 127.2))
+                                .build();
+
+                PostPlace keepAndUpdate = PostPlace.builder()
+                                .id(201L)
+                                .post(post)
+                                .place(existingPlace)
+                                .editorId(editorId)
+                                .description("기존 설명")
+                                .imageUrl("https://old.image")
+                                .build();
+                Category oldCategory = Category.builder().id(9L).name("기존카테고리").build();
+                keepAndUpdate.addCategory(oldCategory);
+
+                PostPlace toDelete = PostPlace.builder()
+                                .id(202L)
+                                .post(post)
+                                .place(removedPlace)
+                                .editorId(editorId)
+                                .description("삭제 설명")
+                                .imageUrl("https://remove.image")
+                                .build();
+
+                PostCommandDto.Request.PlaceInfoRequest updateRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .postPlaceId(201L)
+                                .placeName("기존 장소")
+                                .description("수정된 설명")
+                                .addressName("기존 지번")
+                                .roadAddressName("기존 도로명")
+                                .latitude(37.1)
+                                .longitude(127.1)
+                                .categoryIds(List.of(1L))
+                                .imageUrl("https://new.image")
+                                .build();
+                PostCommandDto.Request.PlaceInfoRequest createRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .placeName("신규 장소")
+                                .description("신규 설명")
+                                .addressName("신규 지번")
+                                .roadAddressName("신규 도로명")
+                                .latitude(37.3)
+                                .longitude(127.3)
+                                .categoryIds(List.of(2L))
+                                .imageUrl("https://new.place.image")
+                                .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url("https://www.instagram.com/p/updated")
+                                .hashTags(List.of("#수정", "#게시글"))
+                                .placeInfoRequestList(List.of(updateRequest, createRequest))
+                                .build();
+
+                Category category1 = Category.builder().id(1L).name("카테고리1").build();
+                Category category2 = Category.builder().id(2L).name("카테고리2").build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+                given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(keepAndUpdate, toDelete));
+                given(placeRepository.findByPosition(any(Position.class)))
+                                .willReturn(Optional.of(existingPlace), Optional.empty());
+                given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(categoryRepository.findById(1L)).willReturn(Optional.of(category1));
+                given(categoryRepository.findById(2L)).willReturn(Optional.of(category2));
+                given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+                PostCommandDto.Response response = postCommandService.updatePost(postId, request, editorId);
+
+                assertThat(response.getPlaceInfoResponseList()).hasSize(2);
+                assertThat(keepAndUpdate.getDescription()).isEqualTo("수정된 설명");
+                assertThat(keepAndUpdate.getImageUrl()).isEqualTo("https://new.image");
+                assertThat(keepAndUpdate.getPostPlaceCategories()).hasSize(1);
+                assertThat(keepAndUpdate.getPostPlaceCategories().get(0).getCategory().getId()).isEqualTo(1L);
+
+                verify(postRepository).save(post);
+                verify(postPlacesRepository).deleteAllByIdIn(List.of(202L));
+                verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+                verify(postOutboxService).appendPostUpdatedEvent(eq(post), anyList());
+        }
+
+        @Test
+        @DisplayName("게시글 수정 시 다른 게시글의 postPlaceId를 보내면 예외")
+        void updatePost_withInvalidPostPlaceId_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 31L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/original"))
+                                .hashTags(HashTags.from(List.of("#원본")))
+                                .isDeleted(false)
+                                .build();
+                PostPlace existing = PostPlace.builder().id(301L).post(post).editorId(editorId).build();
+
+                PostCommandDto.Request.PlaceInfoRequest requestPlace = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .postPlaceId(999L)
+                                .placeName("잘못된")
+                                .description("잘못된")
+                                .addressName("주소")
+                                .roadAddressName("도로명")
+                                .latitude(37.5)
+                                .longitude(127.5)
+                                .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url("https://www.instagram.com/p/updated")
+                                .hashTags(List.of("#수정"))
+                                .placeInfoRequestList(List.of(requestPlace))
+                                .build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+                given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(existing));
+
+                assertThatThrownBy(() -> postCommandService.updatePost(postId, request, editorId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_INVALID_UPDATE_POST_PLACE_ID);
+
+                verify(postPlacesRepository, never()).deleteAllByIdIn(anyList());
+                verify(postPlacesRepository, never()).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("게시글 수정 시 요청 내 postPlaceId 중복이면 예외")
+        void updatePost_withDuplicatedPostPlaceId_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 32L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/original"))
+                                .hashTags(HashTags.from(List.of("#원본")))
+                                .isDeleted(false)
+                                .build();
+                PostPlace existing = PostPlace.builder().id(401L).post(post).editorId(editorId).build();
+
+                PostCommandDto.Request.PlaceInfoRequest p1 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .postPlaceId(401L)
+                                .placeName("장소1")
+                                .description("설명1")
+                                .addressName("주소1")
+                                .roadAddressName("도로1")
+                                .latitude(37.51)
+                                .longitude(127.51)
+                                .build();
+                PostCommandDto.Request.PlaceInfoRequest p2 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                                .postPlaceId(401L)
+                                .placeName("장소2")
+                                .description("설명2")
+                                .addressName("주소2")
+                                .roadAddressName("도로2")
+                                .latitude(37.52)
+                                .longitude(127.52)
+                                .build();
+                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                                .url("https://www.instagram.com/p/updated")
+                                .hashTags(List.of("#수정"))
+                                .placeInfoRequestList(List.of(p1, p2))
+                                .build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+                given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(existing));
+
+                assertThatThrownBy(() -> postCommandService.updatePost(postId, request, editorId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_INVALID_UPDATE_POST_PLACE_ID);
+
+                verify(postPlacesRepository, never()).deleteAllByIdIn(anyList());
+                verify(postPlacesRepository, never()).save(any(PostPlace.class));
         }
 
         @Test

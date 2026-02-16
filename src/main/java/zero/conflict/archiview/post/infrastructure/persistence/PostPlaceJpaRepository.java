@@ -17,6 +17,8 @@ public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
 
     void deleteAllByPost_Id(Long postId);
 
+    void deleteAllByIdIn(List<Long> ids);
+
     List<PostPlace> findAllByPlace_IdIn(List<Long> placeIds);
 
     List<PostPlace> findAllByPlace_Id(Long placeId);

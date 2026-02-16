@@ -106,6 +106,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     void updatePost_success() throws Exception {
         Long postId = 10L;
         PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
+                .postPlaceId(77L)
                 .placeName("수정 장소")
                 .description("수정 설명")
                 .addressName("서울 종로구")

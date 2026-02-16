@@ -39,6 +39,14 @@ public class PostPlaceRepositoryImpl implements PostPlaceRepository {
     }
 
     @Override
+    public void deleteAllByIdIn(List<Long> postPlaceIds) {
+        if (postPlaceIds == null || postPlaceIds.isEmpty()) {
+            return;
+        }
+        postPlaceJpaRepository.deleteAllByIdIn(postPlaceIds);
+    }
+
+    @Override
     public void markDeletedAllByPostId(Long postId, UUID actorId, LocalDateTime deletedAt) {
         postPlaceJpaRepository.markDeletedAllByPostId(postId, actorId, deletedAt);
     }
