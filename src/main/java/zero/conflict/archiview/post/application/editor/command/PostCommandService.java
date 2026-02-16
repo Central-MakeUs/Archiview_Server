@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -247,8 +248,9 @@ public class PostCommandService {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return List.of();
         }
+        Set<Long> distinctCategoryIds = new LinkedHashSet<>(categoryIds);
         List<Category> categories = new ArrayList<>();
-        for (Long categoryId : categoryIds) {
+        for (Long categoryId : distinctCategoryIds) {
             Category category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new DomainException(PostErrorCode.INVALID_CATEGORY_ID));
             categories.add(category);

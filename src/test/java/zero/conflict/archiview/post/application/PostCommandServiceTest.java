@@ -441,6 +441,69 @@ class PostCommandServiceTest {
         }
 
         @Test
+        @DisplayName("게시글 수정 시 요청 categoryIds 중복은 한 번만 반영한다")
+        void updatePost_withDuplicatedCategoryIds_deduplicatesCategories() {
+                UUID editorId = UUID.randomUUID();
+                Long postId = 33L;
+                Post post = Post.builder()
+                                .id(postId)
+                                .editorId(editorId)
+                                .url(InstagramUrl.from("https://www.instagram.com/p/original"))
+                                .hashTags(HashTags.from(List.of("#원본")))
+                                .isDeleted(false)
+                                .build();
+
+                Place existingPlace = Place.builder()
+                                .id(130L)
+                                .name("기존 장소")
+                                .address(Address.of("기존 지번", "기존 도로명"))
+                                .position(Position.of(37.4, 127.4))
+                                .build();
+
+                Category existingCategory = Category.builder().id(1L).name("카테고리1").build();
+                PostPlace existingPostPlace = PostPlace.builder()
+                                .id(501L)
+                                .post(post)
+                                .place(existingPlace)
+                                .editorId(editorId)
+                                .description("기존 설명")
+                                .imageUrl("https://old.image")
+                                .build();
+                existingPostPlace.addCategory(existingCategory);
+
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest updateRequest = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest
+                                .builder()
+                                .postPlaceId(501L)
+                                .placeName("기존 장소")
+                                .description("수정된 설명")
+                                .addressName("기존 지번")
+                                .roadAddressName("기존 도로명")
+                                .latitude(37.4)
+                                .longitude(127.4)
+                                .categoryIds(List.of(1L, 1L))
+                                .imageUrl("https://new.image")
+                                .build();
+
+                PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
+                                .url("https://www.instagram.com/p/updated")
+                                .hashTags(List.of("#수정"))
+                                .placeInfoRequestList(List.of(updateRequest))
+                                .build();
+
+                given(postRepository.findById(postId)).willReturn(Optional.of(post));
+                given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(existingPostPlace));
+                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(categoryRepository.findById(1L)).willReturn(Optional.of(existingCategory));
+                given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+                postCommandService.updatePost(postId, request, editorId);
+
+                assertThat(existingPostPlace.getPostPlaceCategories()).hasSize(1);
+                assertThat(existingPostPlace.getPostPlaceCategories().get(0).getCategory().getId()).isEqualTo(1L);
+                verify(categoryRepository, times(1)).findById(1L);
+        }
+
+        @Test
         @DisplayName("게시글 수정 시 다른 게시글의 postPlaceId를 보내면 예외")
         void updatePost_withInvalidPostPlaceId_throwsException() {
                 UUID editorId = UUID.randomUUID();

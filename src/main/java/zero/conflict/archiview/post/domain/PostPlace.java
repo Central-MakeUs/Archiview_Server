@@ -10,7 +10,9 @@ import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -85,12 +87,38 @@ public class PostPlace extends BaseTimeEntity {
     }
 
     public void replaceCategories(List<Category> categories) {
-        this.postPlaceCategories.clear();
+        Set<Long> requestedCategoryIds = new LinkedHashSet<>();
+        if (categories != null) {
+            for (Category category : categories) {
+                if (category != null && category.getId() != null) {
+                    requestedCategoryIds.add(category.getId());
+                }
+            }
+        }
+
+        this.postPlaceCategories.removeIf(postPlaceCategory -> {
+            Category category = postPlaceCategory.getCategory();
+            Long categoryId = category != null ? category.getId() : null;
+            return categoryId == null || !requestedCategoryIds.contains(categoryId);
+        });
+
+        Set<Long> existingCategoryIds = this.postPlaceCategories.stream()
+                .map(PostPlaceCategory::getCategory)
+                .filter(category -> category != null && category.getId() != null)
+                .map(Category::getId)
+                .collect(java.util.stream.Collectors.toSet());
+
         if (categories == null || categories.isEmpty()) {
             return;
         }
+
         for (Category category : categories) {
-            addCategory(category);
+            if (category == null || category.getId() == null) {
+                continue;
+            }
+            if (existingCategoryIds.add(category.getId())) {
+                addCategory(category);
+            }
         }
     }
 
