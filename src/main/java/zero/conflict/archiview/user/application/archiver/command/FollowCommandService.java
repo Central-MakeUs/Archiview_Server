@@ -2,6 +2,7 @@ package zero.conflict.archiview.user.application.archiver.command;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.user.application.port.out.FollowRepository;
 import zero.conflict.archiview.user.application.port.out.UserRepository;
@@ -18,6 +19,7 @@ public class FollowCommandService {
     private final FollowRepository followRepository;
     private final UserRepository userRepository;
 
+    @Transactional
     public void follow(UUID archiverId, UUID editorId) {
         if (archiverId.equals(editorId)) {
             throw new DomainException(UserErrorCode.SELF_FOLLOW_NOT_ALLOWED);
@@ -39,6 +41,7 @@ public class FollowCommandService {
         followRepository.save(Follow.createOf(archiverId, editorId));
     }
 
+    @Transactional
     public void unfollow(UUID archiverId, UUID editorId) {
         if (!followRepository.existsByArchiverIdAndEditorId(archiverId, editorId)) {
             throw new DomainException(UserErrorCode.FOLLOW_NOT_FOUND);
