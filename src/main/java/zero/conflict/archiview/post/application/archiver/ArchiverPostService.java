@@ -123,4 +123,9 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     public void increasePostPlaceViewCount(Long postPlaceId, UUID actorId) {
         postCommandService.increasePostPlaceViewCount(postPlaceId, actorId);
     }
+
+    @Override
+    public Long increasePostPlaceInstagramInflowCount(Long postPlaceId, UUID actorId) {
+        return postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId, actorId);
+    }
 }

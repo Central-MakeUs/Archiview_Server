@@ -86,6 +86,15 @@ public class PostCommandService {
     }
 
     @Transactional
+    public Long increasePostPlaceInstagramInflowCount(Long postPlaceId, java.util.UUID actorId) {
+        PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
+                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+        postPlace.increaseInstagramInflowCount(actorId);
+        return postPlace.getInstagramInflowCount();
+    }
+
+    @Transactional
     public PostCommandDto.Response updatePost(
             Long postId,
             PostCommandDto.UpdateRequest request,

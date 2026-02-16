@@ -693,4 +693,54 @@ class PostCommandServiceTest {
                                 any(java.time.LocalDateTime.class));
                 verify(postOutboxService, never()).appendPostDeletedEvent(any(Post.class), anyList());
         }
+
+        @Test
+        @DisplayName("인스타그램 유입 수 증가 성공 - 타인 클릭")
+        void increaseInstagramInflowCount_success() {
+                UUID editorId = UUID.randomUUID();
+                UUID actorId = UUID.randomUUID();
+                Long postPlaceId = 21L;
+                PostPlace postPlace = PostPlace.builder()
+                                .id(postPlaceId)
+                                .editorId(editorId)
+                                .instagramInflowCount(3L)
+                                .build();
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+
+                Long result = postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId, actorId);
+
+                assertThat(result).isEqualTo(4L);
+                assertThat(postPlace.getInstagramInflowCount()).isEqualTo(4L);
+        }
+
+        @Test
+        @DisplayName("인스타그램 유입 수 증가 - 본인 클릭이면 증가하지 않는다")
+        void increaseInstagramInflowCount_selfClick_doesNotIncrease() {
+                UUID editorId = UUID.randomUUID();
+                Long postPlaceId = 22L;
+                PostPlace postPlace = PostPlace.builder()
+                                .id(postPlaceId)
+                                .editorId(editorId)
+                                .instagramInflowCount(5L)
+                                .build();
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+
+                Long result = postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId, editorId);
+
+                assertThat(result).isEqualTo(5L);
+                assertThat(postPlace.getInstagramInflowCount()).isEqualTo(5L);
+        }
+
+        @Test
+        @DisplayName("인스타그램 유입 수 증가 실패 - postPlace가 없으면 예외")
+        void increaseInstagramInflowCount_postPlaceNotFound() {
+                Long postPlaceId = 23L;
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.empty());
+
+                assertThatThrownBy(() -> postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId,
+                                UUID.randomUUID()))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
+        }
 }
