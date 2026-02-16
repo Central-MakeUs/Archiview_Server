@@ -19,7 +19,7 @@ public interface ArchiverUserUseCase {
 
     TrustedEditorDto.ListResponse getTrustedEditors();
 
-    EditorProfileDto.Response getEditorProfile(UUID editorId);
+    EditorProfileDto.ArchiverEditorProfileResponse getEditorProfile(UUID archiverId, UUID editorId);
 
     void follow(UUID archiverId, UUID editorId);
 

@@ -59,4 +59,8 @@ public class FollowQueryService {
 
         return FollowDto.ListResponse.from(editors);
     }
+
+    public boolean isFollowing(UUID archiverId, UUID editorId) {
+        return followRepository.existsByArchiverIdAndEditorId(archiverId, editorId);
+    }
 }

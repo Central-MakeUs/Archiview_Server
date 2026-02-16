@@ -41,6 +41,60 @@ public class EditorProfileDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "ArchiverEditorProfileResponse", description = "아카이버가 보는 에디터 프로필 정보 응답")
+    public static class ArchiverEditorProfileResponse {
+        @Schema(description = "탈퇴 여부", example = "false")
+        private boolean withdrawn;
+        @Schema(description = "탈퇴 상태 메시지", example = "탈퇴한 회원")
+        private String withdrawnMessage;
+        @Schema(description = "에디터 닉네임", example = "맛집탐방가")
+        private String nickname;
+        @Schema(description = "인스타그램 ID", example = "editor_insta")
+        private String instagramId;
+        @Schema(description = "인스타그램 URL", example = "https://www.instagram.com/editor_insta")
+        private String instagramUrl;
+        @Schema(description = "한줄 소개", example = "서울의 숨은 맛집을 기록합니다.")
+        private String introduction;
+        @Schema(description = "해시태그 2개", example = "[\"#성수카페\", \"#디저트맛집\"]")
+        private java.util.List<String> hashtags;
+        @Schema(description = "프로필 이미지 URL")
+        private String profileImageUrl;
+        @Schema(description = "로그인한 아카이버의 해당 에디터 팔로우 여부", example = "true")
+        private boolean following;
+
+        public static ArchiverEditorProfileResponse from(Response response, boolean following) {
+            return ArchiverEditorProfileResponse.builder()
+                    .withdrawn(response.isWithdrawn())
+                    .withdrawnMessage(response.getWithdrawnMessage())
+                    .nickname(response.getNickname())
+                    .instagramId(response.getInstagramId())
+                    .instagramUrl(response.getInstagramUrl())
+                    .introduction(response.getIntroduction())
+                    .hashtags(response.getHashtags())
+                    .profileImageUrl(response.getProfileImageUrl())
+                    .following(following)
+                    .build();
+        }
+
+        public static ArchiverEditorProfileResponse mock() {
+            return ArchiverEditorProfileResponse.builder()
+                    .withdrawn(false)
+                    .withdrawnMessage(null)
+                    .nickname("맛집탐방가")
+                    .instagramId("editor_insta")
+                    .instagramUrl("https://www.instagram.com/editor_insta")
+                    .introduction("서울의 숨은 맛집을 기록합니다.")
+                    .hashtags(java.util.List.of("#성수카페", "#디저트맛집"))
+                    .profileImageUrl("https://picsum.photos/200/200?random=41")
+                    .following(true)
+                    .build();
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
     @Schema(name = "EditorProfileResponse", description = "에디터 프로필 정보 응답")
     public static class Response {
         @Schema(description = "탈퇴 여부", example = "false")

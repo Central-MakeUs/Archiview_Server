@@ -54,8 +54,10 @@ public class ArchiverUserService implements ArchiverUserUseCase {
     }
 
     @Override
-    public EditorProfileDto.Response getEditorProfile(UUID editorId) {
-        return editorProfileQueryService.getEditorProfile(editorId);
+    public EditorProfileDto.ArchiverEditorProfileResponse getEditorProfile(UUID archiverId, UUID editorId) {
+        EditorProfileDto.Response response = editorProfileQueryService.getEditorProfile(editorId);
+        boolean following = followQueryService.isFollowing(archiverId, editorId);
+        return EditorProfileDto.ArchiverEditorProfileResponse.from(response, following);
     }
 
     @Override

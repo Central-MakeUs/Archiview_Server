@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
@@ -187,6 +188,7 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
                                 .build();
 
                 given(editorProfileQueryService.getEditorProfile(EDITOR_ID)).willReturn(response);
+                given(followQueryService.isFollowing(any(UUID.class), eq(EDITOR_ID))).willReturn(true);
 
                 mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/profile", EDITOR_ID)
                                 .with(authenticatedArchiver()))
@@ -194,6 +196,7 @@ class ArchiverFollowControllerTest extends ControllerTestSupport {
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.nickname").value("맛집탐방가"))
                                 .andExpect(jsonPath("$.data.instagramId").value("editor_insta"))
+                                .andExpect(jsonPath("$.data.following").value(true))
                                 .andDo(print());
         }
 

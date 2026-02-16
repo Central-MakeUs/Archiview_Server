@@ -76,12 +76,14 @@ public class ArchiverQueryController {
 
     @Operation(summary = "에디터 프로필 조회 (아카이버)", description = "아카이버가 특정 에디터의 프로필 정보를 조회합니다.")
     @GetMapping("/editors/{editorId}/profile")
-    public ResponseEntity<ApiResponse<EditorProfileDto.Response>> getEditorProfile(
+    public ResponseEntity<ApiResponse<EditorProfileDto.ArchiverEditorProfileResponse>> getEditorProfile(
             @PathVariable java.util.UUID editorId,
-            @RequestParam(defaultValue = "false") boolean useMock) {
+            @RequestParam(defaultValue = "false") boolean useMock,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
-            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.Response.mock()));
+            return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.ArchiverEditorProfileResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(archiverUserUseCase.getEditorProfile(editorId)));
+        return ResponseEntity.ok(ApiResponse.success(
+                archiverUserUseCase.getEditorProfile(oAuth2User.getUserId(), editorId)));
     }
 }
