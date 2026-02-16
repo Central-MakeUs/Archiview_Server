@@ -20,6 +20,8 @@ public enum PostErrorCode implements DomainErrorCode {
     INVALID_HASHTAG(HttpStatus.BAD_REQUEST, "POST_INVALID_HASHTAG", "error.post.invalid_hashtag"),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "error.post.not_found"),
     POST_FORBIDDEN(HttpStatus.FORBIDDEN, "POST_FORBIDDEN", "error.post.forbidden"),
+    POST_INVALID_CREATE_POST_PLACE_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_CREATE_POST_PLACE_ID",
+            "error.post.invalid_create_post_place_id"),
     POST_INVALID_UPDATE_POST_PLACE_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_UPDATE_POST_PLACE_ID",
             "error.post.invalid_update_post_place_id"),
     POST_EDITOR_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_EDITOR_NOT_FOUND", "error.post.editor_not_found"),

@@ -25,7 +25,7 @@ public class EditorPostCommandController {
     @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
     @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> createPost(
-            @RequestBody @Valid PostCommandDto.Request request,
+            @RequestBody @Valid PostCommandDto.CreateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.createPost(request, user.getUserId())));
     }
@@ -41,7 +41,7 @@ public class EditorPostCommandController {
     @PutMapping(value = "/me/posts/{postId}", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> updatePost(
             @PathVariable Long postId,
-            @RequestBody @Valid PostCommandDto.Request request,
+            @RequestBody @Valid PostCommandDto.UpdateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(
                 editorPostUseCase.updatePost(postId, request, user.getUserId())));

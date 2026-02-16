@@ -65,7 +65,7 @@ class PostCommandServiceTest {
                 String url = "https://www.instagram.com/post1";
                 java.util.List<String> hashTags = java.util.List.of("#여행", "#맛집");
 
-                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest
                                 .builder()
                                 .placeName("테스트 장소")
                                 .addressName("서울 노원구 공릉동 596-12")
@@ -77,7 +77,7 @@ class PostCommandServiceTest {
                                 .phoneNumber("02-1234-5678")
                                 .build();
 
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url(url)
                                 .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(placeInfoRequest))
@@ -127,7 +127,7 @@ class PostCommandServiceTest {
                 String url = "https://www.instagram.com/post2";
                 java.util.List<String> hashTags = java.util.List.of("#맛집", "#데이트");
 
-                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest
                                 .builder()
                                 .placeName("기존 장소")
                                 .addressName("서울시 종로구 묘동 123-45")
@@ -139,7 +139,7 @@ class PostCommandServiceTest {
                                 .phoneNumber("02-1234-0000")
                                 .build();
 
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url(url)
                                 .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(placeInfoRequest))
@@ -156,6 +156,7 @@ class PostCommandServiceTest {
                                 Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
                                 "도보 3분");
                 given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, existingPlace,
                                 placeInfoRequest.getDescription(), null, editorId);
@@ -179,7 +180,7 @@ class PostCommandServiceTest {
         @DisplayName("Post 생성 시 기존 Place 전화번호가 없으면 요청 전화번호로 보강한다")
         void createPost_withExistingPlaceWithoutPhone_updatesPhoneNumber() {
                 UUID editorId = UUID.randomUUID();
-                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
                                 .placeName("기존 장소")
                                 .description("설명")
                                 .addressName("서울시 종로구 묘동 123-45")
@@ -188,7 +189,7 @@ class PostCommandServiceTest {
                                 .longitude(Double.valueOf("126.9800"))
                                 .phoneNumber("02-1111-2222")
                                 .build();
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url("https://www.instagram.com/post2")
                                 .hashTags(List.of("#맛집"))
                                 .placeInfoRequestList(List.of(placeInfoRequest))
@@ -219,7 +220,7 @@ class PostCommandServiceTest {
         @DisplayName("Post 생성 시 기존 Place 전화번호가 있으면 요청값으로 덮어쓰지 않는다")
         void createPost_withExistingPlaceWithPhone_keepsOriginalPhoneNumber() {
                 UUID editorId = UUID.randomUUID();
-                PostCommandDto.Request.PlaceInfoRequest placeInfoRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
                                 .placeName("기존 장소")
                                 .description("설명")
                                 .addressName("서울시 종로구 묘동 123-45")
@@ -228,7 +229,7 @@ class PostCommandServiceTest {
                                 .longitude(Double.valueOf("126.9800"))
                                 .phoneNumber("02-9999-9999")
                                 .build();
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url("https://www.instagram.com/post3")
                                 .hashTags(List.of("#카페"))
                                 .placeInfoRequestList(List.of(placeInfoRequest))
@@ -264,7 +265,7 @@ class PostCommandServiceTest {
                 String url = "https://www.instagram.com/post3";
                 java.util.List<String> hashTags = java.util.List.of("#여행", "#카페");
 
-                PostCommandDto.Request.PlaceInfoRequest place1 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest place1 = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
                                 .placeName("장소1")
                                 .addressName("주소1")
                                 .roadAddressName("도로명주소1")
@@ -274,7 +275,7 @@ class PostCommandServiceTest {
                                 .nearestStationWalkTime("도보 4분")
                                 .build();
 
-                PostCommandDto.Request.PlaceInfoRequest place2 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest place2 = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
                                 .placeName("장소2")
                                 .addressName("주소2")
                                 .roadAddressName("도로명주소2")
@@ -284,7 +285,7 @@ class PostCommandServiceTest {
                                 .nearestStationWalkTime("도보 6분")
                                 .build();
 
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url(url)
                                 .hashTags(hashTags)
                                 .placeInfoRequestList(List.of(place1, place2))
@@ -308,6 +309,35 @@ class PostCommandServiceTest {
                 verify(placeRepository, times(2)).findByPosition(any(Position.class));
                 verify(placeRepository, times(2)).save(any(Place.class));
                 verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("Post 생성 시 postPlaceId가 포함되면 예외")
+        void createPost_withPostPlaceId_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest
+                                .builder()
+                                .postPlaceId(100L)
+                                .placeName("장소")
+                                .description("설명")
+                                .addressName("주소")
+                                .roadAddressName("도로명")
+                                .latitude(37.5665)
+                                .longitude(126.9780)
+                                .build();
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                                .url("https://www.instagram.com/post-invalid")
+                                .hashTags(List.of("#테스트"))
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
+
+                assertThatThrownBy(() -> postCommandService.createPost(request, editorId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_INVALID_CREATE_POST_PLACE_ID);
+
+                verify(postRepository, never()).save(any(Post.class));
+                verify(postPlacesRepository, never()).save(any(PostPlace.class));
         }
 
         @Test
@@ -357,7 +387,7 @@ class PostCommandServiceTest {
                                 .imageUrl("https://remove.image")
                                 .build();
 
-                PostCommandDto.Request.PlaceInfoRequest updateRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest updateRequest = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .postPlaceId(201L)
                                 .placeName("기존 장소")
                                 .description("수정된 설명")
@@ -368,7 +398,7 @@ class PostCommandServiceTest {
                                 .categoryIds(List.of(1L))
                                 .imageUrl("https://new.image")
                                 .build();
-                PostCommandDto.Request.PlaceInfoRequest createRequest = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest createRequest = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .placeName("신규 장소")
                                 .description("신규 설명")
                                 .addressName("신규 지번")
@@ -378,7 +408,7 @@ class PostCommandServiceTest {
                                 .categoryIds(List.of(2L))
                                 .imageUrl("https://new.place.image")
                                 .build();
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                                 .url("https://www.instagram.com/p/updated")
                                 .hashTags(List.of("#수정", "#게시글"))
                                 .placeInfoRequestList(List.of(updateRequest, createRequest))
@@ -424,7 +454,7 @@ class PostCommandServiceTest {
                                 .build();
                 PostPlace existing = PostPlace.builder().id(301L).post(post).editorId(editorId).build();
 
-                PostCommandDto.Request.PlaceInfoRequest requestPlace = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest requestPlace = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .postPlaceId(999L)
                                 .placeName("잘못된")
                                 .description("잘못된")
@@ -433,7 +463,7 @@ class PostCommandServiceTest {
                                 .latitude(37.5)
                                 .longitude(127.5)
                                 .build();
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                                 .url("https://www.instagram.com/p/updated")
                                 .hashTags(List.of("#수정"))
                                 .placeInfoRequestList(List.of(requestPlace))
@@ -465,7 +495,7 @@ class PostCommandServiceTest {
                                 .build();
                 PostPlace existing = PostPlace.builder().id(401L).post(post).editorId(editorId).build();
 
-                PostCommandDto.Request.PlaceInfoRequest p1 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest p1 = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .postPlaceId(401L)
                                 .placeName("장소1")
                                 .description("설명1")
@@ -474,7 +504,7 @@ class PostCommandServiceTest {
                                 .latitude(37.51)
                                 .longitude(127.51)
                                 .build();
-                PostCommandDto.Request.PlaceInfoRequest p2 = PostCommandDto.Request.PlaceInfoRequest.builder()
+                PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest p2 = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .postPlaceId(401L)
                                 .placeName("장소2")
                                 .description("설명2")
@@ -483,7 +513,7 @@ class PostCommandServiceTest {
                                 .latitude(37.52)
                                 .longitude(127.52)
                                 .build();
-                PostCommandDto.Request request = PostCommandDto.Request.builder()
+                PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                                 .url("https://www.instagram.com/p/updated")
                                 .hashTags(List.of("#수정"))
                                 .placeInfoRequestList(List.of(p1, p2))

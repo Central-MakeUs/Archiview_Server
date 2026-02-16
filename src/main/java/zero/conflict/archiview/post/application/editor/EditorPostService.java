@@ -23,7 +23,7 @@ public class EditorPostService implements EditorPostUseCase {
     private final EditorPostQueryService editorPostQueryService;
 
     @Override
-    public PostCommandDto.Response createPost(PostCommandDto.Request request, UUID editorId) {
+    public PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, UUID editorId) {
         return postCommandService.createPost(request, editorId);
     }
 
@@ -33,7 +33,7 @@ public class EditorPostService implements EditorPostUseCase {
     }
 
     @Override
-    public PostCommandDto.Response updatePost(Long postId, PostCommandDto.Request request, UUID editorId) {
+    public PostCommandDto.Response updatePost(Long postId, PostCommandDto.UpdateRequest request, UUID editorId) {
         return postCommandService.updatePost(postId, request, editorId);
     }
 

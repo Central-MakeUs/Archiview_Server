@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public interface EditorPostUseCase {
 
-    PostCommandDto.Response createPost(PostCommandDto.Request request, UUID editorId);
+    PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, UUID editorId);
 
     PresignedUrlCommandDto.Response createPostImagePresignedUrl(PresignedUrlCommandDto.Request request);
 
-    PostCommandDto.Response updatePost(Long postId, PostCommandDto.Request request, UUID editorId);
+    PostCommandDto.Response updatePost(Long postId, PostCommandDto.UpdateRequest request, UUID editorId);
 
     void deletePost(Long postId, UUID editorId);
 

@@ -43,7 +43,8 @@ public class PostCommandService {
     private final PostOutboxService postOutboxService;
 
     @Transactional
-    public PostCommandDto.Response createPost(PostCommandDto.Request request, java.util.UUID editorId) {
+    public PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, java.util.UUID editorId) {
+        validateCreateRequestNoPostPlaceId(request);
         Post post = Post.createOf(editorId, request.getUrl(), request.getHashTags());
         Post savedPost = postRepository.save(post);
 
@@ -86,7 +87,7 @@ public class PostCommandService {
     @Transactional
     public PostCommandDto.Response updatePost(
             Long postId,
-            PostCommandDto.Request request,
+            PostCommandDto.UpdateRequest request,
             java.util.UUID editorId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_NOT_FOUND));
@@ -107,7 +108,7 @@ public class PostCommandService {
         }
 
         Set<Long> requestedPostPlaceIds = new HashSet<>();
-        for (PostCommandDto.Request.PlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
+        for (PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
             Long requestedId = placeInfo.getPostPlaceId();
             if (requestedId == null) {
                 continue;
@@ -123,7 +124,7 @@ public class PostCommandService {
         postPlacesRepository.deleteAllByIdIn(deletedPostPlaceIds);
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = new ArrayList<>();
-        for (PostCommandDto.Request.PlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
+        for (PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
             Place savedPlace = getOrCreatePlace(placeInfo);
             List<Category> categories = resolveCategories(placeInfo.getCategoryIds());
 
@@ -182,14 +183,14 @@ public class PostCommandService {
     }
 
     private List<PostCommandDto.Response.PlaceInfoResponse> createPlacesAndPostPlaces(
-            List<PostCommandDto.Request.PlaceInfoRequest> placeInfoRequests,
+            List<? extends PostCommandDto.PlaceInfoInput> placeInfoRequests,
             Post post,
             java.util.UUID editorId) {
 
         List<PostCommandDto.Response.PlaceInfoResponse> responses = new ArrayList<>();
 
         for (int i = 0; i < placeInfoRequests.size(); i++) {
-            PostCommandDto.Request.PlaceInfoRequest placeInfo = placeInfoRequests.get(i);
+            PostCommandDto.PlaceInfoInput placeInfo = placeInfoRequests.get(i);
             Place savedPlace = getOrCreatePlace(placeInfo);
 
             PostPlace postPlace = PostPlace.createOf(
@@ -207,7 +208,7 @@ public class PostCommandService {
         return responses;
     }
 
-    private Place createPlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
+    private Place createPlace(PostCommandDto.PlaceInfoInput placeInfo) {
         return Place.createOf(
                 placeInfo.getPlaceName(),
                 Address.of(
@@ -221,7 +222,7 @@ public class PostCommandService {
                 placeInfo.getPhoneNumber());
     }
 
-    private Place getOrCreatePlace(PostCommandDto.Request.PlaceInfoRequest placeInfo) {
+    private Place getOrCreatePlace(PostCommandDto.PlaceInfoInput placeInfo) {
         Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
         Place savedPlace = placeRepository.findByPosition(position)
                 .orElseGet(() -> {
@@ -232,6 +233,14 @@ public class PostCommandService {
             return placeRepository.save(savedPlace);
         }
         return savedPlace;
+    }
+
+    private void validateCreateRequestNoPostPlaceId(PostCommandDto.CreateRequest request) {
+        for (PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo : request.getPlaceInfoRequestList()) {
+            if (placeInfo.getPostPlaceId() != null) {
+                throw new DomainException(PostErrorCode.POST_INVALID_CREATE_POST_PLACE_ID);
+            }
+        }
     }
 
     private List<Category> resolveCategories(List<Long> categoryIds) {

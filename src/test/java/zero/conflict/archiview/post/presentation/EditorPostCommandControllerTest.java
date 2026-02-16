@@ -10,6 +10,8 @@ import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.global.error.DomainException;
 
 import java.util.Collections;
 
@@ -33,7 +35,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("게시글 생성 성공")
     void createPost_Success() throws Exception {
-        PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
+        PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
                 .placeName("테스트 장소")
                 .description("테스트 설명")
                 .addressName("서울 노원구 공릉동 596-12")
@@ -44,7 +46,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .phoneNumber("02-1234-5678")
                 .build();
 
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
+        PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                 .url("https://www.instagram.com/post")
                 .hashTags(java.util.List.of("#테스트", "#여행"))
                 .placeInfoRequestList(Collections.singletonList(placeInfo))
@@ -64,7 +66,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .placeInfoResponseList(Collections.singletonList(placeResponse))
                 .build();
 
-        given(postCommandService.createPost(any(PostCommandDto.Request.class),
+        given(postCommandService.createPost(any(PostCommandDto.CreateRequest.class),
                 eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
                 .willReturn(mockResponse);
 
@@ -105,7 +107,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     @DisplayName("게시글 수정 성공")
     void updatePost_success() throws Exception {
         Long postId = 10L;
-        PostCommandDto.Request.PlaceInfoRequest placeInfo = PostCommandDto.Request.PlaceInfoRequest.builder()
+        PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest placeInfo = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                 .postPlaceId(77L)
                 .placeName("수정 장소")
                 .description("수정 설명")
@@ -114,7 +116,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .latitude(37.57)
                 .longitude(126.98)
                 .build();
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
+        PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                 .url("https://www.instagram.com/p/updated")
                 .hashTags(java.util.List.of("#수정"))
                 .placeInfoRequestList(java.util.List.of(placeInfo))
@@ -127,7 +129,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .placeInfoResponseList(Collections.emptyList())
                 .build();
 
-        given(postCommandService.updatePost(eq(postId), any(PostCommandDto.Request.class),
+        given(postCommandService.updatePost(eq(postId), any(PostCommandDto.UpdateRequest.class),
                 eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
                 .willReturn(response);
 
@@ -158,7 +160,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("게시글 생성 실패 - URL 누락")
     void createPost_Fail_NoUrl() throws Exception {
-        PostCommandDto.Request request = PostCommandDto.Request.builder()
+        PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                 .url("")
                 .hashTags(java.util.List.of("#테스트"))
                 .placeInfoRequestList(Collections.emptyList())
@@ -169,5 +171,35 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("게시글 생성 실패 - postPlaceId 포함")
+    void createPost_Fail_WithPostPlaceId() throws Exception {
+        PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
+                .postPlaceId(99L)
+                .placeName("테스트 장소")
+                .description("테스트 설명")
+                .addressName("서울 노원구 공릉동 596-12")
+                .roadAddressName("인천 중구 백운로228번길 81-10")
+                .latitude(37.5665)
+                .longitude(126.9780)
+                .build();
+
+        PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                .url("https://www.instagram.com/post")
+                .hashTags(java.util.List.of("#테스트"))
+                .placeInfoRequestList(Collections.singletonList(placeInfo))
+                .build();
+
+        given(postCommandService.createPost(any(PostCommandDto.CreateRequest.class), any()))
+                .willThrow(new DomainException(PostErrorCode.POST_INVALID_CREATE_POST_PLACE_ID));
+
+        mockMvc.perform(post("/api/v1/editors/posts")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("POST_INVALID_CREATE_POST_PLACE_ID"));
     }
 }
