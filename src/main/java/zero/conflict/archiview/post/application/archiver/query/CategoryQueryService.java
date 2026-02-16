@@ -85,6 +85,7 @@ public class CategoryQueryService {
                 .placeId(latestPostPlace.getPlace().getId())
                 .placeName(latestPostPlace.getPlace().getName())
                 .latestDescription(latestPostPlace.getDescription())
+                .imageUrl(latestPostPlace.getImageUrl())
                 .viewCount(viewCount)
                 .saveCount(saveCount)
                 .build();

@@ -62,6 +62,7 @@ public class CategoryQueryDto {
         private Long placeId;
         private String placeName;
         private String latestDescription;
+        private String imageUrl;
         private Long viewCount;
         private Long saveCount;
 
@@ -70,6 +71,7 @@ public class CategoryQueryDto {
                     .placeId(projection.getPlaceId())
                     .placeName(projection.getPlaceName())
                     .latestDescription(projection.getLatestDescription())
+                    .imageUrl(null)
                     .viewCount(projection.getViewCount())
                     .saveCount(projection.getSaveCount())
                     .build();
@@ -99,6 +101,7 @@ public class CategoryQueryDto {
                             .placeId(101L)
                             .placeName("성수 감성 카페")
                             .latestDescription("채광이 좋고 디저트가 맛있어요.")
+                            .imageUrl("https://example.com/images/cafe-101.jpg")
                             .viewCount(1240L)
                             .saveCount(385L)
                             .build(),
@@ -106,6 +109,7 @@ public class CategoryQueryDto {
                             .placeId(102L)
                             .placeName("연남 브런치 하우스")
                             .latestDescription("주말 오픈런 필수인 브런치 맛집.")
+                            .imageUrl("https://example.com/images/brunch-102.jpg")
                             .viewCount(980L)
                             .saveCount(274L)
                             .build());

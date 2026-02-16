@@ -52,6 +52,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .placeId(100L)
                 .placeName("성수 핫플")
                 .latestDescription("가장 최근 설명")
+                .imageUrl("https://example.com/hotplace-100.jpg")
                 .viewCount(1200L)
                 .saveCount(340L)
                 .build();
@@ -67,7 +68,8 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(1))
-                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 핫플"));
+                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 핫플"))
+                .andExpect(jsonPath("$.data.places[0].imageUrl").value("https://example.com/hotplace-100.jpg"));
     }
 
     @Test
@@ -80,6 +82,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(2))
                 .andExpect(jsonPath("$.data.places").isArray())
-                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 감성 카페"));
+                .andExpect(jsonPath("$.data.places[0].placeName").value("성수 감성 카페"))
+                .andExpect(jsonPath("$.data.places[0].imageUrl").value("https://example.com/images/cafe-101.jpg"));
     }
 }
