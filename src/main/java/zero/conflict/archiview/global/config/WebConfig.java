@@ -22,6 +22,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "https://appleid.apple.com",
                         "http://localhost:3000",
                         "http://192.168.100.118:3000",
+                        "http://192.168.0.6:3000",
                         "http://localhost:8080")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
