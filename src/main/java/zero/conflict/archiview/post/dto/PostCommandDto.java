@@ -41,6 +41,9 @@ public class PostCommandDto {
         @AllArgsConstructor
         @Builder
         public static class PlaceInfoRequest {
+            @Schema(description = "수정 시 기존 postPlace ID (신규 추가는 null)", example = "101")
+            private Long postPlaceId;
+
             @NotBlank(message = "장소명은 필수입니다.")
             @Schema(description = "장소명", example = "아카이브 성수")
             private String placeName;

@@ -73,9 +73,25 @@ public class PostPlace extends BaseTimeEntity {
                 .build();
     }
 
+    public void update(Place place, String description, String imageUrl) {
+        this.place = place;
+        this.description = description;
+        this.imageUrl = imageUrl;
+    }
+
     public void addCategory(Category category) {
         PostPlaceCategory postPlaceCategory = PostPlaceCategory.createOf(this, category);
         this.postPlaceCategories.add(postPlaceCategory);
+    }
+
+    public void replaceCategories(List<Category> categories) {
+        this.postPlaceCategories.clear();
+        if (categories == null || categories.isEmpty()) {
+            return;
+        }
+        for (Category category : categories) {
+            addCategory(category);
+        }
     }
 
     public void increaseViewCount(UUID actorId) {
