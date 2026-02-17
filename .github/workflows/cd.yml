@@ -68,6 +68,7 @@ jobs:
             docker run -d \
               --name archiview \
               --network archiview-net \
+              --add-host=host.docker.internal:host-gateway \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e SPRING_DATA_REDIS_HOST=redis \
               -e SPRING_DATA_REDIS_PORT=6379 \
@@ -93,6 +94,8 @@ jobs:
             # 네트워크/DNS 연결 검증
             docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' archiview
             docker exec archiview getent hosts redis
+            docker exec archiview getent hosts host.docker.internal
+            docker exec archiview sh -c 'if command -v nc >/dev/null 2>&1; then nc -z host.docker.internal 3306 || (echo "DB TCP check failed"; exit 1); else echo "nc not found; skipping DB TCP check"; fi'
 
             # 컨테이너 로그 확인
             sleep 5
