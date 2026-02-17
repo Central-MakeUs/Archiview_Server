@@ -54,4 +54,34 @@ class ArchiverPlaceCommandControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST_PLACE_NOT_FOUND"));
     }
+
+    @Test
+    @DisplayName("길찾기 수 증가 성공")
+    void increaseDirectionCount_success() throws Exception {
+        Long postPlaceId = 1L;
+        UUID actorId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        given(postCommandService.increasePostPlaceDirectionCount(postPlaceId, actorId)).willReturn(21L);
+
+        mockMvc.perform(post("/api/v1/archivers/post-places/{postPlaceId}/direction-inflow", postPlaceId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.postPlaceId").value(1L))
+                .andExpect(jsonPath("$.data.directionCount").value(21L));
+    }
+
+    @Test
+    @DisplayName("길찾기 수 증가 실패 - postPlace 없음")
+    void increaseDirectionCount_postPlaceNotFound() throws Exception {
+        Long postPlaceId = 1L;
+        UUID actorId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+        given(postCommandService.increasePostPlaceDirectionCount(eq(postPlaceId), eq(actorId)))
+                .willThrow(new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+        mockMvc.perform(post("/api/v1/archivers/post-places/{postPlaceId}/direction-inflow", postPlaceId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("POST_PLACE_NOT_FOUND"));
+    }
 }

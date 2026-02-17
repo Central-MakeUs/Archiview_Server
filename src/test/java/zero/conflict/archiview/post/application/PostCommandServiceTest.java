@@ -743,4 +743,54 @@ class PostCommandServiceTest {
                                 .extracting(ex -> ((DomainException) ex).getErrorCode())
                                 .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
         }
+
+        @Test
+        @DisplayName("길찾기 수 증가 성공 - 타인 클릭")
+        void increaseDirectionCount_success() {
+                UUID editorId = UUID.randomUUID();
+                UUID actorId = UUID.randomUUID();
+                Long postPlaceId = 24L;
+                PostPlace postPlace = PostPlace.builder()
+                                .id(postPlaceId)
+                                .editorId(editorId)
+                                .directionCount(7L)
+                                .build();
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+
+                Long result = postCommandService.increasePostPlaceDirectionCount(postPlaceId, actorId);
+
+                assertThat(result).isEqualTo(8L);
+                assertThat(postPlace.getDirectionCount()).isEqualTo(8L);
+        }
+
+        @Test
+        @DisplayName("길찾기 수 증가 - 본인 클릭이면 증가하지 않는다")
+        void increaseDirectionCount_selfClick_doesNotIncrease() {
+                UUID editorId = UUID.randomUUID();
+                Long postPlaceId = 25L;
+                PostPlace postPlace = PostPlace.builder()
+                                .id(postPlaceId)
+                                .editorId(editorId)
+                                .directionCount(9L)
+                                .build();
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+
+                Long result = postCommandService.increasePostPlaceDirectionCount(postPlaceId, editorId);
+
+                assertThat(result).isEqualTo(9L);
+                assertThat(postPlace.getDirectionCount()).isEqualTo(9L);
+        }
+
+        @Test
+        @DisplayName("길찾기 수 증가 실패 - postPlace가 없으면 예외")
+        void increaseDirectionCount_postPlaceNotFound() {
+                Long postPlaceId = 26L;
+                given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.empty());
+
+                assertThatThrownBy(() -> postCommandService.increasePostPlaceDirectionCount(postPlaceId,
+                                UUID.randomUUID()))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
+        }
 }

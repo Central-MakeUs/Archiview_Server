@@ -58,4 +58,6 @@ public interface ArchiverPostUseCase {
     void increasePostPlaceViewCount(Long postPlaceId, UUID actorId);
 
     Long increasePostPlaceInstagramInflowCount(Long postPlaceId, UUID actorId);
+
+    Long increasePostPlaceDirectionCount(Long postPlaceId, UUID actorId);
 }

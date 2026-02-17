@@ -32,4 +32,14 @@ public class ArchiverPlaceCommandController {
         return ResponseEntity.ok(ApiResponse.success(
                 ArchiverPlaceCommandDto.InstagramInflowCountResponse.of(postPlaceId, updatedCount)));
     }
+
+    @Operation(summary = "길찾기 수 증가", description = "아카이버가 길찾기 버튼 클릭 시 해당 postPlace의 directionCount를 1 증가시킵니다.")
+    @PostMapping("/post-places/{postPlaceId}/direction-inflow")
+    public ResponseEntity<ApiResponse<ArchiverPlaceCommandDto.DirectionCountResponse>> increaseDirectionCount(
+            @PathVariable Long postPlaceId,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        Long updatedCount = archiverPostUseCase.increasePostPlaceDirectionCount(postPlaceId, oAuth2User.getUserId());
+        return ResponseEntity.ok(ApiResponse.success(
+                ArchiverPlaceCommandDto.DirectionCountResponse.of(postPlaceId, updatedCount)));
+    }
 }

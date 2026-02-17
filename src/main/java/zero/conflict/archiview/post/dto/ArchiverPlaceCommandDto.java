@@ -22,4 +22,20 @@ public class ArchiverPlaceCommandDto {
                     .build();
         }
     }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DirectionCountResponse {
+        private Long postPlaceId;
+        private Long directionCount;
+
+        public static DirectionCountResponse of(Long postPlaceId, Long directionCount) {
+            return DirectionCountResponse.builder()
+                    .postPlaceId(postPlaceId)
+                    .directionCount(directionCount)
+                    .build();
+        }
+    }
 }

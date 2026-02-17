@@ -95,6 +95,15 @@ public class PostCommandService {
     }
 
     @Transactional
+    public Long increasePostPlaceDirectionCount(Long postPlaceId, java.util.UUID actorId) {
+        PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
+                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
+
+        postPlace.increaseDirectionCount(actorId);
+        return postPlace.getDirectionCount();
+    }
+
+    @Transactional
     public PostCommandDto.Response updatePost(
             Long postId,
             PostCommandDto.UpdateRequest request,
