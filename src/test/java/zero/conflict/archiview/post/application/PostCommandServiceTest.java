@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.domain.*;
@@ -56,6 +57,9 @@ class PostCommandServiceTest {
 
         @Mock
         private PostOutboxService postOutboxService;
+
+        @Mock
+        private PostPlaceCountService postPlaceCountService;
 
         @Test
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
@@ -706,11 +710,12 @@ class PostCommandServiceTest {
                                 .instagramInflowCount(3L)
                                 .build();
                 given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+                given(postPlaceCountService.increaseInstagramInflowCount(postPlace, actorId)).willReturn(4L);
 
                 Long result = postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId, actorId);
 
                 assertThat(result).isEqualTo(4L);
-                assertThat(postPlace.getInstagramInflowCount()).isEqualTo(4L);
+                verify(postPlaceCountService).increaseInstagramInflowCount(postPlace, actorId);
         }
 
         @Test
@@ -724,11 +729,12 @@ class PostCommandServiceTest {
                                 .instagramInflowCount(5L)
                                 .build();
                 given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+                given(postPlaceCountService.increaseInstagramInflowCount(postPlace, editorId)).willReturn(5L);
 
                 Long result = postCommandService.increasePostPlaceInstagramInflowCount(postPlaceId, editorId);
 
                 assertThat(result).isEqualTo(5L);
-                assertThat(postPlace.getInstagramInflowCount()).isEqualTo(5L);
+                verify(postPlaceCountService).increaseInstagramInflowCount(postPlace, editorId);
         }
 
         @Test
@@ -742,6 +748,7 @@ class PostCommandServiceTest {
                                 .isInstanceOf(DomainException.class)
                                 .extracting(ex -> ((DomainException) ex).getErrorCode())
                                 .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
+                verify(postPlaceCountService, never()).increaseInstagramInflowCount(any(PostPlace.class), any(UUID.class));
         }
 
         @Test
@@ -756,11 +763,12 @@ class PostCommandServiceTest {
                                 .directionCount(7L)
                                 .build();
                 given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+                given(postPlaceCountService.increaseDirectionCount(postPlace, actorId)).willReturn(8L);
 
                 Long result = postCommandService.increasePostPlaceDirectionCount(postPlaceId, actorId);
 
                 assertThat(result).isEqualTo(8L);
-                assertThat(postPlace.getDirectionCount()).isEqualTo(8L);
+                verify(postPlaceCountService).increaseDirectionCount(postPlace, actorId);
         }
 
         @Test
@@ -774,11 +782,12 @@ class PostCommandServiceTest {
                                 .directionCount(9L)
                                 .build();
                 given(postPlacesRepository.findById(postPlaceId)).willReturn(Optional.of(postPlace));
+                given(postPlaceCountService.increaseDirectionCount(postPlace, editorId)).willReturn(9L);
 
                 Long result = postCommandService.increasePostPlaceDirectionCount(postPlaceId, editorId);
 
                 assertThat(result).isEqualTo(9L);
-                assertThat(postPlace.getDirectionCount()).isEqualTo(9L);
+                verify(postPlaceCountService).increaseDirectionCount(postPlace, editorId);
         }
 
         @Test
@@ -792,5 +801,6 @@ class PostCommandServiceTest {
                                 .isInstanceOf(DomainException.class)
                                 .extracting(ex -> ((DomainException) ex).getErrorCode())
                                 .isEqualTo(PostErrorCode.POST_PLACE_NOT_FOUND);
+                verify(postPlaceCountService, never()).increaseDirectionCount(any(PostPlace.class), any(UUID.class));
         }
 }

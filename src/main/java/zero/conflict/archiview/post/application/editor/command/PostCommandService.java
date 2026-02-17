@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
+import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
@@ -42,6 +43,7 @@ public class PostCommandService {
     private final UserClient userClient;
     private final S3Service s3Service;
     private final PostOutboxService postOutboxService;
+    private final PostPlaceCountService postPlaceCountService;
 
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, java.util.UUID editorId) {
@@ -82,7 +84,7 @@ public class PostCommandService {
         PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
-        postPlace.increaseViewCount(actorId);
+        postPlaceCountService.increaseViewCount(postPlace, actorId);
     }
 
     @Transactional
@@ -90,8 +92,7 @@ public class PostCommandService {
         PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
-        postPlace.increaseInstagramInflowCount(actorId);
-        return postPlace.getInstagramInflowCount();
+        return postPlaceCountService.increaseInstagramInflowCount(postPlace, actorId);
     }
 
     @Transactional
@@ -99,8 +100,7 @@ public class PostCommandService {
         PostPlace postPlace = postPlacesRepository.findById(postPlaceId)
                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
-        postPlace.increaseDirectionCount(actorId);
-        return postPlace.getDirectionCount();
+        return postPlaceCountService.increaseDirectionCount(postPlace, actorId);
     }
 
     @Transactional

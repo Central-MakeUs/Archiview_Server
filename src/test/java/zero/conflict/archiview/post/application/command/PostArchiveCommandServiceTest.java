@@ -16,7 +16,6 @@ import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -36,6 +35,9 @@ class PostArchiveCommandServiceTest {
     @Mock
     private PostPlaceArchiveRepository postPlaceArchiveRepository;
 
+    @Mock
+    private PostPlaceCountService postPlaceCountService;
+
     @Test
     @DisplayName("postPlace 아카이브 성공")
     void archivePostPlace_success() {
@@ -53,7 +55,7 @@ class PostArchiveCommandServiceTest {
         postArchiveCommandService.archivePostPlace(archiverId, postPlaceId);
 
         verify(postPlaceArchiveRepository).save(any());
-        assertThat(postPlace.getSaveCount()).isEqualTo(1L);
+        verify(postPlaceCountService).increaseSaveCount(postPlace, archiverId);
     }
 
     @Test
@@ -72,7 +74,7 @@ class PostArchiveCommandServiceTest {
         postArchiveCommandService.archivePostPlace(archiverId, postPlaceId);
 
         verify(postPlaceArchiveRepository, never()).save(any());
-        assertThat(postPlace.getSaveCount()).isEqualTo(3L);
+        verify(postPlaceCountService, never()).increaseSaveCount(any(PostPlace.class), any(UUID.class));
     }
 
     @Test
@@ -104,7 +106,7 @@ class PostArchiveCommandServiceTest {
         postArchiveCommandService.unarchivePostPlace(archiverId, postPlaceId);
 
         verify(postPlaceArchiveRepository).deleteByArchiverIdAndPostPlaceId(archiverId, postPlaceId);
-        assertThat(postPlace.getSaveCount()).isEqualTo(1L);
+        verify(postPlaceCountService).decreaseSaveCount(postPlace, archiverId);
     }
 
     @Test

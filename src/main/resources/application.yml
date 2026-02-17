@@ -18,6 +18,12 @@ spring:
       hibernate:
         format_sql: true
 
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+
   # OAuth2
   security:
     oauth2:
@@ -88,6 +94,12 @@ outbox:
       fixed-delay-ms: 3600000
       retention-days: 7
       batch-size: 500
+
+post-place:
+  count-write-back:
+    enabled: true
+    fixed-delay-ms: 3000
+    batch-size: 200
 
 sentry:
   enabled: false

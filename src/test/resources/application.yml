@@ -30,3 +30,7 @@ outbox:
       enabled: false
     cleanup:
       enabled: false
+
+post-place:
+  count-write-back:
+    enabled: false

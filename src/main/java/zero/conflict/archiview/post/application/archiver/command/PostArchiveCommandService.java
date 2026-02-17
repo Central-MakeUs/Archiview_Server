@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceArchiveRepository;
 import zero.conflict.archiview.post.domain.PostPlace;
@@ -18,6 +19,7 @@ public class PostArchiveCommandService {
 
     private final PostPlaceRepository postPlaceRepository;
     private final PostPlaceArchiveRepository postPlaceArchiveRepository;
+    private final PostPlaceCountService postPlaceCountService;
 
     @Transactional
     public void archivePostPlace(UUID archiverId, Long postPlaceId) {
@@ -29,7 +31,7 @@ public class PostArchiveCommandService {
         }
 
         postPlaceArchiveRepository.save(PostPlaceArchive.createOf(archiverId, postPlaceId));
-        postPlace.increaseSaveCount(archiverId);
+        postPlaceCountService.increaseSaveCount(postPlace, archiverId);
     }
 
     @Transactional
@@ -40,6 +42,6 @@ public class PostArchiveCommandService {
 
         postPlaceArchiveRepository.deleteByArchiverIdAndPostPlaceId(archiverId, postPlaceId);
         postPlaceRepository.findById(postPlaceId)
-                .ifPresent(postPlace -> postPlace.decreaseSaveCount(archiverId));
+                .ifPresent(postPlace -> postPlaceCountService.decreaseSaveCount(postPlace, archiverId));
     }
 }

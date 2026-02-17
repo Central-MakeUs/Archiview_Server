@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.domain.PostPlace;
 
 import java.time.LocalDateTime;
@@ -41,4 +42,21 @@ public interface PostPlaceJpaRepository extends JpaRepository<PostPlace, Long> {
             @Param("postId") Long postId,
             @Param("actorId") UUID actorId,
             @Param("deletedAt") LocalDateTime deletedAt);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    @Query("""
+            update PostPlace pp
+            set pp.viewCount = coalesce(pp.viewCount, 0) + :viewDelta,
+                pp.saveCount = coalesce(pp.saveCount, 0) + :saveDelta,
+                pp.instagramInflowCount = coalesce(pp.instagramInflowCount, 0) + :instagramInflowDelta,
+                pp.directionCount = coalesce(pp.directionCount, 0) + :directionDelta
+            where pp.id = :postPlaceId and pp.deletedAt is null
+            """)
+    int applyCountDeltas(
+            @Param("postPlaceId") Long postPlaceId,
+            @Param("viewDelta") long viewDelta,
+            @Param("saveDelta") long saveDelta,
+            @Param("instagramInflowDelta") long instagramInflowDelta,
+            @Param("directionDelta") long directionDelta);
 }
