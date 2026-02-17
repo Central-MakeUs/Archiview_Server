@@ -57,6 +57,12 @@ jobs:
             # 최신 이미지 pull
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
 
+            # 필수 DB 설정 검증
+            if [ -z "${{ secrets.DB_URL }}" ] || [ -z "${{ secrets.DB_USERNAME }}" ] || [ -z "${{ secrets.DB_PASSWORD }}" ]; then
+              echo "DB secrets are missing. Check DB_URL/DB_USERNAME/DB_PASSWORD."
+              exit 1
+            fi
+
             # 앱/Redis 통신용 네트워크 보장
             docker network inspect archiview-net >/dev/null 2>&1 || docker network create archiview-net
 
@@ -72,9 +78,9 @@ jobs:
               -e SPRING_PROFILES_ACTIVE=prod \
               -e SPRING_DATA_REDIS_HOST=redis \
               -e SPRING_DATA_REDIS_PORT=6379 \
-              -e DB_URL="${{ secrets.DB_URL }}" \
-              -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
-              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e SPRING_DATASOURCE_URL="${{ secrets.DB_URL }}" \
+              -e SPRING_DATASOURCE_USERNAME="${{ secrets.DB_USERNAME }}" \
+              -e SPRING_DATASOURCE_PASSWORD="${{ secrets.DB_PASSWORD }}" \
               -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
               -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
               -e KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}" \
