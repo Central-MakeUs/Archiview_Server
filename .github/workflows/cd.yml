@@ -74,6 +74,7 @@ jobs:
             docker run -d \
               --name archiview \
               --network archiview-net \
+              -p 8080:8080 \
               -e SPRING_PROFILES_ACTIVE=prod \
               -e SPRING_DATA_REDIS_HOST=redis \
               -e SPRING_DATA_REDIS_PORT=6379 \
