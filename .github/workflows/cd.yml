@@ -57,6 +57,9 @@ jobs:
             # 최신 이미지 pull
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
 
+            # 앱/Redis 통신용 네트워크 보장
+            docker network inspect archiview-net >/dev/null 2>&1 || docker network create archiview-net
+
             # 기존 컨테이너 중지 및 삭제
             docker stop archiview || true
             docker rm archiview || true
@@ -64,8 +67,10 @@ jobs:
             # 새 컨테이너 실행
             docker run -d \
               --name archiview \
-              --network host \
+              --network archiview-net \
               -e SPRING_PROFILES_ACTIVE=prod \
+              -e SPRING_DATA_REDIS_HOST=redis \
+              -e SPRING_DATA_REDIS_PORT=6379 \
               -e DB_URL="${{ secrets.DB_URL }}" \
               -e DB_USERNAME="${{ secrets.DB_USERNAME }}" \
               -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
@@ -84,6 +89,10 @@ jobs:
               -e SENTRY_ENVIRONMENT="production" \
               -e SENTRY_RELEASE="${{ github.sha }}" \
               ${{ secrets.DOCKERHUB_USERNAME }}/archiview:latest
+
+            # 네트워크/DNS 연결 검증
+            docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}' archiview
+            docker exec archiview getent hosts redis
 
             # 컨테이너 로그 확인
             sleep 5
