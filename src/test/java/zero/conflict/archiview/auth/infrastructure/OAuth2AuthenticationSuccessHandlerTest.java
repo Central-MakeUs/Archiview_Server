@@ -18,6 +18,7 @@ import zero.conflict.archiview.auth.infrastructure.persistence.DevLoginRedirectA
 import zero.conflict.archiview.user.domain.User;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import static org.mockito.BDDMockito.given;
 class OAuth2AuthenticationSuccessHandlerTest {
 
     private static final String DEV_LOGIN_STATE_SESSION_KEY = "OAUTH2_DEV_LOGIN_STATE_MAP";
+    private static final String LOCALHOST_SOURCE_STATE_SESSION_KEY = "OAUTH2_LOCALHOST_SOURCE_STATE_MAP";
 
     @Mock
     private JwtTokenProvider jwtTokenProvider;
@@ -43,14 +45,15 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void setUp() {
         handler = new OAuth2AuthenticationSuccessHandler(jwtTokenProvider, allowlistRepository);
         ReflectionTestUtils.setField(handler, "frontendUrl", "https://archiview.space/");
-        ReflectionTestUtils.setField(handler, "devFrontendUrl", "http://localhost:3000/");
+        ReflectionTestUtils.setField(handler, "localRedirectAllowedOrigins",
+                Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
     }
 
     @Test
     @DisplayName("dev 로그인 + allowlist 사용자의 redirect_url이 있으면 해당 URL로 리다이렉트한다")
     void redirectToUserSpecificDevUrlWhenPresent() throws ServletException, IOException {
         Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
-        MockHttpServletRequest request = devRequestWithState("state-1");
+        MockHttpServletRequest request = devRequestWithState("state-1", true);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         given(jwtTokenProvider.createAccessToken(org.mockito.ArgumentMatchers.any(CustomOAuth2User.class)))
@@ -62,21 +65,21 @@ class OAuth2AuthenticationSuccessHandlerTest {
                 .willReturn(Optional.of(DevLoginRedirectAllowlist.builder()
                         .email("dev-user@archiview.com")
                         .enabled(true)
-                        .redirectUrl("http://192.168.0.6:3000/")
+                        .redirectUrl("http://localhost:3000/")
                         .build()));
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
         assertThat(response.getStatus()).isEqualTo(302);
         assertThat(response.getRedirectedUrl())
-                .startsWith("http://192.168.0.6:3000/editor/home/?accessToken=access-token&refreshToken=refresh-token");
+                .startsWith("http://localhost:3000/editor/home/?accessToken=access-token&refreshToken=refresh-token");
     }
 
     @Test
-    @DisplayName("dev 로그인 + redirect_url이 잘못되었으면 기본 devFrontendUrl로 폴백한다")
-    void fallbackToDefaultDevFrontendUrlWhenRedirectUrlInvalid() throws ServletException, IOException {
+    @DisplayName("dev 로그인 + redirect_url이 잘못되었으면 운영 frontendUrl로 폴백한다")
+    void fallbackToFrontendUrlWhenRedirectUrlInvalid() throws ServletException, IOException {
         Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
-        MockHttpServletRequest request = devRequestWithState("state-2");
+        MockHttpServletRequest request = devRequestWithState("state-2", true);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         given(jwtTokenProvider.createAccessToken(org.mockito.ArgumentMatchers.any(CustomOAuth2User.class)))
@@ -95,7 +98,27 @@ class OAuth2AuthenticationSuccessHandlerTest {
 
         assertThat(response.getStatus()).isEqualTo(302);
         assertThat(response.getRedirectedUrl())
-                .startsWith("http://localhost:3000/editor/home/?accessToken=access-token&refreshToken=refresh-token");
+                .startsWith("https://archiview.space/editor/home/?accessToken=access-token&refreshToken=refresh-token");
+    }
+
+    @Test
+    @DisplayName("dev 로그인이어도 localhost 출처가 아니면 운영 frontendUrl로 리다이렉트한다")
+    void redirectToFrontendWhenDevRequestFromNonLocalhost() throws ServletException, IOException {
+        Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
+        MockHttpServletRequest request = devRequestWithState("state-3", false);
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        given(jwtTokenProvider.createAccessToken(org.mockito.ArgumentMatchers.any(CustomOAuth2User.class)))
+                .willReturn("access-token");
+        given(jwtTokenProvider.createRefreshToken(org.mockito.ArgumentMatchers.any(UUID.class)))
+                .willReturn("refresh-token");
+        given(allowlistRepository.existsByEmailIgnoreCaseAndEnabledTrue("dev-user@archiview.com")).willReturn(true);
+
+        handler.onAuthenticationSuccess(request, response, authentication);
+
+        assertThat(response.getStatus()).isEqualTo(302);
+        assertThat(response.getRedirectedUrl())
+                .startsWith("https://archiview.space/editor/home/?accessToken=access-token&refreshToken=refresh-token");
     }
 
     @Test
@@ -131,12 +154,15 @@ class OAuth2AuthenticationSuccessHandlerTest {
         return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
     }
 
-    private MockHttpServletRequest devRequestWithState(String state) {
+    private MockHttpServletRequest devRequestWithState(String state, boolean localhostSource) {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addParameter("state", state);
-        Map<String, Boolean> stateMap = new HashMap<>();
-        stateMap.put(state, true);
-        request.getSession(true).setAttribute(DEV_LOGIN_STATE_SESSION_KEY, stateMap);
+        Map<String, Boolean> devStateMap = new HashMap<>();
+        devStateMap.put(state, true);
+        request.getSession(true).setAttribute(DEV_LOGIN_STATE_SESSION_KEY, devStateMap);
+        Map<String, Boolean> localhostSourceStateMap = new HashMap<>();
+        localhostSourceStateMap.put(state, localhostSource);
+        request.getSession(true).setAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY, localhostSourceStateMap);
         return request;
     }
 }
