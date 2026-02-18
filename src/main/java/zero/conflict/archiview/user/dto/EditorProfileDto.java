@@ -207,6 +207,7 @@ public class EditorProfileDto {
         @jakarta.validation.constraints.Size(min = 2, max = 2)
         @Schema(description = "해시태그 2개", example = "[\"#성수카페\", \"#디저트맛집\"]")
         private java.util.List<@jakarta.validation.constraints.NotBlank String> hashtags;
+        @jakarta.validation.constraints.Size(max = 1000, message = "프로필 이미지 URL은 최대 1000자여야 합니다.")
         @Schema(description = "프로필 이미지 URL")
         private String profileImageUrl;
     }
@@ -236,6 +237,7 @@ public class EditorProfileDto {
         @jakarta.validation.constraints.Size(min = 2, max = 2)
         @Schema(description = "수정할 해시태그 2개", example = "[\"#성수카페\", \"#디저트맛집\"]")
         private java.util.List<@jakarta.validation.constraints.NotBlank String> hashtags;
+        @jakarta.validation.constraints.Size(max = 1000, message = "프로필 이미지 URL은 최대 1000자여야 합니다.")
         @Schema(description = "수정할 프로필 이미지 URL")
         private String profileImageUrl;
     }

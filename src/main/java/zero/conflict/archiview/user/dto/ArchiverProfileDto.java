@@ -50,6 +50,7 @@ public class ArchiverProfileDto {
     public static class UpdateRequest {
         @Schema(description = "수정할 닉네임", example = "새닉네임")
         private String nickname;
+        @jakarta.validation.constraints.Size(max = 1000, message = "프로필 이미지 URL은 최대 1000자여야 합니다.")
         @Schema(description = "수정할 프로필 이미지 URL")
         private String profileImageUrl;
     }

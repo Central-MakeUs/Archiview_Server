@@ -101,6 +101,7 @@ public class PostCommandDto {
             @Schema(description = "전화번호", example = "02-1234-5678")
             private String phoneNumber;
 
+            @jakarta.validation.constraints.Size(max = 1000, message = "이미지 URL은 최대 1000자여야 합니다.")
             @Schema(description = "업로드된 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/uuid_photo.png")
             private String imageUrl;
         }
@@ -165,6 +166,7 @@ public class PostCommandDto {
             @Schema(description = "전화번호", example = "02-1234-5678")
             private String phoneNumber;
 
+            @jakarta.validation.constraints.Size(max = 1000, message = "이미지 URL은 최대 1000자여야 합니다.")
             @Schema(description = "업로드된 이미지 URL", example = "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/uuid_photo.png")
             private String imageUrl;
         }

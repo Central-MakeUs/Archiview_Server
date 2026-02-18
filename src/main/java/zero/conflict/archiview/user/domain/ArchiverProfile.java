@@ -28,6 +28,7 @@ public class ArchiverProfile extends BaseTimeEntity {
     @Column(nullable = false)
     private String nickname;
 
+    @Column(length = 1000)
     private String profileImageUrl;
 
     @Column(name = "deleted_at")

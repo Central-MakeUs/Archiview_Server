@@ -52,6 +52,7 @@ public class EditorProfile extends BaseTimeEntity {
     @Column(nullable = false)
     private String instagramUrl;
 
+    @Column(length = 1000)
     private String profileImageUrl;
 
     @Embedded

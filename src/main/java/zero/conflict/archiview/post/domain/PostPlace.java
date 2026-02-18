@@ -40,6 +40,7 @@ public class PostPlace extends BaseTimeEntity {
 
     private String description;
 
+    @Column(length = 1000)
     private String imageUrl;
 
     @OneToMany(mappedBy = "postPlace", cascade = CascadeType.ALL, orphanRemoval = true)
