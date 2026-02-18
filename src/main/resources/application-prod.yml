@@ -89,3 +89,5 @@ server:
 sentry:
   enabled: true
   environment: ${SENTRY_ENVIRONMENT:production}
+  send-default-pii: true
+  max-request-body-size: always
