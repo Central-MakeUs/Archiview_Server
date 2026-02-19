@@ -10,6 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.dto.MobileLoginRequest;
+import zero.conflict.archiview.auth.dto.RefreshTokenRequest;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
@@ -57,11 +58,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Map<String, String>>> refreshToken(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "refreshToken을 포함한 요청 바디")
-            @RequestBody Map<String, String> request) {
+            @Valid @RequestBody RefreshTokenRequest request) {
 
-        String refreshToken = request.get("refreshToken");
+        String refreshToken = request.getRefreshToken();
 
-        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
             return ResponseEntity.status(401).body(
                     ApiResponse.fail("INVALID_REFRESH_TOKEN", "유효하지 않은 Refresh Token입니다.")
             );

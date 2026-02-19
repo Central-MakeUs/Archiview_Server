@@ -84,4 +84,13 @@ class ArchiverPlaceCommandControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("POST_PLACE_NOT_FOUND"));
     }
+
+    @Test
+    @DisplayName("인스타그램 유입 수 증가 실패 - 잘못된 postPlaceId")
+    void increaseInstagramInflowCount_invalidPostPlaceId() throws Exception {
+        mockMvc.perform(post("/api/v1/archivers/post-places/{postPlaceId}/instagram-inflow", 0L)
+                        .with(authenticatedUser()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
 }

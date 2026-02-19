@@ -88,6 +88,16 @@ class AuthControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("토큰 재발급 실패 - refreshToken 누락")
+    void refreshToken_missingToken() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+    }
+
+    @Test
     @DisplayName("모바일 카카오 로그인 성공")
     void mobileKakaoLogin_success() throws Exception {
         Map<String, Object> response = Map.of(
@@ -134,6 +144,18 @@ class AuthControllerTest extends ControllerTestSupport {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of("idToken", ""))))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("모바일 로그인 실패 - role 값 오류")
+    void mobileLogin_fail_invalidRole() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/mobile/kakao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "idToken", "kakao-id-token",
+                                "role", "ADMIN"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
 
     @Test

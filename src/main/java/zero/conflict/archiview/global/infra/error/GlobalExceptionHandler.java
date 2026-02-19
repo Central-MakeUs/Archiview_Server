@@ -2,6 +2,7 @@ package zero.conflict.archiview.global.infra.error;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import io.sentry.Sentry;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,19 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Void> response = ApiResponse.fail("VALIDATION_ERROR", errorMessage);
 
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolationException(ConstraintViolationException e) {
+        log.error("ConstraintViolationException: ", e);
+
+        String errorMessage = e.getConstraintViolations().stream()
+                .findFirst()
+                .map(violation -> violation.getMessage())
+                .orElse("입력값이 올바르지 않습니다.");
+
+        ApiResponse<Void> response = ApiResponse.fail("VALIDATION_ERROR", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

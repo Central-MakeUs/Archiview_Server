@@ -1,8 +1,12 @@
 package zero.conflict.archiview.post.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,14 +21,21 @@ public class PresignedUrlCommandDto {
     @Schema(name = "PresignedUrlRequest")
     public static class Request {
         @NotBlank(message = "파일명은 필수입니다.")
+        @Size(max = 255, message = "파일명은 최대 255자여야 합니다.")
+        @Pattern(regexp = "^[^\\\\/\\r\\n]+$", message = "파일명에는 경로 구분자 및 개행을 포함할 수 없습니다.")
         @Schema(description = "원본 파일명", example = "photo.png")
         private String filename;
 
         @NotBlank(message = "파일 타입은 필수입니다.")
+        @Pattern(
+                regexp = "^image/(jpeg|jpg|png|webp)$",
+                message = "지원하지 않는 이미지 타입입니다.")
         @Schema(description = "파일 MIME 타입", example = "image/png")
         private String contentType;
 
         @NotNull(message = "파일 크기는 필수입니다.")
+        @Positive(message = "파일 크기는 0보다 커야 합니다.")
+        @Max(value = 20L * 1024 * 1024, message = "파일 크기는 최대 20MB까지 허용됩니다.")
         @Schema(description = "파일 크기 (바이트)", example = "345678")
         private Long size;
     }
