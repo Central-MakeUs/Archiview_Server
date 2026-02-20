@@ -41,7 +41,7 @@ public class S3Service {
      * @return 업로드된 파일의 S3 URL
      */
     public String upload(MultipartFile file, String dirName) {
-        String fileName = dirName + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = convertToWebpKey(dirName, file.getOriginalFilename());
 
         try (InputStream inputStream = file.getInputStream()) {
             s3Template.upload(bucket, fileName, inputStream);
@@ -62,8 +62,7 @@ public class S3Service {
     }
 
     public PresignedUrlInfo generatePresignedUploadUrl(String dirName, String originalFilename, String contentType) {
-        String safeFilename = originalFilename == null ? "file" : originalFilename;
-        String key = dirName + "/" + UUID.randomUUID() + "_" + safeFilename;
+        String key = convertToWebpKey(dirName, originalFilename);
 
         log.info("Generating presigned URL for bucket: {}, key: {}, contentType: {}", bucket, key, contentType);
 
@@ -89,5 +88,13 @@ public class S3Service {
                 .build();
 
         return s3Client.utilities().getUrl(getUrlRequest).toString();
+    }
+
+    private String convertToWebpKey(String dirName, String originalFilename) {
+        String safeFilename = originalFilename == null ? "file" : originalFilename;
+        int lastDotIndex = safeFilename.lastIndexOf('.');
+        String baseName = lastDotIndex == -1 ? safeFilename : safeFilename.substring(0, lastDotIndex);
+
+        return dirName + "/" + UUID.randomUUID() + "_" + baseName + ".webp";
     }
 }
