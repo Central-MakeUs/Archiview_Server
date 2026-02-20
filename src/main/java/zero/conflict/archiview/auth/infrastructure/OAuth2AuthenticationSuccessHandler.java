@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,7 +37,12 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     @org.springframework.beans.factory.annotation.Value("${auth.frontend-url:https://archiview.space/}")
     private String frontendUrl;
-    @org.springframework.beans.factory.annotation.Value("#{'${auth.local-redirect-allowed-origins:http://localhost:3000,http://127.0.0.1:3000}'.split(',')}")
+
+    @org.springframework.beans.factory.annotation.Value("${auth.dev-frontend-url:http://localhost:3000/}")
+    private String devFrontendUrl;
+
+    @org.springframework.beans.factory.annotation.Value(
+            "#{'${auth.local-redirect-allowed-origins:http://localhost:3000,http://127.0.0.1:3000}'.split(',')}")
     private List<String> localRedirectAllowedOrigins;
 
     @Override
@@ -61,24 +65,26 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         OAuth2AuthorizationRequest authorizationRequest = authorizationRequestRepository.removeAuthorizationRequest(request,
                 response);
         boolean devRequested = isDevRequestedByState(request);
+        boolean localhostSource = isLocalhostSourceByState(request);
         if (!devRequested && authorizationRequest != null) {
             devRequested = Boolean.TRUE.equals(authorizationRequest.getAttributes().get("dev"));
         }
-        boolean localhostSource = isLocalhostSourceByState(request);
         if (!localhostSource && authorizationRequest != null) {
             localhostSource = Boolean.TRUE.equals(authorizationRequest.getAttributes().get("localhostSource"));
         }
         boolean devAllowed = isDevAllowedEmail(oAuth2User.getUsername());
         String resolvedFrontendUrl = frontendUrl;
-        if (devRequested && devAllowed && localhostSource) {
-            Optional<String> localRedirectBaseUrl = resolveDevFrontendUrl(oAuth2User.getUsername());
-            if (localRedirectBaseUrl.isPresent() && isAllowedLocalRedirectBaseUrl(localRedirectBaseUrl.get())) {
-                resolvedFrontendUrl = localRedirectBaseUrl.get();
+        if (localhostSource) {
+            resolvedFrontendUrl = devFrontendUrl;
+        } else if (devRequested && devAllowed) {
+            Optional<String> devRedirectBaseUrl = resolveDevFrontendUrl(oAuth2User.getUsername());
+            if (devRedirectBaseUrl.isPresent()) {
+                resolvedFrontendUrl = devRedirectBaseUrl.get();
             }
         }
 
-        log.info("OAuth2 로그인 리다이렉트 대상 결정 - devRequested: {}, localhostSource: {}, devAllowed: {}, frontendUrl: {}",
-                devRequested, localhostSource, devAllowed, resolvedFrontendUrl);
+        log.info("OAuth2 로그인 리다이렉트 대상 결정 - localhostSource: {}, devRequested: {}, devAllowed: {}, frontendUrl: {}",
+                localhostSource, devRequested, devAllowed, resolvedFrontendUrl);
 
         String targetUrl = org.springframework.web.util.UriComponentsBuilder.fromUriString(resolvedFrontendUrl)
                 .path(targetPath)
@@ -118,59 +124,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             if (uri.getUserInfo() != null || uri.getFragment() != null) {
                 return false;
             }
+            if (isLocalhostHost(uri.getHost())) {
+                return isAllowedLocalOrigin(uri);
+            }
             return true;
         } catch (URISyntaxException e) {
             log.warn("허용되지 않은 dev redirectUrl 형식 - value: {}", redirectUrl);
             return false;
-        }
-    }
-
-    private boolean isAllowedLocalRedirectBaseUrl(String redirectUrl) {
-        String normalizedRedirectOrigin = normalizeOrigin(redirectUrl);
-        if (normalizedRedirectOrigin == null) {
-            return false;
-        }
-        for (String allowedOriginRaw : localRedirectAllowedOrigins) {
-            String normalizedAllowedOrigin = normalizeOrigin(allowedOriginRaw);
-            if (normalizedRedirectOrigin.equals(normalizedAllowedOrigin)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private String normalizeOrigin(String rawUrl) {
-        if (rawUrl == null || rawUrl.isBlank()) {
-            return null;
-        }
-        try {
-            URI uri = new URI(rawUrl.trim());
-            String scheme = uri.getScheme();
-            String host = uri.getHost();
-            if (scheme == null || host == null || host.isBlank()) {
-                return null;
-            }
-            String normalizedScheme = scheme.toLowerCase(Locale.ROOT);
-            if (!"http".equals(normalizedScheme) && !"https".equals(normalizedScheme)) {
-                return null;
-            }
-            if (uri.getUserInfo() != null || uri.getFragment() != null) {
-                return null;
-            }
-            String path = uri.getPath();
-            if (path != null && !path.isBlank() && !"/".equals(path)) {
-                return null;
-            }
-            if (uri.getQuery() != null && !uri.getQuery().isBlank()) {
-                return null;
-            }
-            int port = uri.getPort();
-            if (port == -1) {
-                port = "https".equals(normalizedScheme) ? 443 : 80;
-            }
-            return normalizedScheme + "://" + host.toLowerCase(Locale.ROOT) + ":" + port;
-        } catch (URISyntaxException e) {
-            return null;
         }
     }
 
@@ -213,10 +173,45 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             return false;
         }
 
-        Object localhostSource = stateMap.remove(state);
+        Object requested = stateMap.remove(state);
         if (stateMap.isEmpty()) {
             session.removeAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY);
         }
-        return Boolean.TRUE.equals(localhostSource);
+        return Boolean.TRUE.equals(requested);
     }
+
+    private boolean isAllowedLocalOrigin(URI uri) {
+        String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+        int effectivePort = uri.getPort() == -1 ? ("https".equals(scheme) ? 443 : 80) : uri.getPort();
+        return localRedirectAllowedOrigins.stream()
+                .map(this::normalizeOrigin)
+                .anyMatch(allowedOrigin -> allowedOrigin.equals(scheme + "://" + uri.getHost().toLowerCase() + ":" + effectivePort));
+    }
+
+    private String normalizeOrigin(String rawOrigin) {
+        if (rawOrigin == null || rawOrigin.isBlank()) {
+            return "";
+        }
+        String trimmed = rawOrigin.trim();
+        try {
+            URI uri = new URI(trimmed);
+            String scheme = uri.getScheme() == null ? "http" : uri.getScheme().toLowerCase();
+            String host = uri.getHost();
+            if (host == null || host.isBlank()) {
+                return "";
+            }
+            int effectivePort = uri.getPort() == -1 ? ("https".equals(scheme) ? 443 : 80) : uri.getPort();
+            return scheme + "://" + host.toLowerCase() + ":" + effectivePort;
+        } catch (URISyntaxException e) {
+            return "";
+        }
+    }
+
+    private boolean isLocalhostHost(String host) {
+        if (host == null) {
+            return false;
+        }
+        return "localhost".equalsIgnoreCase(host) || "127.0.0.1".equals(host);
+    }
+
 }

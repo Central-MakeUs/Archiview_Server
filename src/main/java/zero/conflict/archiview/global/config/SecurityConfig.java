@@ -2,9 +2,9 @@ package zero.conflict.archiview.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,11 +23,8 @@ import zero.conflict.archiview.auth.infrastructure.JwtAuthenticationFilter;
 import zero.conflict.archiview.auth.infrastructure.OAuth2AuthenticationFailureHandler;
 import zero.conflict.archiview.auth.infrastructure.OAuth2AuthenticationSuccessHandler;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @Configuration
@@ -41,6 +38,7 @@ public class SecurityConfig {
         private final OAuth2AuthenticationSuccessHandler oAuth2SuccessHandler;
         private final OAuth2AuthenticationFailureHandler oAuth2FailureHandler;
         private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
         @Value("#{'${auth.local-redirect-allowed-origins:http://localhost:3000,http://127.0.0.1:3000}'.split(',')}")
         private List<String> localRedirectAllowedOrigins;
 
@@ -123,25 +121,11 @@ public class SecurityConfig {
                                                 authorizationRequest.getAdditionalParameters());
                                 Map<String, Object> attributes = new HashMap<>(
                                                 authorizationRequest.getAttributes());
-                                boolean localhostSource = isLocalhostSourceRequest(request);
-                                attributes.put("localhostSource", localhostSource);
                                 String role = request.getParameter("role");
                                 if (role != null) {
                                         additionalParameters.put("role", role);
                                 }
                                 String state = authorizationRequest.getState();
-                                if (state != null && !state.isBlank()) {
-                                        @SuppressWarnings("unchecked")
-                                        Map<String, Boolean> localhostSourceStateMap = (Map<String, Boolean>) request
-                                                        .getSession(true)
-                                                        .getAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY);
-                                        if (localhostSourceStateMap == null) {
-                                                localhostSourceStateMap = new HashMap<>();
-                                        }
-                                        localhostSourceStateMap.put(state, localhostSource);
-                                        request.getSession(true).setAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY,
-                                                        localhostSourceStateMap);
-                                }
                                 if ("true".equalsIgnoreCase(request.getParameter("dev"))) {
                                         attributes.put("dev", true);
                                         if (state != null && !state.isBlank()) {
@@ -157,59 +141,84 @@ public class SecurityConfig {
                                                                 devStateMap);
                                         }
                                 }
+                                boolean localhostSource = isLocalhostSourceRequest(request);
+                                attributes.put("localhostSource", localhostSource);
+                                if (state != null && !state.isBlank()) {
+                                        @SuppressWarnings("unchecked")
+                                        Map<String, Boolean> localhostStateMap = (Map<String, Boolean>) request
+                                                        .getSession(true)
+                                                        .getAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY);
+                                        if (localhostStateMap == null) {
+                                                localhostStateMap = new HashMap<>();
+                                        }
+                                        localhostStateMap.put(state, localhostSource);
+                                        request.getSession(true).setAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY,
+                                                        localhostStateMap);
+                                }
 
                                 return OAuth2AuthorizationRequest.from(authorizationRequest)
                                                 .additionalParameters(additionalParameters)
                                                 .attributes(attributes)
                                                 .build();
                         }
+
+                        private boolean isLocalhostSourceRequest(HttpServletRequest request) {
+                                String origin = extractOrigin(request.getHeader("Origin"));
+                                if (isAllowedLocalOrigin(origin)) {
+                                        return true;
+                                }
+
+                                String referer = request.getHeader("Referer");
+                                if (referer != null && !referer.isBlank()) {
+                                        try {
+                                                java.net.URI refererUri = java.net.URI.create(referer);
+                                                String refererOrigin = refererUri.getScheme() + "://"
+                                                                + refererUri.getHost()
+                                                                + (refererUri.getPort() == -1 ? "" : ":" + refererUri.getPort());
+                                                return isAllowedLocalOrigin(refererOrigin);
+                                        } catch (IllegalArgumentException ignored) {
+                                                return false;
+                                        }
+                                }
+                                return false;
+                        }
+
+                        private boolean isAllowedLocalOrigin(String origin) {
+                                if (origin == null || origin.isBlank()) {
+                                        return false;
+                                }
+                                String normalizedOrigin = normalizeOrigin(origin);
+                                return localRedirectAllowedOrigins.stream()
+                                                .map(this::normalizeOrigin)
+                                                .anyMatch(normalizedOrigin::equals);
+                        }
+
+                        private String extractOrigin(String originHeader) {
+                                if (originHeader == null || originHeader.isBlank()) {
+                                        return null;
+                                }
+                                return originHeader.trim();
+                        }
+
+                        private String normalizeOrigin(String rawOrigin) {
+                                if (rawOrigin == null || rawOrigin.isBlank()) {
+                                        return "";
+                                }
+                                try {
+                                        java.net.URI uri = java.net.URI.create(rawOrigin.trim());
+                                        if (uri.getScheme() == null || uri.getHost() == null) {
+                                                return "";
+                                        }
+                                        String scheme = uri.getScheme().toLowerCase();
+                                        String host = uri.getHost().toLowerCase();
+                                        int effectivePort = uri.getPort() == -1
+                                                        ? ("https".equals(scheme) ? 443 : 80)
+                                                        : uri.getPort();
+                                        return scheme + "://" + host + ":" + effectivePort;
+                                } catch (IllegalArgumentException e) {
+                                        return "";
+                                }
+                        }
                 };
-        }
-
-        private boolean isLocalhostSourceRequest(HttpServletRequest request) {
-                String refererOrigin = extractOrigin(request.getHeader("Referer"));
-                if (isAllowedLocalOrigin(refererOrigin)) {
-                        return true;
-                }
-                String originParam = extractOrigin(request.getParameter("origin"));
-                return isAllowedLocalOrigin(originParam);
-        }
-
-        private boolean isAllowedLocalOrigin(String origin) {
-                if (origin == null) {
-                        return false;
-                }
-                for (String allowedOriginRaw : localRedirectAllowedOrigins) {
-                        String allowedOrigin = extractOrigin(allowedOriginRaw);
-                        if (origin.equals(allowedOrigin)) {
-                                return true;
-                        }
-                }
-                return false;
-        }
-
-        private String extractOrigin(String rawUrl) {
-                if (rawUrl == null || rawUrl.isBlank()) {
-                        return null;
-                }
-                try {
-                        URI uri = new URI(rawUrl.trim());
-                        String scheme = uri.getScheme();
-                        String host = uri.getHost();
-                        if (scheme == null || host == null || host.isBlank()) {
-                                return null;
-                        }
-                        String normalizedScheme = scheme.toLowerCase(Locale.ROOT);
-                        if (!"http".equals(normalizedScheme) && !"https".equals(normalizedScheme)) {
-                                return null;
-                        }
-                        int port = uri.getPort();
-                        if (port == -1) {
-                                port = "https".equals(normalizedScheme) ? 443 : 80;
-                        }
-                        return normalizedScheme + "://" + host.toLowerCase(Locale.ROOT) + ":" + port;
-                } catch (URISyntaxException e) {
-                        return null;
-                }
         }
 }

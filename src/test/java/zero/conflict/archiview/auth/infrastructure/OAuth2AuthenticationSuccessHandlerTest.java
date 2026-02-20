@@ -18,7 +18,6 @@ import zero.conflict.archiview.auth.infrastructure.persistence.DevLoginRedirectA
 import zero.conflict.archiview.user.domain.User;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -45,13 +44,14 @@ class OAuth2AuthenticationSuccessHandlerTest {
     void setUp() {
         handler = new OAuth2AuthenticationSuccessHandler(jwtTokenProvider, allowlistRepository);
         ReflectionTestUtils.setField(handler, "frontendUrl", "https://archiview.space/");
+        ReflectionTestUtils.setField(handler, "devFrontendUrl", "http://localhost:3000/");
         ReflectionTestUtils.setField(handler, "localRedirectAllowedOrigins",
-                Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000"));
+                java.util.List.of("http://localhost:3000", "http://127.0.0.1:3000"));
     }
 
     @Test
-    @DisplayName("dev 로그인 + allowlist 사용자의 redirect_url이 있으면 해당 URL로 리다이렉트한다")
-    void redirectToUserSpecificDevUrlWhenPresent() throws ServletException, IOException {
+    @DisplayName("localhost 출처면 dev 요청이어도 무조건 localhost로 리다이렉트한다")
+    void redirectToLocalhostWhenLocalSource() throws ServletException, IOException {
         Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
         MockHttpServletRequest request = devRequestWithState("state-1", true);
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -61,12 +61,6 @@ class OAuth2AuthenticationSuccessHandlerTest {
         given(jwtTokenProvider.createRefreshToken(org.mockito.ArgumentMatchers.any(UUID.class)))
                 .willReturn("refresh-token");
         given(allowlistRepository.existsByEmailIgnoreCaseAndEnabledTrue("dev-user@archiview.com")).willReturn(true);
-        given(allowlistRepository.findByEmailIgnoreCaseAndEnabledTrue("dev-user@archiview.com"))
-                .willReturn(Optional.of(DevLoginRedirectAllowlist.builder()
-                        .email("dev-user@archiview.com")
-                        .enabled(true)
-                        .redirectUrl("http://localhost:3000/")
-                        .build()));
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
@@ -79,7 +73,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
     @DisplayName("dev 로그인 + redirect_url이 잘못되었으면 운영 frontendUrl로 폴백한다")
     void fallbackToFrontendUrlWhenRedirectUrlInvalid() throws ServletException, IOException {
         Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
-        MockHttpServletRequest request = devRequestWithState("state-2", true);
+        MockHttpServletRequest request = devRequestWithState("state-2", false);
         MockHttpServletResponse response = new MockHttpServletResponse();
 
         given(jwtTokenProvider.createAccessToken(org.mockito.ArgumentMatchers.any(CustomOAuth2User.class)))
@@ -102,8 +96,8 @@ class OAuth2AuthenticationSuccessHandlerTest {
     }
 
     @Test
-    @DisplayName("dev 로그인이어도 localhost 출처가 아니면 운영 frontendUrl로 리다이렉트한다")
-    void redirectToFrontendWhenDevRequestFromNonLocalhost() throws ServletException, IOException {
+    @DisplayName("localhost 출처가 아니고 dev 요청이면 allowlist의 redirect_url로 리다이렉트한다")
+    void redirectToDevUrlWhenDevRequestFromNonLocalhost() throws ServletException, IOException {
         Authentication authentication = authenticationOf("dev-user@archiview.com", User.Role.EDITOR);
         MockHttpServletRequest request = devRequestWithState("state-3", false);
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -113,12 +107,18 @@ class OAuth2AuthenticationSuccessHandlerTest {
         given(jwtTokenProvider.createRefreshToken(org.mockito.ArgumentMatchers.any(UUID.class)))
                 .willReturn("refresh-token");
         given(allowlistRepository.existsByEmailIgnoreCaseAndEnabledTrue("dev-user@archiview.com")).willReturn(true);
+        given(allowlistRepository.findByEmailIgnoreCaseAndEnabledTrue("dev-user@archiview.com"))
+                .willReturn(Optional.of(DevLoginRedirectAllowlist.builder()
+                        .email("dev-user@archiview.com")
+                        .enabled(true)
+                        .redirectUrl("http://192.168.0.6:3000/")
+                        .build()));
 
         handler.onAuthenticationSuccess(request, response, authentication);
 
         assertThat(response.getStatus()).isEqualTo(302);
         assertThat(response.getRedirectedUrl())
-                .startsWith("https://archiview.space/editor/home/?accessToken=access-token&refreshToken=refresh-token");
+                .startsWith("http://192.168.0.6:3000/editor/home/?accessToken=access-token&refreshToken=refresh-token");
     }
 
     @Test
