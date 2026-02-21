@@ -258,7 +258,7 @@ public class EditorPostQueryService {
             List<PostPlace> postPlaces,
             Map<Long, Place> placeMap) {
         Place place = placeMap.get(placeId);
-        if (place == null || place.getPosition() == null) {
+        if (!hasValidCoordinates(place)) {
             return null;
         }
 
@@ -300,10 +300,17 @@ public class EditorPostQueryService {
         if (filter != MapFilter.NEARBY) {
             return true;
         }
-        if (place == null || place.getPosition() == null) {
+        if (!hasValidCoordinates(place)) {
             return false;
         }
         return isWithin1km(place.getPosition(), latitude, longitude);
+    }
+
+    private boolean hasValidCoordinates(Place place) {
+        return place != null
+                && place.getPosition() != null
+                && place.getPosition().getLatitude() != null
+                && place.getPosition().getLongitude() != null;
     }
 
     private boolean isWithin1km(Position target, Double latitude, Double longitude) {

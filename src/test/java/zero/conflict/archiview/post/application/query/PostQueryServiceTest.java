@@ -313,6 +313,34 @@ class PostQueryServiceTest {
         }
 
         @Test
+        @DisplayName("좌표가 null인 장소는 지도 핀에서 제외한다")
+        void getMapPins_excludesPlaceWithNullCoordinates() {
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+
+                Place validPlace = Place.builder().id(1L).name("정상 장소").position(Position.of(37.0, 127.0)).build();
+                Position invalidPosition = Position.of(37.1, 127.1);
+                setField(invalidPosition, "latitude", null);
+                Place invalidPlace = Place.builder().id(2L).name("비정상 장소").position(invalidPosition).build();
+
+                PostPlace validPostPlace = PostPlace.builder().id(1L).post(post).place(validPlace).editorId(editorId).build();
+                PostPlace invalidPostPlace = PostPlace.builder().id(2L).post(post).place(invalidPlace).editorId(editorId).build();
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(validPostPlace, invalidPostPlace));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(validPlace, invalidPlace));
+
+                EditorMapDto.Response response = editorPostQueryService.getMapPins(
+                                editorId,
+                                MapFilter.ALL,
+                                null,
+                                null,
+                                null);
+
+                assertThat(response.getPins()).hasSize(1);
+                assertThat(response.getPins().get(0).getName()).isEqualTo("정상 장소");
+        }
+
+        @Test
         @DisplayName("업로드 장소 목록에 카테고리 필터를 적용한다")
         void getUploadedPlaces_withCategoryFilter() {
                 UUID editorId = UUID.randomUUID();
@@ -355,6 +383,34 @@ class PostQueryServiceTest {
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
+
+                EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
+                                editorId,
+                                MapFilter.NEARBY,
+                                null,
+                                37.0,
+                                127.0);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("가까운곳");
+        }
+
+        @Test
+        @DisplayName("업로드 장소 목록의 NEARBY 필터에서 좌표가 null인 장소는 제외한다")
+        void getUploadedPlaces_nearbyFilter_excludesNullCoordinates() {
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+
+                Place nearPlace = Place.builder().id(1L).name("가까운곳").position(Position.of(37.0001, 127.0001)).build();
+                Position invalidPosition = Position.of(37.0, 127.0);
+                setField(invalidPosition, "longitude", null);
+                Place invalidPlace = Place.builder().id(2L).name("좌표오류").position(invalidPosition).build();
+
+                PostPlace nearPostPlace = PostPlace.builder().id(1L).post(post).place(nearPlace).editorId(editorId).build();
+                PostPlace invalidPostPlace = PostPlace.builder().id(2L).post(post).place(invalidPlace).editorId(editorId).build();
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(nearPostPlace, invalidPostPlace));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, invalidPlace));
 
                 EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
                                 editorId,
