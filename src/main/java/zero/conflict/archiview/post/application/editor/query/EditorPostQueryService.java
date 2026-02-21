@@ -7,6 +7,7 @@ import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Position;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.PostPlaceCategory;
@@ -54,7 +55,14 @@ public class EditorPostQueryService {
                         .toList());
     }
 
-    public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(UUID editorId) {
+    public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
+            UUID editorId,
+            MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude) {
+        validateNearbyCoordinates(filter, latitude, longitude);
+
         List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
         if (postPlaces.isEmpty()) {
             return EditorUploadedPlaceDto.ListResponse.empty();
@@ -69,6 +77,12 @@ public class EditorPostQueryService {
                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
         List<EditorUploadedPlaceDto.PlaceCardResponse> places = postPlacesByPlaceId.entrySet().stream()
+                .filter(entry -> matchCategories(entry.getValue(), categoryIds))
+                .filter(entry -> matchNearby(
+                        resolvePlace(entry.getKey(), entry.getValue(), placeMap),
+                        filter,
+                        latitude,
+                        longitude))
                 .sorted(Comparator.comparing(
                                 (Map.Entry<Long, List<PostPlace>> entry) -> getLatestUpdatedAt(entry.getValue()),
                                 Comparator.nullsLast(Comparator.naturalOrder()))
@@ -79,7 +93,14 @@ public class EditorPostQueryService {
         return EditorUploadedPlaceDto.ListResponse.from(places);
     }
 
-    public EditorMapDto.Response getMapPins(UUID editorId, MapFilter filter, List<Long> categoryIds) {
+    public EditorMapDto.Response getMapPins(
+            UUID editorId,
+            MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude) {
+        validateNearbyCoordinates(filter, latitude, longitude);
+
         List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
         if (postPlaces.isEmpty()) {
             return EditorMapDto.Response.empty();
@@ -95,9 +116,9 @@ public class EditorPostQueryService {
 
         List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
                 .filter(entry -> matchCategories(entry.getValue(), categoryIds))
+                .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
                 .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
                 .filter(pin -> pin != null)
-                .filter(pin -> filterPin(pin, filter))
                 .toList();
 
         return EditorMapDto.Response.from(pins);
@@ -244,13 +265,6 @@ public class EditorPostQueryService {
         return EditorMapDto.PlacePinResponse.from(place, postPlaces);
     }
 
-    private boolean filterPin(EditorMapDto.PlacePinResponse pin, MapFilter filter) {
-        if (filter == null || filter == MapFilter.ALL) {
-            return true;
-        }
-        return true;
-    }
-
     private boolean matchCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
         if (categoryIds == null || categoryIds.isEmpty()) {
             return true;
@@ -261,6 +275,53 @@ public class EditorPostQueryService {
                 .filter(category -> category != null)
                 .map(category -> category.getId())
                 .anyMatch(categoryIds::contains);
+    }
+
+    private Place resolvePlace(Long placeId, List<PostPlace> postPlaces, Map<Long, Place> placeMap) {
+        Place place = placeMap.get(placeId);
+        if (place != null) {
+            return place;
+        }
+        return postPlaces.stream()
+                .map(PostPlace::getPlace)
+                .filter(candidate -> candidate != null && placeId.equals(candidate.getId()))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private void validateNearbyCoordinates(MapFilter filter, Double latitude, Double longitude) {
+        if (filter != MapFilter.NEARBY) {
+            return;
+        }
+        Position.of(latitude, longitude);
+    }
+
+    private boolean matchNearby(Place place, MapFilter filter, Double latitude, Double longitude) {
+        if (filter != MapFilter.NEARBY) {
+            return true;
+        }
+        if (place == null || place.getPosition() == null) {
+            return false;
+        }
+        return isWithin1km(place.getPosition(), latitude, longitude);
+    }
+
+    private boolean isWithin1km(Position target, Double latitude, Double longitude) {
+        final double earthRadiusM = 6371000.0d;
+        double lat1 = Math.toRadians(latitude);
+        double lon1 = Math.toRadians(longitude);
+        double lat2 = Math.toRadians(target.getLatitude());
+        double lon2 = Math.toRadians(target.getLongitude());
+
+        double deltaLat = lat2 - lat1;
+        double deltaLon = lon2 - lon1;
+
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distanceM = earthRadiusM * c;
+
+        return distanceM <= 1000.0d;
     }
 
     private boolean matchesPeriod(PostPlace postPlace, EditorInsightDto.Period period, LocalDateTime now) {

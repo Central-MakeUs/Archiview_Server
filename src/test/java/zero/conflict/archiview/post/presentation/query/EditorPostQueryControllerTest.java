@@ -116,7 +116,9 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         given(editorPostQueryService.getMapPins(
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
-                org.mockito.ArgumentMatchers.eq(List.of(1L, 2L))
+                org.mockito.ArgumentMatchers.eq(List.of(1L, 2L)),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull()
         )).willReturn(response);
 
         mockMvc.perform(get("/api/v1/editors/me/map/places")
@@ -140,7 +142,13 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .build();
         EditorUploadedPlaceDto.ListResponse response = EditorUploadedPlaceDto.ListResponse.from(List.of(place));
 
-        given(editorPostQueryService.getUploadedPlaces(org.mockito.ArgumentMatchers.any())).willReturn(response);
+        given(editorPostQueryService.getUploadedPlaces(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull()))
+                .willReturn(response);
 
         mockMvc.perform(get("/api/v1/editors/me/places")
                         .with(authenticatedUser()))

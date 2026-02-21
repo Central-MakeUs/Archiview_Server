@@ -26,9 +26,19 @@ public interface EditorPostUseCase {
 
     EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, Long placeId);
 
-    EditorMapDto.Response getMapPins(UUID editorId, EditorMapDto.MapFilter filter, List<Long> categoryIds);
+    EditorMapDto.Response getMapPins(
+            UUID editorId,
+            EditorMapDto.MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude);
 
-    EditorUploadedPlaceDto.ListResponse getUploadedPlaces(UUID editorId);
+    EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
+            UUID editorId,
+            EditorMapDto.MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude);
 
     EditorPostByPostPlaceDto.Response getPostByPostPlaceId(Long postPlaceId);
 }

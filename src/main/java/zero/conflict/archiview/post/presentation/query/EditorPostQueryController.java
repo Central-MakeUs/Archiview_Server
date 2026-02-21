@@ -68,6 +68,8 @@ public class EditorPostQueryController {
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getMapPins(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
             @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
@@ -79,18 +81,29 @@ public class EditorPostQueryController {
                 editorPostUseCase.getMapPins(
                         oAuth2User.getUserId(),
                         filter,
-                        categoryIds)));
+                        categoryIds,
+                        latitude,
+                        longitude)));
     }
 
     @Operation(summary = "내가 업로드한 장소 목록 조회", description = "에디터가 등록한 장소 목록과 통계를 조회합니다.")
     @GetMapping("/me/places")
     public ResponseEntity<ApiResponse<EditorUploadedPlaceDto.ListResponse>> getUploadedPlaces(
+            @RequestParam(defaultValue = "ALL") MapFilter filter,
+            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorUploadedPlaceDto.ListResponse.mock()));
         }
-        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getUploadedPlaces(oAuth2User.getUserId())));
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getUploadedPlaces(
+                oAuth2User.getUserId(),
+                filter,
+                categoryIds,
+                latitude,
+                longitude)));
     }
 
     @Operation(summary = "postPlaceId로 게시글 상세 조회", description = "해당 postPlace가 속한 게시글과 게시글 내 모든 장소를 조회합니다.")

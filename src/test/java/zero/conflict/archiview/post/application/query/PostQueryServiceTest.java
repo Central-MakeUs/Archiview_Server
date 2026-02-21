@@ -24,6 +24,7 @@ import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
+import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceReadRepository;
 
@@ -221,6 +222,8 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.ALL,
+                                null,
+                                null,
                                 null);
 
                 // then
@@ -255,7 +258,9 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.ALL,
-                                List.of(category1.getId()));
+                                List.of(category1.getId()),
+                                null,
+                                null);
 
                 // then
                 assertThat(response.getPins()).hasSize(1);
@@ -278,16 +283,88 @@ class PostQueryServiceTest {
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
                 given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
 
-                // when (Nearby filter now returns all pins as BBox is removed)
+                // when
                 EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.NEARBY,
-                                null);
+                                null,
+                                37.0,
+                                127.0);
 
                 // then
-                assertThat(response.getPins()).hasSize(2); // Both near and far pins returned
-                assertThat(response.getPins()).extracting("name")
-                                .containsExactlyInAnyOrder("가까운곳", "먼곳");
+                assertThat(response.getPins()).hasSize(1);
+                assertThat(response.getPins().get(0).getName()).isEqualTo("가까운곳");
+        }
+
+        @Test
+        @DisplayName("내 주변 핀 조회 시 좌표가 없으면 예외가 발생한다")
+        void getMapPins_nearbyWithoutCoordinates_throwsException() {
+                UUID editorId = UUID.randomUUID();
+
+                assertThatThrownBy(() -> editorPostQueryService.getMapPins(
+                                editorId,
+                                MapFilter.NEARBY,
+                                null,
+                                null,
+                                127.0))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.INVALID_POSITION_LATITUDE);
+        }
+
+        @Test
+        @DisplayName("업로드 장소 목록에 카테고리 필터를 적용한다")
+        void getUploadedPlaces_withCategoryFilter() {
+                UUID editorId = UUID.randomUUID();
+                Category category1 = Category.builder().id(1L).name("한식").build();
+                Category category2 = Category.builder().id(2L).name("양식").build();
+
+                Place place1 = Place.builder().id(1L).name("한식당").position(Position.of(37.0, 127.0)).build();
+                Place place2 = Place.builder().id(2L).name("양식당").position(Position.of(37.1, 127.1)).build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace pp1 = PostPlace.builder().id(1L).post(post).place(place1).editorId(editorId).build();
+                PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(place2).editorId(editorId).build();
+                pp1.addCategory(category1);
+                pp2.addCategory(category2);
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place1, place2));
+
+                EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
+                                editorId,
+                                MapFilter.ALL,
+                                List.of(category1.getId()),
+                                null,
+                                null);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("한식당");
+        }
+
+        @Test
+        @DisplayName("업로드 장소 목록에 내 주변 필터를 적용한다")
+        void getUploadedPlaces_nearbyFilter() {
+                UUID editorId = UUID.randomUUID();
+                Place nearPlace = Place.builder().id(1L).name("가까운곳").position(Position.of(37.0001, 127.0001)).build();
+                Place farPlace = Place.builder().id(2L).name("먼곳").position(Position.of(37.5, 127.5)).build();
+                Post post = Post.builder().id(1L).build();
+
+                PostPlace pp1 = PostPlace.builder().id(1L).post(post).place(nearPlace).editorId(editorId).build();
+                PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(farPlace).editorId(editorId).build();
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(nearPlace, farPlace));
+
+                EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
+                                editorId,
+                                MapFilter.NEARBY,
+                                null,
+                                37.0,
+                                127.0);
+
+                assertThat(response.getPlaces()).hasSize(1);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("가까운곳");
         }
 
         @Test

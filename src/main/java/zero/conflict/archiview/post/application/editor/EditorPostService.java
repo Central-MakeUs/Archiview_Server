@@ -58,13 +58,23 @@ public class EditorPostService implements EditorPostUseCase {
     }
 
     @Override
-    public EditorMapDto.Response getMapPins(UUID editorId, EditorMapDto.MapFilter filter, List<Long> categoryIds) {
-        return editorPostQueryService.getMapPins(editorId, filter, categoryIds);
+    public EditorMapDto.Response getMapPins(
+            UUID editorId,
+            EditorMapDto.MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude) {
+        return editorPostQueryService.getMapPins(editorId, filter, categoryIds, latitude, longitude);
     }
 
     @Override
-    public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(UUID editorId) {
-        return editorPostQueryService.getUploadedPlaces(editorId);
+    public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
+            UUID editorId,
+            EditorMapDto.MapFilter filter,
+            List<Long> categoryIds,
+            Double latitude,
+            Double longitude) {
+        return editorPostQueryService.getUploadedPlaces(editorId, filter, categoryIds, latitude, longitude);
     }
 
     @Override
