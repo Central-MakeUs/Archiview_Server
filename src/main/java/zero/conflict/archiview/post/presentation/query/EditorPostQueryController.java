@@ -90,6 +90,7 @@ public class EditorPostQueryController {
     @GetMapping("/me/places")
     public ResponseEntity<ApiResponse<EditorUploadedPlaceDto.ListResponse>> getUploadedPlaces(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
+            @RequestParam(defaultValue = "UPDATED") EditorUploadedPlaceDto.PlaceSort sort,
             @RequestParam(required = false) List<Long> categoryIds,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
@@ -101,6 +102,7 @@ public class EditorPostQueryController {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.getUploadedPlaces(
                 oAuth2User.getUserId(),
                 filter,
+                sort,
                 categoryIds,
                 latitude,
                 longitude)));

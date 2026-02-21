@@ -71,10 +71,11 @@ public class EditorPostService implements EditorPostUseCase {
     public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
             UUID editorId,
             EditorMapDto.MapFilter filter,
+            EditorUploadedPlaceDto.PlaceSort sort,
             List<Long> categoryIds,
             Double latitude,
             Double longitude) {
-        return editorPostQueryService.getUploadedPlaces(editorId, filter, categoryIds, latitude, longitude);
+        return editorPostQueryService.getUploadedPlaces(editorId, filter, sort, categoryIds, latitude, longitude);
     }
 
     @Override

@@ -58,6 +58,7 @@ public class EditorPostQueryService {
     public EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
             UUID editorId,
             MapFilter filter,
+            EditorUploadedPlaceDto.PlaceSort sort,
             List<Long> categoryIds,
             Double latitude,
             Double longitude) {
@@ -83,10 +84,7 @@ public class EditorPostQueryService {
                         filter,
                         latitude,
                         longitude))
-                .sorted(Comparator.comparing(
-                                (Map.Entry<Long, List<PostPlace>> entry) -> getLatestUpdatedAt(entry.getValue()),
-                                Comparator.nullsLast(Comparator.naturalOrder()))
-                        .reversed())
+                .sorted(getUploadedPlaceComparator(sort))
                 .map(entry -> toPlaceCardResponse(entry.getKey(), entry.getValue(), placeMap))
                 .toList();
 
@@ -416,5 +414,27 @@ public class EditorPostQueryService {
                 .map(this::getLastUpdatedAt)
                 .max(Comparator.nullsLast(Comparator.naturalOrder()))
                 .orElse(null);
+    }
+
+    private LocalDateTime getLatestCreatedAt(List<PostPlace> postPlaces) {
+        return postPlaces.stream()
+                .map(PostPlace::getCreatedAt)
+                .max(Comparator.nullsLast(Comparator.naturalOrder()))
+                .orElse(null);
+    }
+
+    private Comparator<Map.Entry<Long, List<PostPlace>>> getUploadedPlaceComparator(EditorUploadedPlaceDto.PlaceSort sort) {
+        Comparator<Map.Entry<Long, List<PostPlace>>> baseComparator = switch (sort) {
+            case UPDATED -> Comparator.comparing(
+                    (Map.Entry<Long, List<PostPlace>> entry) -> getLatestUpdatedAt(entry.getValue()),
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+            case CREATED -> Comparator.comparing(
+                    (Map.Entry<Long, List<PostPlace>> entry) -> getLatestCreatedAt(entry.getValue()),
+                    Comparator.nullsLast(Comparator.naturalOrder()));
+        };
+
+        return baseComparator
+                .reversed()
+                .thenComparing(Map.Entry<Long, List<PostPlace>>::getKey, Comparator.nullsLast(Comparator.reverseOrder()));
     }
 }

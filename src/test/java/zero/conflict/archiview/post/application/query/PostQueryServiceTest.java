@@ -362,6 +362,7 @@ class PostQueryServiceTest {
                 EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
                                 editorId,
                                 MapFilter.ALL,
+                                EditorUploadedPlaceDto.PlaceSort.UPDATED,
                                 List.of(category1.getId()),
                                 null,
                                 null);
@@ -387,6 +388,7 @@ class PostQueryServiceTest {
                 EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
                                 editorId,
                                 MapFilter.NEARBY,
+                                EditorUploadedPlaceDto.PlaceSort.UPDATED,
                                 null,
                                 37.0,
                                 127.0);
@@ -415,12 +417,79 @@ class PostQueryServiceTest {
                 EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
                                 editorId,
                                 MapFilter.NEARBY,
+                                EditorUploadedPlaceDto.PlaceSort.UPDATED,
                                 null,
                                 37.0,
                                 127.0);
 
                 assertThat(response.getPlaces()).hasSize(1);
                 assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("가까운곳");
+        }
+
+        @Test
+        @DisplayName("업로드 장소 목록을 업데이트순으로 정렬한다")
+        void getUploadedPlaces_sortedByUpdatedDesc() {
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+
+                Place place1 = Place.builder().id(1L).name("업데이트최신").position(Position.of(37.0, 127.0)).build();
+                Place place2 = Place.builder().id(2L).name("업데이트과거").position(Position.of(37.1, 127.1)).build();
+
+                PostPlace pp1 = PostPlace.builder().id(11L).post(post).place(place1).editorId(editorId).build();
+                setField(pp1, "createdAt", LocalDateTime.of(2026, 2, 1, 10, 0));
+                setField(pp1, "lastModifiedAt", LocalDateTime.of(2026, 2, 20, 9, 0));
+
+                PostPlace pp2 = PostPlace.builder().id(12L).post(post).place(place2).editorId(editorId).build();
+                setField(pp2, "createdAt", LocalDateTime.of(2026, 2, 10, 10, 0));
+                setField(pp2, "lastModifiedAt", LocalDateTime.of(2026, 2, 15, 9, 0));
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place1, place2));
+
+                EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
+                                editorId,
+                                MapFilter.ALL,
+                                EditorUploadedPlaceDto.PlaceSort.UPDATED,
+                                null,
+                                null,
+                                null);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("업데이트최신");
+                assertThat(response.getPlaces().get(1).getPlaceName()).isEqualTo("업데이트과거");
+        }
+
+        @Test
+        @DisplayName("업로드 장소 목록을 등록순으로 정렬한다")
+        void getUploadedPlaces_sortedByCreatedDesc() {
+                UUID editorId = UUID.randomUUID();
+                Post post = Post.builder().id(1L).build();
+
+                Place place1 = Place.builder().id(1L).name("등록과거").position(Position.of(37.0, 127.0)).build();
+                Place place2 = Place.builder().id(2L).name("등록최신").position(Position.of(37.1, 127.1)).build();
+
+                PostPlace pp1 = PostPlace.builder().id(11L).post(post).place(place1).editorId(editorId).build();
+                setField(pp1, "createdAt", LocalDateTime.of(2026, 2, 1, 10, 0));
+                setField(pp1, "lastModifiedAt", LocalDateTime.of(2026, 2, 20, 9, 0));
+
+                PostPlace pp2 = PostPlace.builder().id(12L).post(post).place(place2).editorId(editorId).build();
+                setField(pp2, "createdAt", LocalDateTime.of(2026, 2, 10, 10, 0));
+                setField(pp2, "lastModifiedAt", LocalDateTime.of(2026, 2, 15, 9, 0));
+
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
+                given(placeRepository.findAllByIds(anyList())).willReturn(List.of(place1, place2));
+
+                EditorUploadedPlaceDto.ListResponse response = editorPostQueryService.getUploadedPlaces(
+                                editorId,
+                                MapFilter.ALL,
+                                EditorUploadedPlaceDto.PlaceSort.CREATED,
+                                null,
+                                null,
+                                null);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("등록최신");
+                assertThat(response.getPlaces().get(1).getPlaceName()).isEqualTo("등록과거");
         }
 
         @Test

@@ -145,6 +145,7 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
         given(editorPostQueryService.getUploadedPlaces(
                 org.mockito.ArgumentMatchers.any(),
                 org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
+                org.mockito.ArgumentMatchers.eq(EditorUploadedPlaceDto.PlaceSort.UPDATED),
                 org.mockito.ArgumentMatchers.isNull(),
                 org.mockito.ArgumentMatchers.isNull(),
                 org.mockito.ArgumentMatchers.isNull()))
@@ -156,6 +157,29 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.places[0].placeId").value(101L))
                 .andExpect(jsonPath("$.data.places[0].placeName").value("연남동 밀크티바"));
+    }
+
+    @Test
+    @DisplayName("에디터 업로드 장소 목록 조회 - 등록순 정렬 파라미터 전달")
+    void getUploadedPlaces_createdSort_success() throws Exception {
+        EditorUploadedPlaceDto.ListResponse response = EditorUploadedPlaceDto.ListResponse.empty();
+
+        given(editorPostQueryService.getUploadedPlaces(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
+                org.mockito.ArgumentMatchers.eq(EditorUploadedPlaceDto.PlaceSort.CREATED),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.isNull()))
+                .willReturn(response);
+
+        mockMvc.perform(get("/api/v1/editors/me/places")
+                        .with(authenticatedUser())
+                        .queryParam("sort", "CREATED"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.places").isArray())
+                .andExpect(jsonPath("$.data.places").isEmpty());
     }
 
     @Test

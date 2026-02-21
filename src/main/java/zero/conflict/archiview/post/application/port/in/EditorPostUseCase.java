@@ -36,6 +36,7 @@ public interface EditorPostUseCase {
     EditorUploadedPlaceDto.ListResponse getUploadedPlaces(
             UUID editorId,
             EditorMapDto.MapFilter filter,
+            EditorUploadedPlaceDto.PlaceSort sort,
             List<Long> categoryIds,
             Double latitude,
             Double longitude);

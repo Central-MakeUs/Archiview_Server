@@ -13,6 +13,11 @@ import java.util.List;
 
 public class EditorUploadedPlaceDto {
 
+    public enum PlaceSort {
+        UPDATED,
+        CREATED
+    }
+
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
