@@ -211,10 +211,12 @@ public class EditorInsightDto {
     public static class PlaceDetailResponse {
         private Long placeId;
         private String placeName;
+        private String placeUrl;
         @Schema(description = "전화번호")
         private String phoneNumber;
         private String placeImageUrl;
         private Long editorTotal;
+        private Long archiverSaveTotal;
         private Address address;
         private String nearestStationWalkTime;
         private Stats stats;
@@ -232,14 +234,17 @@ public class EditorInsightDto {
                 Place place,
                 String placeImageUrl,
                 Long editorTotal,
+                Long archiverSaveTotal,
                 Stats stats,
                 List<PostPlaceDetailResponse> postPlaces) {
             return PlaceDetailResponse.builder()
                     .placeId(place.getId())
                     .placeName(place.getName())
+                    .placeUrl(place.getPlaceUrl())
                     .phoneNumber(place.getPhoneNumber())
                     .placeImageUrl(placeImageUrl)
                     .editorTotal(editorTotal)
+                    .archiverSaveTotal(archiverSaveTotal)
                     .address(place.getAddress())
                     .nearestStationWalkTime(place.getNearestStationWalkTime())
                     .stats(stats)
@@ -258,9 +263,11 @@ public class EditorInsightDto {
             return PlaceDetailResponse.builder()
                     .placeId(placeId)
                     .placeName("모의 장소 상세")
+                    .placeUrl("https://place.map.kakao.com/123456789")
                     .phoneNumber("02-1234-5678")
                     .placeImageUrl("https://picsum.photos/800/600?random=10")
                     .editorTotal(5L)
+                    .archiverSaveTotal(9L)
                     .address(Address.of("서울특별시 성동구 성수동 123-45", "서울특별시 성동구 아차산로 123"))
                     .nearestStationWalkTime("성수역 도보 5분")
                     .stats(Stats.builder()

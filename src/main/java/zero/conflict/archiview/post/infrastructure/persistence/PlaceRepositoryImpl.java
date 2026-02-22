@@ -44,4 +44,9 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     public List<Place> findAllByIds(List<Long> ids) {
         return placeJpaRepository.findAllById(ids);
     }
+
+    @Override
+    public void incrementViewCount(Long placeId) {
+        placeJpaRepository.incrementViewCount(placeId);
+    }
 }

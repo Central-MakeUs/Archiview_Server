@@ -2,6 +2,8 @@ package zero.conflict.archiview.post.application.archiver.query;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceArchiveRepository;
@@ -44,6 +46,7 @@ public class PostQueryService {
         private final UserClient userClient;
         private final CategoryPlaceReadRepository categoryPlaceReadRepository;
         private final ArchiverVisibilityService archiverVisibilityService;
+        private final PostPlaceCountService postPlaceCountService;
 
         public CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(
                         Double latitude,
@@ -357,16 +360,31 @@ public class PostQueryService {
                 return getArchiverPlaceDetail(placeId, null);
         }
 
+        @Transactional
         public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId) {
                 Place place = placeRepository.findById(placeId)
                                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceId(placeId);
+                if (postPlaces == null) {
+                        postPlaces = List.of();
+                }
                 if (archiverId != null) {
                         postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
                                         postPlaces,
                                         archiverVisibilityService.getVisibilityFilter(archiverId));
+                        if (postPlaces == null) {
+                                postPlaces = List.of();
+                        }
                 }
+
+                // Place 상세 조회 시 응답 대상 postPlace는 각각 조회수 1 증가(소유자 제외)
+                for (PostPlace postPlace : postPlaces) {
+                        postPlaceCountService.increaseViewCount(postPlace, archiverId);
+                }
+                placeRepository.incrementViewCount(placeId);
+                place = placeRepository.findById(placeId)
+                                .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
                 EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
                 ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(
@@ -484,9 +502,12 @@ public class PostQueryService {
                 }
 
                 long viewCount = postPlaces.stream()
-                                .map(PostPlace::getViewCount)
-                                .mapToLong(this::defaultZero)
-                                .sum();
+                                .map(PostPlace::getPlace)
+                                .filter(place -> place != null && place.getId() != null && place.getId().equals(placeId))
+                                .map(Place::getViewCount)
+                                .findFirst()
+                                .map(this::defaultZero)
+                                .orElse(0L);
                 long saveCount = postPlaces.stream()
                                 .map(PostPlace::getSaveCount)
                                 .mapToLong(this::defaultZero)

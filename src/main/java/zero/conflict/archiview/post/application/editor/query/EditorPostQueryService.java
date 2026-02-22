@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
+import zero.conflict.archiview.post.application.port.out.PostPlaceArchiveRepository;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class EditorPostQueryService {
 
     private final PostPlaceRepository postPlaceRepository;
+    private final PostPlaceArchiveRepository postPlaceArchiveRepository;
     private final PlaceRepository placeRepository;
     private final UserClient userClient;
 
@@ -183,8 +185,8 @@ public class EditorPostQueryService {
     }
 
     public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, Long placeId) {
-        List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
-        if (postPlaces.isEmpty()) {
+        List<PostPlace> ownPostPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
+        if (ownPostPlaces.isEmpty()) {
             return EditorInsightDto.PlaceDetailResponse.empty(placeId);
         }
 
@@ -194,7 +196,7 @@ public class EditorPostQueryService {
             throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
         }
 
-        List<EditorInsightDto.PostPlaceDetailResponse> details = postPlaces.stream()
+        List<EditorInsightDto.PostPlaceDetailResponse> details = ownPostPlaces.stream()
                 .map(postPlace -> EditorInsightDto.PostPlaceDetailResponse.from(
                         editorProfile.nickname(),
                         editorProfile.instagramId(),
@@ -202,7 +204,7 @@ public class EditorPostQueryService {
                 .toList();
 
         Place place = placeRepository.findById(placeId)
-                .orElseGet(() -> postPlaces.stream()
+                .orElseGet(() -> ownPostPlaces.stream()
                         .map(PostPlace::getPlace)
                         .filter(candidate -> candidate != null && placeId.equals(candidate.getId()))
                         .findFirst()
@@ -211,19 +213,31 @@ public class EditorPostQueryService {
             throw new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND);
         }
 
-        EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
+        List<PostPlace> allPlacePostPlaces = postPlaceRepository.findAllByPlaceId(placeId);
+        if (allPlacePostPlaces == null || allPlacePostPlaces.isEmpty()) {
+            allPlacePostPlaces = ownPostPlaces;
+        }
+
+        EditorUploadedPlaceDto.Stats summedStats = sumStats(ownPostPlaces);
         EditorInsightDto.Stats detailStats = EditorInsightDto.Stats.from(
                 summedStats.getSaveCount(),
                 summedStats.getViewCount(),
                 summedStats.getInstagramInflowCount(),
                 summedStats.getDirectionCount());
 
-        Long editorTotal = (long) postPlaces.stream()
+        Long editorTotal = (long) allPlacePostPlaces.stream()
                 .map(PostPlace::getEditorId)
+                .filter(java.util.Objects::nonNull)
                 .distinct()
                 .count();
 
-        String latestImageUrl = postPlaces.stream()
+        List<Long> placePostPlaceIds = allPlacePostPlaces.stream()
+                .map(PostPlace::getId)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+        long archiverSaveTotal = postPlaceArchiveRepository.countByPostPlaceIdIn(placePostPlaceIds);
+
+        String latestImageUrl = ownPostPlaces.stream()
                 .max(Comparator.comparing(this::getLastUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
                 .map(PostPlace::getImageUrl)
                 .orElse(null);
@@ -232,6 +246,7 @@ public class EditorPostQueryService {
                 place,
                 latestImageUrl,
                 editorTotal,
+                archiverSaveTotal,
                 detailStats,
                 details);
     }

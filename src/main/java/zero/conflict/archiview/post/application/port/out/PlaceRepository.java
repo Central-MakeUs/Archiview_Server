@@ -17,4 +17,6 @@ public interface PlaceRepository {
     Optional<Place> findByPosition(Position position);
 
     List<Place> findAllByIds(List<Long> ids);
+
+    void incrementViewCount(Long placeId);
 }

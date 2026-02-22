@@ -16,4 +16,6 @@ public interface PostPlaceArchiveRepository {
     List<PostPlaceArchive> findAllByArchiverIdOrderByCreatedAtDesc(UUID archiverId);
 
     List<PostPlaceArchive> findAllByArchiverIdAndPostPlaceIdIn(UUID archiverId, List<Long> postPlaceIds);
+
+    long countByPostPlaceIdIn(List<Long> postPlaceIds);
 }

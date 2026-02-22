@@ -38,4 +38,12 @@ public class PostPlaceArchiveRepositoryImpl implements PostPlaceArchiveRepositor
     public List<PostPlaceArchive> findAllByArchiverIdAndPostPlaceIdIn(UUID archiverId, List<Long> postPlaceIds) {
         return postPlaceArchiveJpaRepository.findAllByArchiverIdAndPostPlaceIdIn(archiverId, postPlaceIds);
     }
+
+    @Override
+    public long countByPostPlaceIdIn(List<Long> postPlaceIds) {
+        if (postPlaceIds == null || postPlaceIds.isEmpty()) {
+            return 0L;
+        }
+        return postPlaceArchiveJpaRepository.countByPostPlaceIdIn(postPlaceIds);
+    }
 }

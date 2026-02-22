@@ -56,7 +56,7 @@ class CategoryQueryServiceTest {
         given(categoryRepository.findById(categoryId)).willReturn(Optional.of(category));
         UUID editorId = UUID.randomUUID();
         Post post = Post.builder().id(1L).editorId(editorId).build();
-        Place place = Place.builder().id(10L).name("성수 카페").build();
+        Place place = Place.builder().id(10L).name("성수 카페").viewCount(999L).build();
         PostPlace oldPostPlace = PostPlace.builder()
                 .id(100L)
                 .post(post)
@@ -97,7 +97,7 @@ class CategoryQueryServiceTest {
         assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
         assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("최근 설명");
         assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://example.com/latest.jpg");
-        assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(220L);
+        assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(999L);
         assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(55L);
     }
 
@@ -114,7 +114,7 @@ class CategoryQueryServiceTest {
 
         given(categoryRepository.findById(categoryId)).willReturn(Optional.of(category));
         Post post = Post.builder().id(1L).editorId(editorId).build();
-        Place place = Place.builder().id(10L).name("성수 카페").build();
+        Place place = Place.builder().id(10L).name("성수 카페").viewCount(120L).build();
         PostPlace latestPostPlace = PostPlace.builder()
                 .id(101L)
                 .post(post)

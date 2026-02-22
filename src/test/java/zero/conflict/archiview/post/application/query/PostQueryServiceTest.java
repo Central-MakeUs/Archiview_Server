@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.archiver.query.ArchiverVisibilityService;
+import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.editor.query.EditorPostQueryService;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostQueryService 테스트")
@@ -67,6 +69,9 @@ class PostQueryServiceTest {
 
         @Mock
         private ArchiverVisibilityService archiverVisibilityService;
+
+        @Mock
+        private PostPlaceCountService postPlaceCountService;
 
         @Test
         @DisplayName("좌표 기준 1km 내 장소 목록을 조회한다")
@@ -539,9 +544,24 @@ class PostQueryServiceTest {
                 setField(postPlace, "saveCount", 7L);
                 setField(postPlace, "instagramInflowCount", 5L);
                 setField(postPlace, "directionCount", 3L);
+                setField(postPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 15, 10, 0, 0));
+
+                UUID anotherEditorId = UUID.randomUUID();
+                Post anotherPost = Post.createOf(anotherEditorId, "https://www.instagram.com/post2", List.of("#추가"));
+                PostPlace anotherEditorPostPlace = PostPlace.createOf(
+                                anotherPost,
+                                place,
+                                "다른 에디터 설명",
+                                "https://another.url.com",
+                                anotherEditorId);
+                setField(anotherEditorPostPlace, "id", 101L);
 
                 given(postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId))
                                 .willReturn(List.of(postPlace));
+                given(postPlaceRepository.findAllByPlaceId(placeId))
+                                .willReturn(List.of(postPlace, anotherEditorPostPlace));
+                given(postPlaceSaveRepository.countByPostPlaceIdIn(List.of(100L, 101L)))
+                                .willReturn(4L);
                 given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place));
                 given(userClient.getEditorSummaries(List.of(editorId)))
                                 .willReturn(java.util.Map.of(
@@ -563,7 +583,8 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaceName()).isEqualTo("인사이트 장소");
                 assertThat(response.getPhoneNumber()).isEqualTo("02-1234-5678");
                 assertThat(response.getPlaceImageUrl()).isEqualTo("https://url.com");
-                assertThat(response.getEditorTotal()).isEqualTo(1L);
+                assertThat(response.getEditorTotal()).isEqualTo(2L);
+                assertThat(response.getArchiverSaveTotal()).isEqualTo(4L);
                 assertThat(response.getAddress().getAddressName()).isEqualTo("서울 성동구 성수동 1-1");
                 assertThat(response.getNearestStationWalkTime()).isEqualTo("성수역 도보 3분");
                 assertThat(response.getStats().getViewCount()).isEqualTo(11L);
@@ -651,6 +672,8 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("에디터");
                 assertThat(response.getPostPlaces().get(0).getEditorInstagramId()).isEqualTo("editor_insta");
                 assertThat(response.getPostPlaces().get(0).isArchived()).isFalse();
+                verify(postPlaceCountService).increaseViewCount(postPlace, null);
+                verify(placeRepository).incrementViewCount(placeId);
         }
 
         @Test
@@ -692,6 +715,9 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).isArchived()).isTrue();
                 assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(101L);
                 assertThat(response.getPostPlaces().get(1).isArchived()).isFalse();
+                verify(postPlaceCountService).increaseViewCount(archivedPostPlace, archiverId);
+                verify(postPlaceCountService).increaseViewCount(nonArchivedPostPlace, archiverId);
+                verify(placeRepository).incrementViewCount(placeId);
         }
 
         @Test
@@ -868,7 +894,6 @@ class PostQueryServiceTest {
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - OLDEST 정렬")
         void getEditorUploadedPostPlaces_oldest_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Place place1 = Place.builder().id(1L).name("최근 장소").build();
                 Place place2 = Place.builder().id(2L).name("오래된 장소").build();
@@ -920,24 +945,23 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 에디터가 없으면 예외")
-        void getEditorUploadedPostPlaces_editorNotFound_throwsException() {
+        @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - postPlace가 없으면 빈 응답")
+        void getEditorUploadedPostPlaces_withoutPostPlaces_returnsEmpty() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(false);
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
-                assertThatThrownBy(() -> postQueryService.getEditorUploadedPostPlaces(
+                ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
                                 editorId,
-                                ArchiverEditorPostPlaceDto.Sort.LATEST))
-                                .isInstanceOf(DomainException.class)
-                                .extracting(ex -> ((DomainException) ex).getErrorCode())
-                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                                ArchiverEditorPostPlaceDto.Sort.LATEST);
+
+                assertThat(response.getTotalCount()).isEqualTo(0L);
+                assertThat(response.getPostPlaces()).isEmpty();
         }
 
         @Test
         @DisplayName("아카이버가 조회하는 에디터 업로드 postPlace 목록 - 비어있으면 빈 응답")
         void getEditorUploadedPostPlaces_empty_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
                 ArchiverEditorPostPlaceDto.ListResponse response = postQueryService.getEditorUploadedPostPlaces(
@@ -952,7 +976,6 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - 카테고리 AND 필터")
         void getMapPinsForArchiver_categoryAndFilter_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Category korean = Category.builder().id(1L).name("한식").build();
                 Category western = Category.builder().id(2L).name("양식").build();
@@ -996,7 +1019,6 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY와 카테고리 동시 AND")
         void getMapPinsForArchiver_nearbyAndCategory_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 Category korean = Category.builder().id(1L).name("한식").build();
                 Category western = Category.builder().id(2L).name("양식").build();
@@ -1036,27 +1058,25 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버용 에디터 지도 핀 조회 - 에디터가 없으면 예외")
-        void getMapPinsForArchiver_editorNotFound_throwsException() {
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - postPlace가 없으면 빈 응답")
+        void getMapPinsForArchiver_withoutPostPlaces_returnsEmpty() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(false);
+                given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
-                assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
+                EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
                                 editorId,
                                 MapFilter.ALL,
                                 null,
                                 null,
-                                null))
-                                .isInstanceOf(DomainException.class)
-                                .extracting(ex -> ((DomainException) ex).getErrorCode())
-                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_NOT_FOUND);
+                                null);
+
+                assertThat(response.getPins()).isEmpty();
         }
 
         @Test
         @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY 좌표 누락 시 예외")
         void getMapPinsForArchiver_nearbyWithoutCoordinates_throwsException() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
 
                 assertThatThrownBy(() -> postQueryService.getMapPinsForArchiver(
                                 editorId,
@@ -1073,7 +1093,6 @@ class PostQueryServiceTest {
         @DisplayName("아카이버용 에디터 지도 핀 조회 - postPlace 없으면 빈 응답")
         void getMapPinsForArchiver_empty_success() {
                 UUID editorId = UUID.randomUUID();
-                given(userClient.existsEditorProfile(editorId)).willReturn(true);
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of());
 
                 EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(

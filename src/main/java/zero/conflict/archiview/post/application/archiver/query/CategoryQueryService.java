@@ -72,10 +72,7 @@ public class CategoryQueryService {
                         Comparator.nullsLast(Comparator.naturalOrder())))
                 .orElseThrow();
 
-        long viewCount = postPlaces.stream()
-                .map(PostPlace::getViewCount)
-                .mapToLong(this::defaultZero)
-                .sum();
+        long viewCount = defaultZero(latestPostPlace.getPlace() != null ? latestPostPlace.getPlace().getViewCount() : null);
         long saveCount = postPlaces.stream()
                 .map(PostPlace::getSaveCount)
                 .mapToLong(this::defaultZero)
