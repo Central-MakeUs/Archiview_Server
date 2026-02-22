@@ -37,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
@@ -717,6 +718,95 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(1).isArchived()).isFalse();
                 verify(postPlaceCountService).increaseViewCount(archivedPostPlace, archiverId);
                 verify(postPlaceCountService).increaseViewCount(nonArchivedPostPlace, archiverId);
+                verify(placeRepository).incrementViewCount(placeId);
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 필터 장소 상세 조회 시 지정 에디터의 postPlace만 반환한다")
+        void getArchiverPlaceDetail_byEditor_success() {
+                UUID archiverId = UUID.randomUUID();
+                UUID targetEditorId = UUID.randomUUID();
+                UUID anotherEditorId = UUID.randomUUID();
+                Long placeId = 1L;
+
+                Place place = Place.builder()
+                                .id(placeId)
+                                .name("성수 핫플")
+                                .build();
+                Post post = Post.createOf(targetEditorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
+                PostPlace targetPostPlace = PostPlace.createOf(post, place, "타겟 설명", "https://target.url", targetEditorId);
+                PostPlace anotherPostPlace = PostPlace.createOf(post, place, "다른 설명", "https://another.url", anotherEditorId);
+                setField(targetPostPlace, "id", 100L);
+                setField(anotherPostPlace, "id", 101L);
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place), java.util.Optional.of(place));
+                given(postPlaceRepository.findAllByPlaceId(placeId)).willReturn(List.of(targetPostPlace, anotherPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                org.mockito.ArgumentMatchers.eq(List.of(targetPostPlace, anotherPostPlace)),
+                                org.mockito.ArgumentMatchers.eq(visibilityFilter)))
+                                .willReturn(List.of(targetPostPlace, anotherPostPlace));
+                given(userClient.getEditorSummaries(List.of(targetEditorId)))
+                                .willReturn(java.util.Map.of(
+                                                targetEditorId,
+                                                new UserClient.EditorSummary(targetEditorId, "타겟에디터", "target_insta")));
+                given(postPlaceSaveRepository.findAllByArchiverIdAndPostPlaceIdIn(archiverId, List.of(100L)))
+                                .willReturn(List.of(PostPlaceArchive.createOf(archiverId, 100L)));
+
+                ArchiverPlaceDetailDto.Response response = postQueryService.getArchiverPlaceDetail(
+                                placeId,
+                                targetEditorId,
+                                archiverId);
+
+                assertThat(response.getPostPlaces()).hasSize(1);
+                assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
+                assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("타겟에디터");
+                assertThat(response.getPostPlaces().get(0).isArchived()).isTrue();
+                verify(postPlaceCountService).increaseViewCount(targetPostPlace, archiverId);
+                verify(postPlaceCountService, never()).increaseViewCount(anotherPostPlace, archiverId);
+                verify(placeRepository).incrementViewCount(placeId);
+        }
+
+        @Test
+        @DisplayName("아카이버용 에디터 필터 장소 상세 조회 시 postPlace가 없으면 빈 목록을 반환한다")
+        void getArchiverPlaceDetail_byEditor_emptyPostPlaces() {
+                UUID archiverId = UUID.randomUUID();
+                UUID targetEditorId = UUID.randomUUID();
+                UUID anotherEditorId = UUID.randomUUID();
+                Long placeId = 1L;
+
+                Place place = Place.builder()
+                                .id(placeId)
+                                .name("성수 핫플")
+                                .build();
+                Post post = Post.createOf(anotherEditorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
+                PostPlace anotherPostPlace = PostPlace.createOf(post, place, "다른 설명", "https://another.url", anotherEditorId);
+                setField(anotherPostPlace, "id", 101L);
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                java.util.Set.of(),
+                                java.util.Set.of());
+
+                given(placeRepository.findById(placeId)).willReturn(java.util.Optional.of(place), java.util.Optional.of(place));
+                given(postPlaceRepository.findAllByPlaceId(placeId)).willReturn(List.of(anotherPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                org.mockito.ArgumentMatchers.eq(List.of(anotherPostPlace)),
+                                org.mockito.ArgumentMatchers.eq(visibilityFilter)))
+                                .willReturn(List.of(anotherPostPlace));
+
+                ArchiverPlaceDetailDto.Response response = postQueryService.getArchiverPlaceDetail(
+                                placeId,
+                                targetEditorId,
+                                archiverId);
+
+                assertThat(response.getPlace().getPlaceId()).isEqualTo(placeId);
+                assertThat(response.getPostPlaces()).isEmpty();
+                verify(postPlaceCountService, never()).increaseViewCount(anotherPostPlace, archiverId);
                 verify(placeRepository).incrementViewCount(placeId);
         }
 

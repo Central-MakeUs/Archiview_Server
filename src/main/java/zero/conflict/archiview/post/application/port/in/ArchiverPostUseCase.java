@@ -16,6 +16,8 @@ public interface ArchiverPostUseCase {
 
     ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId);
 
+    ArchiverPlaceDetailDto.Response getArchiverPlaceDetailByEditor(Long placeId, UUID editorId, UUID archiverId);
+
     CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(Double latitude, Double longitude, UUID archiverId);
 
     ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(

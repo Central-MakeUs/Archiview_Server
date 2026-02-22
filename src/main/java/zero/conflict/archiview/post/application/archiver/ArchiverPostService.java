@@ -39,6 +39,11 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     }
 
     @Override
+    public ArchiverPlaceDetailDto.Response getArchiverPlaceDetailByEditor(Long placeId, UUID editorId, UUID archiverId) {
+        return postQueryService.getArchiverPlaceDetail(placeId, editorId, archiverId);
+    }
+
+    @Override
     public CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(
             Double latitude,
             Double longitude,

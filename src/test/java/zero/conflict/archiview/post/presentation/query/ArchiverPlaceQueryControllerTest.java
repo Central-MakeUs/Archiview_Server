@@ -82,6 +82,49 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("에디터 필터 장소 상세 조회 - 성공")
+    void getPlaceDetailByEditor_success() throws Exception {
+        UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000111");
+        Long placeId = 301L;
+        ArchiverPlaceDetailDto.PlaceResponse place = ArchiverPlaceDetailDto.PlaceResponse.builder()
+                .placeId(placeId)
+                .name("잠실 레이크 브런치")
+                .phoneNumber("02-9876-5432")
+                .build();
+        ArchiverPlaceDetailDto.PostPlaceResponse postPlace = ArchiverPlaceDetailDto.PostPlaceResponse.builder()
+                .postPlaceId(402L)
+                .description("에디터 필터 설명")
+                .isArchived(false)
+                .build();
+        ArchiverPlaceDetailDto.Response response = ArchiverPlaceDetailDto.Response.from(place, List.of(postPlace));
+
+        given(postQueryService.getArchiverPlaceDetail(eq(placeId), eq(editorId), any(UUID.class))).willReturn(response);
+
+        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/places/{placeId}", editorId, placeId)
+                        .with(authenticatedUser()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.place.placeId").value(301L))
+                .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(402L))
+                .andExpect(jsonPath("$.data.postPlaces[0].isArchived").value(false));
+    }
+
+    @Test
+    @DisplayName("에디터 필터 장소 상세 조회 - mock")
+    void getPlaceDetailByEditor_mock() throws Exception {
+        UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000111");
+        Long placeId = 301L;
+
+        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/places/{placeId}", editorId, placeId)
+                        .with(authenticatedUser())
+                        .queryParam("useMock", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.place.placeId").value(301))
+                .andExpect(jsonPath("$.data.postPlaces").isArray());
+    }
+
+    @Test
     @DisplayName("내 주변 1km 장소 조회 - 성공")
     void getNearbyPlaces_success() throws Exception {
         CategoryQueryDto.CategoryPlaceResponse place = CategoryQueryDto.CategoryPlaceResponse.builder()

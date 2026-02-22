@@ -357,11 +357,16 @@ public class PostQueryService {
         }
 
         public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId) {
-                return getArchiverPlaceDetail(placeId, null);
+                return getArchiverPlaceDetail(placeId, null, null);
         }
 
         @Transactional
         public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId) {
+                return getArchiverPlaceDetail(placeId, null, archiverId);
+        }
+
+        @Transactional
+        public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID editorId, UUID archiverId) {
                 Place place = placeRepository.findById(placeId)
                                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
@@ -376,6 +381,11 @@ public class PostQueryService {
                         if (postPlaces == null) {
                                 postPlaces = List.of();
                         }
+                }
+                if (editorId != null) {
+                        postPlaces = postPlaces.stream()
+                                        .filter(postPlace -> editorId.equals(postPlace.getEditorId()))
+                                        .toList();
                 }
 
                 // Place 상세 조회 시 응답 대상 postPlace는 각각 조회수 1 증가(소유자 제외)

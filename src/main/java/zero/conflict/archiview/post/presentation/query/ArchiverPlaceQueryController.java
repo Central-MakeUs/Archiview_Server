@@ -55,6 +55,20 @@ public class ArchiverPlaceQueryController {
         return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getArchiverPlaceDetail(placeId, oAuth2User.getUserId())));
     }
 
+    @Operation(summary = "특정 에디터가 업로드한 장소 상세 조회 (아카이버용)", description = "아카이버 장소 상세 응답 형식으로 특정 에디터가 업로드한 장소카드만 조회합니다.")
+    @GetMapping("/editors/{userId}/places/{placeId}")
+    public ResponseEntity<ApiResponse<ArchiverPlaceDetailDto.Response>> getPlaceDetailByEditor(
+            @PathVariable UUID userId,
+            @PathVariable Long placeId,
+            @RequestParam(defaultValue = "false") boolean useMock,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+        if (useMock) {
+            return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));
+        }
+        return ResponseEntity.ok(ApiResponse.success(
+                archiverPostUseCase.getArchiverPlaceDetailByEditor(placeId, userId, oAuth2User.getUserId())));
+    }
+
     @Operation(summary = "내 주변 1km 장소 조회", description = "현재 좌표 기준 1km 내 장소 목록을 조회합니다.")
     @GetMapping("/places/nearby")
     public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryPlaceListResponse>> getNearbyPlaces(
@@ -71,7 +85,7 @@ public class ArchiverPlaceQueryController {
                 oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버) (작업중)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
+    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
     @GetMapping("/editors/{userId}/post-places")
     public ResponseEntity<ApiResponse<ArchiverEditorPostPlaceDto.ListResponse>> getEditorUploadedPostPlaces(
             @PathVariable UUID userId,
@@ -87,7 +101,7 @@ public class ArchiverPlaceQueryController {
                 oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버) (작업중)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
+    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
     @GetMapping("/editors/{editorId}/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getEditorMapPins(
             @PathVariable UUID editorId,
