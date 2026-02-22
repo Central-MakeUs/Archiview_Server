@@ -116,7 +116,7 @@ public class ArchiverPlaceDetailDto {
                 @Schema(description = "길찾기수", example = "200")
                 private Long directionCount;
 
-                public static PlaceResponse from(Place place, long saveCount, long instagramInflowCount,
+                public static PlaceResponse from(Place place, long viewCount, long saveCount, long instagramInflowCount,
                                 long directionCount) {
                         return PlaceResponse.builder()
                                         .placeId(place.getId())
@@ -133,7 +133,7 @@ public class ArchiverPlaceDetailDto {
                                         .longitude(place.getPosition() != null ? place.getPosition().getLongitude()
                                                         : null)
                                         .nearestStationWalkTime(place.getNearestStationWalkTime())
-                                        .viewCount(place.getViewCount() == null ? 0L : place.getViewCount())
+                                        .viewCount(viewCount)
                                         .saveCount(saveCount)
                                         .instagramInflowCount(instagramInflowCount)
                                         .directionCount(directionCount)

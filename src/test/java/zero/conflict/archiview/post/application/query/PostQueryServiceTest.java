@@ -732,12 +732,21 @@ class PostQueryServiceTest {
                 Place place = Place.builder()
                                 .id(placeId)
                                 .name("성수 핫플")
+                                .viewCount(999L)
                                 .build();
                 Post post = Post.createOf(targetEditorId, "https://www.instagram.com/post", List.of("#성수카페", "#감성"));
                 PostPlace targetPostPlace = PostPlace.createOf(post, place, "타겟 설명", "https://target.url", targetEditorId);
                 PostPlace anotherPostPlace = PostPlace.createOf(post, place, "다른 설명", "https://another.url", anotherEditorId);
                 setField(targetPostPlace, "id", 100L);
                 setField(anotherPostPlace, "id", 101L);
+                setField(targetPostPlace, "viewCount", 11L);
+                setField(targetPostPlace, "saveCount", 7L);
+                setField(targetPostPlace, "instagramInflowCount", 5L);
+                setField(targetPostPlace, "directionCount", 3L);
+                setField(anotherPostPlace, "viewCount", 100L);
+                setField(anotherPostPlace, "saveCount", 99L);
+                setField(anotherPostPlace, "instagramInflowCount", 77L);
+                setField(anotherPostPlace, "directionCount", 55L);
 
                 ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
                                 java.util.Set.of(),
@@ -766,6 +775,10 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(100L);
                 assertThat(response.getPostPlaces().get(0).getEditorName()).isEqualTo("타겟에디터");
                 assertThat(response.getPostPlaces().get(0).isArchived()).isTrue();
+                assertThat(response.getPlace().getViewCount()).isEqualTo(11L);
+                assertThat(response.getPlace().getSaveCount()).isEqualTo(7L);
+                assertThat(response.getPlace().getInstagramInflowCount()).isEqualTo(5L);
+                assertThat(response.getPlace().getDirectionCount()).isEqualTo(3L);
                 verify(postPlaceCountService).increaseViewCount(targetPostPlace, archiverId);
                 verify(postPlaceCountService, never()).increaseViewCount(anotherPostPlace, archiverId);
                 verify(placeRepository).incrementViewCount(placeId);
@@ -805,6 +818,10 @@ class PostQueryServiceTest {
                                 archiverId);
 
                 assertThat(response.getPlace().getPlaceId()).isEqualTo(placeId);
+                assertThat(response.getPlace().getViewCount()).isEqualTo(0L);
+                assertThat(response.getPlace().getSaveCount()).isEqualTo(0L);
+                assertThat(response.getPlace().getInstagramInflowCount()).isEqualTo(0L);
+                assertThat(response.getPlace().getDirectionCount()).isEqualTo(0L);
                 assertThat(response.getPostPlaces()).isEmpty();
                 verify(postPlaceCountService, never()).increaseViewCount(anotherPostPlace, archiverId);
                 verify(placeRepository).incrementViewCount(placeId);

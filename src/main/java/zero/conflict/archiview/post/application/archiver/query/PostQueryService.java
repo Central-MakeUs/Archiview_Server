@@ -397,8 +397,12 @@ public class PostQueryService {
                                 .orElseThrow(() -> new DomainException(PostErrorCode.POST_PLACE_NOT_FOUND));
 
                 EditorUploadedPlaceDto.Stats summedStats = sumStats(postPlaces);
+                long placeViewCount = editorId != null
+                                ? summedStats.getViewCount()
+                                : defaultZero(place.getViewCount());
                 ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(
                                 place,
+                                placeViewCount,
                                 summedStats.getSaveCount(),
                                 summedStats.getInstagramInflowCount(),
                                 summedStats.getDirectionCount());
