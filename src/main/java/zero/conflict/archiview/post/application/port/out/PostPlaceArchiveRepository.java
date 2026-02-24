@@ -1,4 +1,5 @@
 package zero.conflict.archiview.post.application.port.out;
+// Trigger re-scan
 
 import zero.conflict.archiview.post.domain.PostPlaceArchive;
 

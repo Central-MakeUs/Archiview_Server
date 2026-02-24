@@ -10,15 +10,14 @@ import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 
-
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class EditorProfileQueryService {
 
     private final EditorProfileRepository editorProfileRepository;
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
     public EditorProfileDto.Response getMyProfile(java.util.UUID userId) {
         EditorProfile profile = editorProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.EDITOR_PROFILE_NOT_FOUND));
@@ -26,7 +25,6 @@ public class EditorProfileQueryService {
         return EditorProfileDto.Response.from(profile);
     }
 
-    @Transactional(readOnly = true)
     public EditorProfileDto.Response getEditorProfile(java.util.UUID editorId) {
         var profileOptional = editorProfileRepository.findByUserId(editorId);
         if (profileOptional.isPresent()) {

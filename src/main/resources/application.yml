@@ -14,7 +14,7 @@ spring:
 
   # JPA
   jpa:
-    open-in-view: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true

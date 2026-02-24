@@ -77,7 +77,9 @@ public class ArchiverSearchQueryService {
         List<SearchDto.PlaceCard> allPlaceCards = matchedPlaceIds.stream()
                 .map(placeId -> toPlaceCard(visibleByPlaceId.get(placeId)))
                 .filter(card -> card != null)
-                .sorted(Comparator.comparing(SearchDto.PlaceCard::getLatestUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .sorted(Comparator
+                        .comparing(SearchDto.PlaceCard::getLatestUpdatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder()))
                         .reversed())
                 .toList();
 
@@ -87,7 +89,8 @@ public class ArchiverSearchQueryService {
                 visiblePostPlaces,
                 visibleByEditorId,
                 matchedPlaceIds);
-        Map<UUID, EditorProfile> profileMap = editorProfileRepository.findAllByUserIds(new ArrayList<>(matchedEditorIds))
+        Map<UUID, EditorProfile> profileMap = editorProfileRepository
+                .findAllByUserIds(new ArrayList<>(matchedEditorIds))
                 .stream()
                 .collect(Collectors.toMap(EditorProfile::getUserId, p -> p));
 
@@ -102,7 +105,9 @@ public class ArchiverSearchQueryService {
                         visibleByEditorId.get(editorId),
                         followingEditorIds))
                 .filter(card -> card != null)
-                .sorted(Comparator.comparing(SearchDto.EditorCard::getLatestUpdatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .sorted(Comparator
+                        .comparing(SearchDto.EditorCard::getLatestUpdatedAt,
+                                Comparator.nullsLast(Comparator.naturalOrder()))
                         .reversed())
                 .toList();
 
@@ -112,7 +117,8 @@ public class ArchiverSearchQueryService {
     @Transactional(readOnly = true)
     public SearchDto.RecentListResponse getRecentSearches(UUID archiverId) {
         validateArchiver(archiverId);
-        List<SearchDto.RecentItem> histories = searchHistoryRepository.findAllByArchiverIdOrderByLastModifiedAtDesc(archiverId)
+        List<SearchDto.RecentItem> histories = searchHistoryRepository
+                .findAllByArchiverIdOrderByLastModifiedAtDesc(archiverId)
                 .stream()
                 .limit(RECENT_MAX)
                 .map(this::toRecentItem)
@@ -154,8 +160,10 @@ public class ArchiverSearchQueryService {
                         .build())
                 .sorted(Comparator
                         .comparing(SearchDto.RecommendationItem::getCount, Comparator.reverseOrder())
-                        .thenComparing(SearchDto.RecommendationItem::getLatestUsedAt, Comparator.nullsLast(Comparator.reverseOrder()))
-                        .thenComparing(SearchDto.RecommendationItem::getKeyword, Comparator.nullsLast(Comparator.naturalOrder())))
+                        .thenComparing(SearchDto.RecommendationItem::getLatestUsedAt,
+                                Comparator.nullsLast(Comparator.reverseOrder()))
+                        .thenComparing(SearchDto.RecommendationItem::getKeyword,
+                                Comparator.nullsLast(Comparator.naturalOrder())))
                 .limit(RECENT_MAX)
                 .toList();
 
@@ -253,10 +261,11 @@ public class ArchiverSearchQueryService {
             return null;
         }
         Hashtags hashtags = profile.getHashtags();
-        LocalDateTime latestPostUpdatedAt = postPlaces == null ? null : postPlaces.stream()
-                .map(this::lastUpdatedAt)
-                .max(Comparator.nullsLast(Comparator.naturalOrder()))
-                .orElse(null);
+        LocalDateTime latestPostUpdatedAt = postPlaces == null ? null
+                : postPlaces.stream()
+                        .map(this::lastUpdatedAt)
+                        .max(Comparator.nullsLast(Comparator.naturalOrder()))
+                        .orElse(null);
         LocalDateTime profileUpdatedAt = lastUpdatedAt(profile);
         LocalDateTime latestUpdatedAt = latestPostUpdatedAt;
         if (latestUpdatedAt == null || (profileUpdatedAt != null && profileUpdatedAt.isAfter(latestUpdatedAt))) {
@@ -324,7 +333,8 @@ public class ArchiverSearchQueryService {
         return editorProfileRepository.findByUserId(editorId).isPresent();
     }
 
-    private boolean matchesPostPlace(PostClient.PostPlaceView pp, String normalized, SearchDto.KeywordType keywordType) {
+    private boolean matchesPostPlace(PostClient.PostPlaceView pp, String normalized,
+            SearchDto.KeywordType keywordType) {
         if (keywordType == SearchDto.KeywordType.URL) {
             return contains(pp.postUrl(), normalized);
         }
@@ -367,7 +377,8 @@ public class ArchiverSearchQueryService {
     }
 
     private SearchDto.RecentItem toRecentItem(SearchHistory history) {
-        String displayKeyword = history.getKeywordType() == SearchDto.KeywordType.URL ? URL_DISPLAY : history.getKeyword();
+        String displayKeyword = history.getKeywordType() == SearchDto.KeywordType.URL ? URL_DISPLAY
+                : history.getKeyword();
         return SearchDto.RecentItem.builder()
                 .historyId(history.getId())
                 .keyword(history.getKeyword())
@@ -382,7 +393,8 @@ public class ArchiverSearchQueryService {
             String rawQuery,
             String normalizedQuery,
             SearchDto.KeywordType keywordType) {
-        SearchHistory history = searchHistoryRepository.findByArchiverIdAndKeywordNormalized(archiverId, normalizedQuery)
+        SearchHistory history = searchHistoryRepository
+                .findByArchiverIdAndKeywordNormalized(archiverId, normalizedQuery)
                 .orElse(null);
         if (history == null) {
             history = SearchHistory.createOf(

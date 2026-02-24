@@ -18,6 +18,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TrustedEditorQueryService {
 
     private static final int MAX_TRUSTED_EDITORS = 7;
@@ -26,7 +27,6 @@ public class TrustedEditorQueryService {
     private final FollowRepository followRepository;
     private final PostClient postClient;
 
-    @Transactional(readOnly = true)
     public TrustedEditorDto.ListResponse getTrustedEditors() {
         List<EditorProfile> profiles = editorProfileRepository.findAll();
         if (profiles.isEmpty()) {
@@ -42,11 +42,11 @@ public class TrustedEditorQueryService {
 
         List<TrustedEditorDto.EditorResponse> editors = profiles.stream()
                 .sorted(Comparator
-                        .comparing((EditorProfile profile) ->
-                                followerCounts.getOrDefault(profile.getUser().getId(), 0L))
+                        .comparing(
+                                (EditorProfile profile) -> followerCounts.getOrDefault(profile.getUser().getId(), 0L))
                         .reversed()
-                        .thenComparing(profile ->
-                                postPlaceCounts.getOrDefault(profile.getUser().getId(), 0L), Comparator.reverseOrder()))
+                        .thenComparing(profile -> postPlaceCounts.getOrDefault(profile.getUser().getId(), 0L),
+                                Comparator.reverseOrder()))
                 .limit(MAX_TRUSTED_EDITORS)
                 .map(TrustedEditorDto.EditorResponse::from)
                 .toList();

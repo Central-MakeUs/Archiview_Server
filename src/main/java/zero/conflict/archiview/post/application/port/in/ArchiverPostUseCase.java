@@ -12,54 +12,55 @@ import java.util.UUID;
 
 public interface ArchiverPostUseCase {
 
-    ArchiverHotPlaceDto.ListResponse getHotPlaces(int size, UUID archiverId);
+        ArchiverHotPlaceDto.ListResponse getHotPlaces(int size, UUID archiverId);
 
-    ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId);
+        ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId, UUID archiverId);
 
-    ArchiverPlaceDetailDto.Response getArchiverPlaceDetailByEditor(Long placeId, UUID editorId, UUID archiverId);
+        ArchiverPlaceDetailDto.Response getArchiverPlaceDetailByEditor(Long placeId, UUID editorId, UUID archiverId);
 
-    CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(Double latitude, Double longitude, UUID archiverId);
+        CategoryQueryDto.CategoryPlaceListResponse getNearbyPlacesWithin1km(Double latitude, Double longitude,
+                        UUID archiverId);
 
-    ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
-            UUID userId,
-            ArchiverEditorPostPlaceDto.Sort sort,
-            UUID archiverId);
+        ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
+                        UUID userId,
+                        ArchiverEditorPostPlaceDto.Sort sort,
+                        UUID archiverId);
 
-    EditorMapDto.Response getMapPinsForArchiver(
-            UUID editorId,
-            EditorMapDto.MapFilter filter,
-            List<Long> categoryIds,
-            Double latitude,
-            Double longitude,
-            UUID archiverId);
+        EditorMapDto.Response getMapPinsForArchiver(
+                        UUID editorId,
+                        EditorMapDto.MapFilter filter,
+                        List<Long> categoryIds,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId);
 
-    CategoryQueryDto.CategoryListResponse getCategories();
+        CategoryQueryDto.CategoryListResponse getCategories();
 
-    CategoryQueryDto.CategoryPlaceListResponse getPlacesByCategoryId(Long categoryId, UUID archiverId);
+        CategoryQueryDto.CategoryPlaceListResponse getPlacesByCategoryId(Long categoryId, UUID archiverId);
 
-    void reportPostPlace(UUID archiverId, Long postPlaceId);
+        void reportPostPlace(UUID archiverId, Long postPlaceId);
 
-    void cancelReportPostPlace(UUID archiverId, Long postPlaceId);
+        void cancelReportPostPlace(UUID archiverId, Long postPlaceId);
 
-    void archivePostPlace(UUID archiverId, Long postPlaceId);
+        void archivePostPlace(UUID archiverId, Long postPlaceId);
 
-    void unarchivePostPlace(UUID archiverId, Long postPlaceId);
+        void unarchivePostPlace(UUID archiverId, Long postPlaceId);
 
-    ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(
-            EditorMapDto.MapFilter filter,
-            Double latitude,
-            Double longitude,
-            UUID archiverId);
+        ArchiverArchivedPostPlaceDto.ListResponse getMyArchivedPostPlaces(
+                        EditorMapDto.MapFilter filter,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId);
 
-    EditorMapDto.Response getMyArchivedMapPins(
-            EditorMapDto.MapFilter filter,
-            Double latitude,
-            Double longitude,
-            UUID archiverId);
+        EditorMapDto.Response getMyArchivedMapPins(
+                        EditorMapDto.MapFilter filter,
+                        Double latitude,
+                        Double longitude,
+                        UUID archiverId);
 
-    void increasePostPlaceViewCount(Long postPlaceId, UUID actorId);
+        void increasePostPlaceViewCount(Long postPlaceId, UUID actorId);
 
-    Long increasePostPlaceInstagramInflowCount(Long postPlaceId, UUID actorId);
+        Long increasePostPlaceInstagramInflowCount(Long postPlaceId, UUID actorId);
 
-    Long increasePostPlaceDirectionCount(Long postPlaceId, UUID actorId);
+        Long increasePostPlaceDirectionCount(Long postPlaceId, UUID actorId);
 }

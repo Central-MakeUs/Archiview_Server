@@ -1,4 +1,5 @@
 package zero.conflict.archiview.post.application.archiver.query;
+// Trigger re-scan
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PostQueryService {
 
         private final PostPlaceRepository postPlaceRepository;
@@ -63,12 +65,15 @@ public class PostQueryService {
                 List<Long> placeIds = nearbyPlaces.stream()
                                 .map(Place::getId)
                                 .toList();
-                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaceRepository.findAllByPlaceIds(placeIds).stream()
-                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
+                Map<Long, List<PostPlace>> postPlacesByPlaceId = postPlaceRepository.findAllByPlaceIds(placeIds)
+                                .stream()
+                                .filter(postPlace -> postPlace.getPlace() != null
+                                                && postPlace.getPlace().getId() != null)
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
                 List<CategoryQueryDto.CategoryPlaceResponse> places = nearbyPlaces.stream()
-                                .map(place -> toCategoryPlaceResponseIncludingEmpty(place, postPlacesByPlaceId.get(place.getId())))
+                                .map(place -> toCategoryPlaceResponseIncludingEmpty(place,
+                                                postPlacesByPlaceId.get(place.getId())))
                                 .sorted(categoryPlaceResponseComparator(postPlacesByPlaceId))
                                 .toList();
 
@@ -102,7 +107,8 @@ public class PostQueryService {
                                 postPlaceRepository.findAllByPlaceIds(placeIds),
                                 visibilityFilter);
                 Map<Long, List<PostPlace>> visibleByPlaceId = visiblePostPlaces.stream()
-                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
+                                .filter(postPlace -> postPlace.getPlace() != null
+                                                && postPlace.getPlace().getId() != null)
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
 
                 List<CategoryQueryDto.CategoryPlaceResponse> places = nearbyPlaces.stream()
@@ -167,7 +173,8 @@ public class PostQueryService {
                         UUID archiverId) {
                 validateNearbyCoordinates(filter, latitude, longitude);
 
-                List<PostPlaceArchive> archives = postPlaceArchiveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
+                List<PostPlaceArchive> archives = postPlaceArchiveRepository
+                                .findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
                 if (archives.isEmpty()) {
                         return ArchiverArchivedPostPlaceDto.ListResponse.empty();
                 }
@@ -206,7 +213,8 @@ public class PostQueryService {
                         UUID archiverId) {
                 validateNearbyCoordinates(filter, latitude, longitude);
 
-                List<PostPlaceArchive> archives = postPlaceArchiveRepository.findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
+                List<PostPlaceArchive> archives = postPlaceArchiveRepository
+                                .findAllByArchiverIdOrderByCreatedAtDesc(archiverId);
                 if (archives.isEmpty()) {
                         return EditorMapDto.Response.empty();
                 }
@@ -230,7 +238,8 @@ public class PostQueryService {
                 }
 
                 Map<Long, List<PostPlace>> postPlacesByPlaceId = visiblePostPlaces.stream()
-                                .filter(postPlace -> postPlace.getPlace() != null && postPlace.getPlace().getId() != null)
+                                .filter(postPlace -> postPlace.getPlace() != null
+                                                && postPlace.getPlace().getId() != null)
                                 .collect(Collectors.groupingBy(pp -> pp.getPlace().getId()));
                 if (postPlacesByPlaceId.isEmpty()) {
                         return EditorMapDto.Response.empty();
@@ -356,6 +365,7 @@ public class PostQueryService {
                 return value == null ? 0L : value;
         }
 
+        @Transactional
         public ArchiverPlaceDetailDto.Response getArchiverPlaceDetail(Long placeId) {
                 return getArchiverPlaceDetail(placeId, null, null);
         }
@@ -403,9 +413,9 @@ public class PostQueryService {
                 ArchiverPlaceDetailDto.PlaceResponse placeResponse = ArchiverPlaceDetailDto.PlaceResponse.from(
                                 place,
                                 placeViewCount,
-                                summedStats.getSaveCount(),
-                                summedStats.getInstagramInflowCount(),
-                                summedStats.getDirectionCount());
+                                defaultZero(summedStats.getSaveCount()),
+                                defaultZero(summedStats.getInstagramInflowCount()),
+                                defaultZero(summedStats.getDirectionCount()));
 
                 if (postPlaces.isEmpty()) {
                         return ArchiverPlaceDetailDto.Response.empty(placeResponse);
@@ -517,7 +527,8 @@ public class PostQueryService {
 
                 long viewCount = postPlaces.stream()
                                 .map(PostPlace::getPlace)
-                                .filter(place -> place != null && place.getId() != null && place.getId().equals(placeId))
+                                .filter(place -> place != null && place.getId() != null
+                                                && place.getId().equals(placeId))
                                 .map(Place::getViewCount)
                                 .findFirst()
                                 .map(this::defaultZero)

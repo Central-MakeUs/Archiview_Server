@@ -1,4 +1,5 @@
 package zero.conflict.archiview.post.dto;
+// Trigger re-scan
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonIgnore;

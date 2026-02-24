@@ -21,5 +21,5 @@ public interface PlaceJpaRepository extends JpaRepository<Place, Long> {
             set p.viewCount = coalesce(p.viewCount, 0) + 1
             where p.id = :placeId
             """)
-    int incrementViewCount(@Param("placeId") Long placeId);
+    void incrementViewCount(@Param("placeId") Long placeId);
 }

@@ -14,6 +14,7 @@ import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
+import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto.PlaceSort;
 import zero.conflict.archiview.post.dto.EditorMapDto.MapFilter;
 
 import java.util.List;
