@@ -30,7 +30,7 @@ public interface EditorPostUseCase {
         EditorMapDto.Response getMapPins(
                         UUID editorId,
                         EditorMapDto.MapFilter filter,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude);
 
@@ -38,7 +38,7 @@ public interface EditorPostUseCase {
                         UUID editorId,
                         EditorMapDto.MapFilter filter,
                         EditorUploadedPlaceDto.PlaceSort sort,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude);
 

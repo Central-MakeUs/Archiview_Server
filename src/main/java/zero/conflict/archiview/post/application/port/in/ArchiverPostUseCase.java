@@ -29,7 +29,7 @@ public interface ArchiverPostUseCase {
         EditorMapDto.Response getMapPinsForArchiver(
                         UUID editorId,
                         EditorMapDto.MapFilter filter,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude,
                         UUID archiverId);

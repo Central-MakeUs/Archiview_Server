@@ -63,14 +63,14 @@ public class ArchiverPostService implements ArchiverPostUseCase {
     public EditorMapDto.Response getMapPinsForArchiver(
             UUID editorId,
             EditorMapDto.MapFilter filter,
-            List<Long> categoryIds,
+            Long categoryId,
             Double latitude,
             Double longitude,
             UUID archiverId) {
         return postQueryService.getMapPinsForArchiver(
                 editorId,
                 filter,
-                categoryIds,
+                categoryId,
                 latitude,
                 longitude,
                 archiverId);

@@ -65,7 +65,7 @@ public class EditorPostQueryService {
                         UUID editorId,
                         MapFilter filter,
                         PlaceSort sort,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude) {
                 validateNearbyCoordinates(filter, latitude, longitude);
@@ -84,7 +84,7 @@ public class EditorPostQueryService {
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
                 List<EditorUploadedPlaceDto.PlaceCardResponse> places = postPlacesByPlaceId.entrySet().stream()
-                                .filter(entry -> matchCategories(entry.getValue(), categoryIds))
+                                .filter(entry -> matchesAnyCategory(entry.getValue(), categoryId))
                                 .filter(entry -> matchNearby(
                                                 resolvePlace(entry.getKey(), entry.getValue(), placeMap),
                                                 filter,
@@ -100,7 +100,7 @@ public class EditorPostQueryService {
         public EditorMapDto.Response getMapPins(
                         UUID editorId,
                         MapFilter filter,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude) {
                 validateNearbyCoordinates(filter, latitude, longitude);
@@ -119,7 +119,7 @@ public class EditorPostQueryService {
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
                 List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
-                                .filter(entry -> matchCategories(entry.getValue(), categoryIds))
+                                .filter(entry -> matchesAnyCategory(entry.getValue(), categoryId))
                                 .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
                                 .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
                                 .filter(pin -> pin != null)
@@ -285,16 +285,17 @@ public class EditorPostQueryService {
                 return EditorMapDto.PlacePinResponse.from(place, postPlaces);
         }
 
-        private boolean matchCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
-                if (categoryIds == null || categoryIds.isEmpty()) {
+        private boolean matchesAnyCategory(List<PostPlace> postPlaces, Long categoryId) {
+                if (categoryId == null) {
                         return true;
                 }
+
                 return postPlaces.stream()
                                 .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
                                 .map(PostPlaceCategory::getCategory)
-                                .filter(category -> category != null)
+                                .filter(category -> category != null && category.getId() != null)
                                 .map(category -> category.getId())
-                                .anyMatch(categoryIds::contains);
+                                .anyMatch(categoryId::equals);
         }
 
         private Place resolvePlace(Long placeId, List<PostPlace> postPlaces, Map<Long, Place> placeMap) {

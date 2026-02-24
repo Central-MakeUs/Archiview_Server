@@ -29,7 +29,6 @@ import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceRead
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -465,16 +464,16 @@ public class PostQueryService {
         public EditorMapDto.Response getMapPinsForArchiver(
                         UUID editorId,
                         MapFilter filter,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude) {
-                return getMapPinsForArchiver(editorId, filter, categoryIds, latitude, longitude, null);
+                return getMapPinsForArchiver(editorId, filter, categoryId, latitude, longitude, null);
         }
 
         public EditorMapDto.Response getMapPinsForArchiver(
                         UUID editorId,
                         MapFilter filter,
-                        List<Long> categoryIds,
+                        Long categoryId,
                         Double latitude,
                         Double longitude,
                         UUID archiverId) {
@@ -500,7 +499,7 @@ public class PostQueryService {
                                 .collect(Collectors.toMap(Place::getId, Function.identity()));
 
                 List<EditorMapDto.PlacePinResponse> pins = postPlacesByPlaceId.entrySet().stream()
-                                .filter(entry -> matchAllCategories(entry.getValue(), categoryIds))
+                                .filter(entry -> matchesAnyCategory(entry.getValue(), categoryId))
                                 .filter(entry -> matchNearby(placeMap.get(entry.getKey()), filter, latitude, longitude))
                                 .map(entry -> toPlacePin(entry.getKey(), entry.getValue(), placeMap))
                                 .filter(pin -> pin != null)
@@ -597,8 +596,8 @@ public class PostQueryService {
                 return EditorMapDto.PlacePinResponse.from(place, postPlaces);
         }
 
-        private boolean matchAllCategories(List<PostPlace> postPlaces, List<Long> categoryIds) {
-                if (categoryIds == null || categoryIds.isEmpty()) {
+        private boolean matchesAnyCategory(List<PostPlace> postPlaces, Long categoryId) {
+                if (categoryId == null) {
                         return true;
                 }
 
@@ -609,7 +608,7 @@ public class PostQueryService {
                                 .map(category -> category.getId())
                                 .collect(Collectors.toSet());
 
-                return ownedCategoryIds.containsAll(new HashSet<>(categoryIds));
+                return ownedCategoryIds.contains(categoryId);
         }
 
         private void validateNearbyCoordinates(MapFilter filter, Double latitude, Double longitude) {

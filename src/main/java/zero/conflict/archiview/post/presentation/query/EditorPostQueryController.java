@@ -68,7 +68,7 @@ public class EditorPostQueryController {
     @GetMapping("/me/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getMapPins(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
-            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
@@ -82,7 +82,7 @@ public class EditorPostQueryController {
                 editorPostUseCase.getMapPins(
                         oAuth2User.getUserId(),
                         filter,
-                        categoryIds,
+                        categoryId,
                         latitude,
                         longitude)));
     }
@@ -92,7 +92,7 @@ public class EditorPostQueryController {
     public ResponseEntity<ApiResponse<EditorUploadedPlaceDto.ListResponse>> getUploadedPlaces(
             @RequestParam(defaultValue = "ALL") MapFilter filter,
             @RequestParam(defaultValue = "UPDATED") EditorUploadedPlaceDto.PlaceSort sort,
-            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
@@ -104,7 +104,7 @@ public class EditorPostQueryController {
                 oAuth2User.getUserId(),
                 filter,
                 sort,
-                categoryIds,
+                categoryId,
                 latitude,
                 longitude)));
     }

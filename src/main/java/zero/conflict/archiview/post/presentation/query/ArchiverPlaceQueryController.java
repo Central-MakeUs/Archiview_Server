@@ -106,7 +106,7 @@ public class ArchiverPlaceQueryController {
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getEditorMapPins(
             @PathVariable UUID editorId,
             @RequestParam(defaultValue = "ALL") EditorMapDto.MapFilter filter,
-            @RequestParam(required = false) List<Long> categoryIds,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
@@ -118,7 +118,7 @@ public class ArchiverPlaceQueryController {
                 archiverPostUseCase.getMapPinsForArchiver(
                         editorId,
                         filter,
-                        categoryIds,
+                        categoryId,
                         latitude,
                         longitude,
                         oAuth2User.getUserId())));

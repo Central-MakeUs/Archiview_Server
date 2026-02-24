@@ -230,7 +230,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         given(postQueryService.getMapPinsForArchiver(
                 eq(editorId),
                 eq(EditorMapDto.MapFilter.ALL),
-                eq(List.of(1L, 2L)),
+                eq(1L),
                 isNull(),
                 isNull(),
                 any(UUID.class))).willReturn(response);
@@ -238,7 +238,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/map/places", editorId)
                         .with(authenticatedUser())
                         .queryParam("filter", "ALL")
-                        .queryParam("categoryIds", "1", "2"))
+                        .queryParam("categoryId", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.pins[0].placeId").value(1L))

@@ -264,7 +264,7 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = editorPostQueryService.getMapPins(
                                 editorId,
                                 MapFilter.ALL,
-                                List.of(category1.getId()),
+                                category1.getId(),
                                 null,
                                 null);
 
@@ -372,7 +372,7 @@ class PostQueryServiceTest {
                                 editorId,
                                 MapFilter.ALL,
                                 EditorUploadedPlaceDto.PlaceSort.UPDATED,
-                                List.of(category1.getId()),
+                                category1.getId(),
                                 null,
                                 null);
 
@@ -1099,13 +1099,12 @@ class PostQueryServiceTest {
         }
 
         @Test
-        @DisplayName("아카이버용 에디터 지도 핀 조회 - 카테고리 AND 필터")
-        void getMapPinsForArchiver_categoryAndFilter_success() {
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - 카테고리 OR 필터")
+        void getMapPinsForArchiver_categoryOrFilter_success() {
                 UUID editorId = UUID.randomUUID();
 
                 Category korean = Category.builder().id(1L).name("한식").build();
                 Category western = Category.builder().id(2L).name("양식").build();
-                Category japanese = Category.builder().id(3L).name("일식").build();
 
                 Place bothCategoryPlace = Place.builder()
                                 .id(1L)
@@ -1114,7 +1113,7 @@ class PostQueryServiceTest {
                                 .build();
                 Place singleCategoryPlace = Place.builder()
                                 .id(2L)
-                                .name("일식당")
+                                .name("한식당")
                                 .position(Position.of(37.5450, 127.0565))
                                 .build();
                 Post post = Post.builder().id(1L).build();
@@ -1126,7 +1125,7 @@ class PostQueryServiceTest {
 
                 PostPlace pp2 = PostPlace.builder().id(2L).post(post).place(singleCategoryPlace).editorId(editorId)
                                 .build();
-                pp2.addCategory(japanese);
+                pp2.addCategory(korean);
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(pp1, pp2));
                 given(placeRepository.findAllByIds(anyList()))
@@ -1135,18 +1134,19 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
                                 editorId,
                                 MapFilter.ALL,
-                                List.of(1L, 2L),
+                                1L,
                                 null,
                                 null);
 
-                assertThat(response.getPins()).hasSize(1);
-                assertThat(response.getPins().get(0).getPlaceId()).isEqualTo(1L);
-                assertThat(response.getPins().get(0).getName()).isEqualTo("한양식당");
+                assertThat(response.getPins()).hasSize(2);
+                assertThat(response.getPins())
+                                .extracting(EditorMapDto.PlacePinResponse::getPlaceId)
+                                .containsExactlyInAnyOrder(1L, 2L);
         }
 
         @Test
-        @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY와 카테고리 동시 AND")
-        void getMapPinsForArchiver_nearbyAndCategory_success() {
+        @DisplayName("아카이버용 에디터 지도 핀 조회 - NEARBY와 카테고리 동시 OR")
+        void getMapPinsForArchiver_nearbyAndCategoryOr_success() {
                 UUID editorId = UUID.randomUUID();
 
                 Category korean = Category.builder().id(1L).name("한식").build();
@@ -1166,10 +1166,8 @@ class PostQueryServiceTest {
 
                 PostPlace nearPp = PostPlace.builder().id(10L).post(post).place(nearPlace).editorId(editorId).build();
                 nearPp.addCategory(korean);
-                nearPp.addCategory(western);
 
                 PostPlace farPp = PostPlace.builder().id(11L).post(post).place(farPlace).editorId(editorId).build();
-                farPp.addCategory(korean);
                 farPp.addCategory(western);
 
                 given(postPlaceRepository.findAllByEditorId(editorId)).willReturn(List.of(nearPp, farPp));
@@ -1178,7 +1176,7 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
                                 editorId,
                                 MapFilter.NEARBY,
-                                List.of(1L, 2L),
+                                1L,
                                 37.5445,
                                 127.0560);
 
@@ -1227,7 +1225,7 @@ class PostQueryServiceTest {
                 EditorMapDto.Response response = postQueryService.getMapPinsForArchiver(
                                 editorId,
                                 MapFilter.ALL,
-                                List.of(1L, 2L),
+                                1L,
                                 null,
                                 null);
 

@@ -68,10 +68,10 @@ public class EditorPostService implements EditorPostUseCase {
     public EditorMapDto.Response getMapPins(
             UUID editorId,
             EditorMapDto.MapFilter filter,
-            List<Long> categoryIds,
+            Long categoryId,
             Double latitude,
             Double longitude) {
-        return editorPostQueryService.getMapPins(editorId, filter, categoryIds, latitude, longitude);
+        return editorPostQueryService.getMapPins(editorId, filter, categoryId, latitude, longitude);
     }
 
     @Override
@@ -79,10 +79,10 @@ public class EditorPostService implements EditorPostUseCase {
             UUID editorId,
             EditorMapDto.MapFilter filter,
             EditorUploadedPlaceDto.PlaceSort sort,
-            List<Long> categoryIds,
+            Long categoryId,
             Double latitude,
             Double longitude) {
-        return editorPostQueryService.getUploadedPlaces(editorId, filter, sort, categoryIds, latitude, longitude);
+        return editorPostQueryService.getUploadedPlaces(editorId, filter, sort, categoryId, latitude, longitude);
     }
 
     @Override

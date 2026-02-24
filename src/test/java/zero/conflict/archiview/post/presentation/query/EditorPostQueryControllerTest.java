@@ -121,14 +121,14 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                 given(editorPostQueryService.getMapPins(
                                 org.mockito.ArgumentMatchers.any(),
                                 org.mockito.ArgumentMatchers.eq(EditorMapDto.MapFilter.ALL),
-                                org.mockito.ArgumentMatchers.eq(List.of(1L, 2L)),
+                                org.mockito.ArgumentMatchers.eq(1L),
                                 org.mockito.ArgumentMatchers.isNull(),
                                 org.mockito.ArgumentMatchers.isNull())).willReturn(response);
 
                 mockMvc.perform(get("/api/v1/editors/me/map/places")
                                 .with(authenticatedUser())
                                 .queryParam("filter", "ALL")
-                                .queryParam("categoryIds", "1", "2"))
+                                .queryParam("categoryId", "1"))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.pins[0].placeId").value(1L))
