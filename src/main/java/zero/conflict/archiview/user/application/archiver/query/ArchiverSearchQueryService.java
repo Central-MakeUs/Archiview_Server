@@ -45,7 +45,7 @@ public class ArchiverSearchQueryService {
 
     @Transactional
     public SearchDto.Response search(UUID archiverId, String query, SearchDto.Tab tab) {
-        validateArchiver(archiverId);
+        validateArchiverOrEditor(archiverId);
         String normalized = normalize(query);
         if (normalized.isBlank()) {
             return SearchDto.Response.builder()
@@ -116,7 +116,7 @@ public class ArchiverSearchQueryService {
 
     @Transactional(readOnly = true)
     public SearchDto.RecentListResponse getRecentSearches(UUID archiverId) {
-        validateArchiver(archiverId);
+        validateArchiverOrEditor(archiverId);
         List<SearchDto.RecentItem> histories = searchHistoryRepository
                 .findAllByArchiverIdOrderByLastModifiedAtDesc(archiverId)
                 .stream()
@@ -128,13 +128,13 @@ public class ArchiverSearchQueryService {
 
     @Transactional
     public void deleteRecentSearch(UUID archiverId, Long historyId) {
-        validateArchiver(archiverId);
+        validateArchiverOrEditor(archiverId);
         searchHistoryRepository.deleteByIdAndArchiverId(historyId, archiverId);
     }
 
     @Transactional(readOnly = true)
     public SearchDto.RecommendationListResponse getRecommendations(UUID archiverId) {
-        validateArchiver(archiverId);
+        validateArchiverOrEditor(archiverId);
         List<EditorProfile> profiles = editorProfileRepository.findAll();
         if (profiles.isEmpty()) {
             return SearchDto.RecommendationListResponse.from(List.of());
@@ -432,10 +432,10 @@ public class ArchiverSearchQueryService {
         return history.getLastModifiedAt() != null ? history.getLastModifiedAt() : history.getCreatedAt();
     }
 
-    private void validateArchiver(UUID archiverId) {
+    private void validateArchiverOrEditor(UUID archiverId) {
         User user = userRepository.findById(archiverId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
-        if (user.getRole() != User.Role.ARCHIVER) {
+        if (user.getRole() != User.Role.ARCHIVER && user.getRole() != User.Role.EDITOR) {
             throw new DomainException(UserErrorCode.INVALID_SEARCHER_ROLE);
         }
     }
