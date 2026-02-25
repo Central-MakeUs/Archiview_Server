@@ -1012,8 +1012,10 @@ class PostQueryServiceTest {
                 assertThat(response.getTotalCount()).isEqualTo(2L);
                 assertThat(response.getPostPlaces()).hasSize(2);
                 assertThat(response.getPostPlaces().get(0).getPostPlaceId()).isEqualTo(11L);
+                assertThat(response.getPostPlaces().get(0).getPlaceId()).isEqualTo(1L);
                 assertThat(response.getPostPlaces().get(0).getCategoryIds()).containsExactly(1L, 2L);
                 assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(12L);
+                assertThat(response.getPostPlaces().get(1).getPlaceId()).isEqualTo(2L);
         }
 
         @Test

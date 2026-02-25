@@ -51,6 +51,7 @@ public class ArchiverEditorPostPlaceDto {
                     .postPlaces(List.of(
                             PostPlaceResponse.builder()
                                     .postPlaceId(1001L)
+                                    .placeId(201L)
                                     .placeName("성수 감성 카페")
                                     .description("채광 좋은 창가 자리가 좋아요.")
                                     .saveCount(32L)
@@ -61,6 +62,7 @@ public class ArchiverEditorPostPlaceDto {
                                     .build(),
                             PostPlaceResponse.builder()
                                     .postPlaceId(1002L)
+                                    .placeId(202L)
                                     .placeName("연남 파스타 바")
                                     .description("면 식감이 좋은 숨은 맛집입니다.")
                                     .saveCount(11L)
@@ -81,6 +83,8 @@ public class ArchiverEditorPostPlaceDto {
     public static class PostPlaceResponse {
         @Schema(description = "postPlace ID", example = "1001")
         private Long postPlaceId;
+        @Schema(description = "place ID", example = "201")
+        private Long placeId;
         @Schema(description = "장소명", example = "성수 감성 카페")
         private String placeName;
         @Schema(description = "장소 설명", example = "채광 좋은 창가 자리가 좋아요.")
@@ -107,6 +111,7 @@ public class ArchiverEditorPostPlaceDto {
 
             return PostPlaceResponse.builder()
                     .postPlaceId(postPlace.getId())
+                    .placeId(postPlace.getPlace() != null ? postPlace.getPlace().getId() : null)
                     .placeName(postPlace.getPlace() != null ? postPlace.getPlace().getName() : null)
                     .description(postPlace.getDescription())
                     .saveCount(postPlace.getSaveCount() == null ? 0L : postPlace.getSaveCount())

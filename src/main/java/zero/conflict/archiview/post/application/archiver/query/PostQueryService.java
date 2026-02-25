@@ -124,17 +124,17 @@ public class PostQueryService {
         }
 
         public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
-                        UUID userId,
+                        UUID editorId,
                         ArchiverEditorPostPlaceDto.Sort sort) {
-                return getEditorUploadedPostPlaces(userId, sort, null);
+                return getEditorUploadedPostPlaces(editorId, sort, null);
         }
 
         public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
-                        UUID userId,
+                        UUID editorId,
                         ArchiverEditorPostPlaceDto.Sort sort,
                         UUID archiverId) {
 
-                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(userId);
+                List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
                 if (archiverId != null) {
                         postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
                                         postPlaces,

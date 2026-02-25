@@ -100,7 +100,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
 
         given(postQueryService.getArchiverPlaceDetail(eq(placeId), eq(editorId), any(UUID.class))).willReturn(response);
 
-        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/places/{placeId}", editorId, placeId)
+        mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/places/{placeId}", editorId, placeId)
                         .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -115,7 +115,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000111");
         Long placeId = 301L;
 
-        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/places/{placeId}", editorId, placeId)
+        mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/places/{placeId}", editorId, placeId)
                         .with(authenticatedUser())
                         .queryParam("useMock", "true"))
                 .andExpect(status().isOk())
@@ -171,6 +171,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000111");
         ArchiverEditorPostPlaceDto.PostPlaceResponse item = ArchiverEditorPostPlaceDto.PostPlaceResponse.builder()
                 .postPlaceId(11L)
+                .placeId(101L)
                 .placeName("성수 감성 카페")
                 .description("설명")
                 .saveCount(20L)
@@ -186,13 +187,14 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         given(postQueryService.getEditorUploadedPostPlaces(eq(editorId), eq(ArchiverEditorPostPlaceDto.Sort.LATEST), any(UUID.class)))
                 .willReturn(response);
 
-        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/post-places", editorId)
+        mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/post-places", editorId)
                         .with(authenticatedUser())
                         .queryParam("sort", "LATEST"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(1))
                 .andExpect(jsonPath("$.data.postPlaces[0].postPlaceId").value(11L))
+                .andExpect(jsonPath("$.data.postPlaces[0].placeId").value(101L))
                 .andExpect(jsonPath("$.data.postPlaces[0].placeName").value("성수 감성 카페"))
                 .andExpect(jsonPath("$.data.postPlaces[0].saveCount").value(20L))
                 .andExpect(jsonPath("$.data.postPlaces[0].viewCount").value(100L))
@@ -205,7 +207,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
     void getEditorUploadedPostPlaces_mock() throws Exception {
         UUID editorId = UUID.fromString("00000000-0000-0000-0000-000000000111");
 
-        mockMvc.perform(get("/api/v1/archivers/editors/{userId}/post-places", editorId)
+        mockMvc.perform(get("/api/v1/archivers/editors/{editorId}/post-places", editorId)
                         .with(authenticatedUser())
                         .queryParam("useMock", "true"))
                 .andExpect(status().isOk())

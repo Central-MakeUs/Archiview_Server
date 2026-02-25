@@ -22,7 +22,7 @@ public interface ArchiverPostUseCase {
                         UUID archiverId);
 
         ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
-                        UUID userId,
+                        UUID editorId,
                         ArchiverEditorPostPlaceDto.Sort sort,
                         UUID archiverId);
 

@@ -53,10 +53,10 @@ public class ArchiverPostService implements ArchiverPostUseCase {
 
     @Override
     public ArchiverEditorPostPlaceDto.ListResponse getEditorUploadedPostPlaces(
-            UUID userId,
+            UUID editorId,
             ArchiverEditorPostPlaceDto.Sort sort,
             UUID archiverId) {
-        return postQueryService.getEditorUploadedPostPlaces(userId, sort, archiverId);
+        return postQueryService.getEditorUploadedPostPlaces(editorId, sort, archiverId);
     }
 
     @Override
