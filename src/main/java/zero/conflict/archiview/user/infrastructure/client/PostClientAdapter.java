@@ -49,6 +49,13 @@ public class PostClientAdapter implements PostClient {
                 .toList();
     }
 
+    @Override
+    public List<PostPlaceView> findAllForRecommendation() {
+        return postPlaceJpaRepository.findAll().stream()
+                .map(this::toView)
+                .toList();
+    }
+
     private PostPlaceView toView(PostPlace postPlace) {
         return new PostPlaceView(
                 postPlace.getId(),

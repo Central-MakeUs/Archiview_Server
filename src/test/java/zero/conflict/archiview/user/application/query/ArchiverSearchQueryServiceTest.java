@@ -21,11 +21,13 @@ import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.SearchDto;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -103,33 +105,61 @@ class ArchiverSearchQueryServiceTest {
         UUID archiverId = UUID.randomUUID();
         given(userRepository.findById(archiverId))
                 .willReturn(Optional.of(User.builder().id(archiverId).role(User.Role.ARCHIVER).build()));
+        PostClient.PostPlaceView p1 = postPlace(
+                List.of("#카페", "#커피맛집"),
+                LocalDateTime.of(2026, 2, 10, 9, 0, 0),
+                LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+        PostClient.PostPlaceView p2 = postPlace(
+                List.of("#카페"),
+                LocalDateTime.of(2026, 2, 10, 9, 30, 0),
+                LocalDateTime.of(2026, 2, 10, 11, 0, 0));
 
-        EditorProfile p1 = EditorProfile.builder()
-                .user(User.builder().id(UUID.randomUUID()).build())
-                .nickname("a")
-                .instagramId("a")
-                .instagramUrl("https://www.instagram.com/a")
-                .introduction("a")
-                .hashtags(Hashtags.of("#카페", "#커피맛집"))
-                .build();
-        setField(p1, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 10, 0, 0));
+        EditorProfile profile1 = editorProfile("#카페", "#가나다");
+        setField(profile1, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
+        EditorProfile profile2 = editorProfile("#나나다", "#다라마바사");
+        setField(profile2, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
 
-        EditorProfile p2 = EditorProfile.builder()
-                .user(User.builder().id(UUID.randomUUID()).build())
-                .nickname("b")
-                .instagramId("b")
-                .instagramUrl("https://www.instagram.com/b")
-                .introduction("b")
-                .hashtags(Hashtags.of("#카페", "#브런치"))
-                .build();
-        setField(p2, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 11, 0, 0));
-
-        given(editorProfileRepository.findAll()).willReturn(List.of(p1, p2));
+        given(postClient.findAllForRecommendation()).willReturn(List.of(p1, p2));
+        given(editorProfileRepository.findAll()).willReturn(List.of(profile1, profile2));
 
         SearchDto.RecommendationListResponse response = archiverSearchQueryService.getRecommendations(archiverId);
 
         assertThat(response.getKeywords().get(0).getKeyword()).isEqualTo("#카페");
-        assertThat(response.getKeywords().get(0).getCount()).isEqualTo(2L);
+        assertThat(response.getKeywords().get(0).getCount()).isEqualTo(3L);
+        assertThat(response.getKeywords().get(1).getKeyword()).isEqualTo("#가나다");
+        assertThat(response.getKeywords().get(2).getKeyword()).isEqualTo("#나나다");
+        assertThat(response.getKeywords().get(3).getKeyword()).isEqualTo("#다라마바사");
+    }
+
+    @Test
+    @DisplayName("추천 키워드 - post 시각이 null이어도 예외 없이 집계한다")
+    void recommendations_with_null_updated_at() {
+        UUID archiverId = UUID.randomUUID();
+        given(userRepository.findById(archiverId))
+                .willReturn(Optional.of(User.builder().id(archiverId).role(User.Role.ARCHIVER).build()));
+
+        PostClient.PostPlaceView withoutDate = postPlace(
+                Arrays.asList("#카페", null, " ", "#디저트"),
+                null,
+                null);
+        PostClient.PostPlaceView withDate = postPlace(
+                List.of("#카페", "#브런치"),
+                LocalDateTime.of(2026, 2, 10, 9, 30, 0),
+                LocalDateTime.of(2026, 2, 10, 11, 0, 0));
+
+        EditorProfile profileWithoutDate = editorProfile("#카페", "#로컬");
+        EditorProfile profileWithDate = editorProfile("#카페", "#에디터추천");
+        setField(profileWithDate, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 11, 30, 0));
+
+        given(postClient.findAllForRecommendation()).willReturn(List.of(withoutDate, withDate));
+        given(editorProfileRepository.findAll()).willReturn(List.of(profileWithoutDate, profileWithDate));
+
+        assertThatCode(() -> archiverSearchQueryService.getRecommendations(archiverId))
+                .doesNotThrowAnyException();
+
+        SearchDto.RecommendationListResponse response = archiverSearchQueryService.getRecommendations(archiverId);
+        assertThat(response.getKeywords().get(0).getKeyword()).isEqualTo("#카페");
+        assertThat(response.getKeywords().get(0).getCount()).isEqualTo(4L);
     }
 
     @Test
@@ -188,6 +218,35 @@ class ArchiverSearchQueryServiceTest {
 
         assertThat(response.getPlaceCount()).isEqualTo(1);
         assertThat(response.getEditorCount()).isEqualTo(1);
+    }
+
+    private PostClient.PostPlaceView postPlace(List<String> hashTags, LocalDateTime createdAt, LocalDateTime lastModifiedAt) {
+        return new PostClient.PostPlaceView(
+                1000L,
+                UUID.randomUUID(),
+                10L,
+                "place",
+                "addr",
+                "road",
+                "desc",
+                "https://img.url",
+                "https://www.instagram.com/p/abc",
+                hashTags,
+                20L,
+                100L,
+                createdAt,
+                lastModifiedAt);
+    }
+
+    private EditorProfile editorProfile(String primaryTag, String secondaryTag) {
+        return EditorProfile.builder()
+                .user(User.builder().id(UUID.randomUUID()).build())
+                .nickname("editor")
+                .instagramId("editor_id")
+                .instagramUrl("https://www.instagram.com/editor")
+                .introduction("intro")
+                .hashtags(Hashtags.of(primaryTag, secondaryTag))
+                .build();
     }
 
     private static void setField(Object target, String fieldName, Object value) {

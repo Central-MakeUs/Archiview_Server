@@ -10,6 +10,7 @@ public interface PostClient {
     Map<UUID, Long> countByEditorIds(List<UUID> editorIds);
 
     List<PostPlaceView> findAllVisibleByArchiverId(UUID archiverId);
+    List<PostPlaceView> findAllForRecommendation();
 
     record PostPlaceView(
             Long postPlaceId,

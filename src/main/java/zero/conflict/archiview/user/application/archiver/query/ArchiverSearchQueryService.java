@@ -135,13 +135,27 @@ public class ArchiverSearchQueryService {
     @Transactional(readOnly = true)
     public SearchDto.RecommendationListResponse getRecommendations(UUID archiverId) {
         validateArchiverOrEditor(archiverId);
+        List<PostClient.PostPlaceView> postPlaces = postClient.findAllForRecommendation();
+        if (postPlaces == null) {
+            postPlaces = List.of();
+        }
         List<EditorProfile> profiles = editorProfileRepository.findAll();
-        if (profiles.isEmpty()) {
-            return SearchDto.RecommendationListResponse.from(List.of());
+        if (profiles == null) {
+            profiles = List.of();
         }
 
         Map<String, Long> counts = new HashMap<>();
         Map<String, LocalDateTime> latest = new HashMap<>();
+        for (PostClient.PostPlaceView postPlace : postPlaces) {
+            List<String> hashTags = postPlace.hashTags();
+            if (hashTags == null || hashTags.isEmpty()) {
+                continue;
+            }
+            LocalDateTime updatedAt = lastUpdatedAt(postPlace);
+            for (String hashTag : hashTags) {
+                addKeyword(counts, latest, hashTag, updatedAt);
+            }
+        }
         for (EditorProfile profile : profiles) {
             Hashtags hashtags = profile.getHashtags();
             if (hashtags == null) {
@@ -180,15 +194,14 @@ public class ArchiverSearchQueryService {
         }
         String trimmed = keyword.trim();
         counts.merge(trimmed, 1L, Long::sum);
-        latest.merge(trimmed, updatedAt, (oldValue, newValue) -> {
-            if (oldValue == null) {
-                return newValue;
-            }
-            if (newValue == null) {
-                return oldValue;
-            }
-            return newValue.isAfter(oldValue) ? newValue : oldValue;
-        });
+        if (updatedAt != null) {
+            latest.merge(trimmed, updatedAt, (oldValue, newValue) -> {
+                if (oldValue == null) {
+                    return newValue;
+                }
+                return newValue.isAfter(oldValue) ? newValue : oldValue;
+            });
+        }
     }
 
     private SearchDto.Response toTabResponse(
