@@ -18,6 +18,8 @@ public enum PostErrorCode implements DomainErrorCode {
     INVALID_CATEGORY_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_CATEGORY_ID", "error.post.invalid_category_id"),
     INVALID_INSTAGRAM_URL(HttpStatus.BAD_REQUEST, "POST_INVALID_INSTAGRAM_URL", "error.post.invalid_instagram_url"),
     INVALID_HASHTAG(HttpStatus.BAD_REQUEST, "POST_INVALID_HASHTAG", "error.post.invalid_hashtag"),
+    INVALID_DESCRIPTION(HttpStatus.BAD_REQUEST, "POST_INVALID_DESCRIPTION", "error.post.invalid_description"),
+    INVALID_IMAGE_URL(HttpStatus.BAD_REQUEST, "POST_INVALID_IMAGE_URL", "error.post.invalid_image_url"),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_NOT_FOUND", "error.post.not_found"),
     POST_FORBIDDEN(HttpStatus.FORBIDDEN, "POST_FORBIDDEN", "error.post.forbidden"),
     POST_INVALID_CREATE_POST_PLACE_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_CREATE_POST_PLACE_ID",

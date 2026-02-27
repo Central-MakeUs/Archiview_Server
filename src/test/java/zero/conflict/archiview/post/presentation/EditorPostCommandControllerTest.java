@@ -44,6 +44,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .longitude(Double.valueOf("126.9780"))
                 .nearestStationWalkTime("도보 5분")
                 .phoneNumber("02-1234-5678")
+                .imageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test_photo.png")
                 .build();
 
         PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
@@ -95,6 +96,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .willReturn(response);
 
         mockMvc.perform(post("/api/v1/editors/posts/presigned-url")
+                        .with(authenticatedUser())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -115,6 +117,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .roadAddressName("서울 종로구 세종대로")
                 .latitude(37.57)
                 .longitude(126.98)
+                .imageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/update_photo.png")
                 .build();
         PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                 .url("https://www.instagram.com/p/updated")
@@ -174,6 +177,31 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("게시글 생성 실패 - imageUrl 누락")
+    void createPost_Fail_NoImageUrl() throws Exception {
+        PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
+                .placeName("테스트 장소")
+                .description("테스트 설명")
+                .addressName("서울 노원구 공릉동 596-12")
+                .roadAddressName("인천 중구 백운로228번길 81-10")
+                .latitude(37.5665)
+                .longitude(126.9780)
+                .build();
+
+        PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                .url("https://www.instagram.com/post")
+                .hashTags(java.util.List.of("#테스트"))
+                .placeInfoRequestList(Collections.singletonList(placeInfo))
+                .build();
+
+        mockMvc.perform(post("/api/v1/editors/posts")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("게시글 생성 실패 - postPlaceId 포함")
     void createPost_Fail_WithPostPlaceId() throws Exception {
         PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
@@ -184,6 +212,7 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .roadAddressName("인천 중구 백운로228번길 81-10")
                 .latitude(37.5665)
                 .longitude(126.9780)
+                .imageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/create_photo.png")
                 .build();
 
         PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()

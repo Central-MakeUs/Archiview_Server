@@ -79,6 +79,7 @@ class PostCommandServiceTest {
                                 .longitude(Double.valueOf("126.9780"))
                                 .nearestStationWalkTime("도보 5분")
                                 .phoneNumber("02-1234-5678")
+                                .imageUrl("https://test.image/new-place.jpg")
                                 .build();
 
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
@@ -104,7 +105,7 @@ class PostCommandServiceTest {
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, newPlace,
                                 placeInfoRequest.getDescription(),
-                                null, editorId);
+                                "https://test.image/new-place.jpg", editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -141,6 +142,7 @@ class PostCommandServiceTest {
                                 .longitude(Double.valueOf("126.9800"))
                                 .nearestStationWalkTime("도보 3분")
                                 .phoneNumber("02-1234-0000")
+                                .imageUrl("https://test.image/existing-place.jpg")
                                 .build();
 
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
@@ -163,7 +165,7 @@ class PostCommandServiceTest {
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, existingPlace,
-                                placeInfoRequest.getDescription(), null, editorId);
+                                placeInfoRequest.getDescription(), "https://test.image/existing-place.jpg", editorId);
                 given(postPlacesRepository.save(any(PostPlace.class))).willReturn(postPlace);
 
                 // when
@@ -192,6 +194,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
                                 .phoneNumber("02-1111-2222")
+                                .imageUrl("https://test.image/phone-update.jpg")
                                 .build();
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url("https://www.instagram.com/post2")
@@ -232,6 +235,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
                                 .phoneNumber("02-9999-9999")
+                                .imageUrl("https://test.image/keep-phone.jpg")
                                 .build();
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url("https://www.instagram.com/post3")
@@ -277,6 +281,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5665"))
                                 .longitude(Double.valueOf("126.9780"))
                                 .nearestStationWalkTime("도보 4분")
+                                .imageUrl("https://test.image/multi-1.jpg")
                                 .build();
 
                 PostCommandDto.CreateRequest.CreatePlaceInfoRequest place2 = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
@@ -287,6 +292,7 @@ class PostCommandServiceTest {
                                 .latitude(Double.valueOf("37.5700"))
                                 .longitude(Double.valueOf("126.9800"))
                                 .nearestStationWalkTime("도보 6분")
+                                .imageUrl("https://test.image/multi-2.jpg")
                                 .build();
 
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
@@ -328,6 +334,7 @@ class PostCommandServiceTest {
                                 .roadAddressName("도로명")
                                 .latitude(37.5665)
                                 .longitude(126.9780)
+                                .imageUrl("https://test.image/invalid-create.jpg")
                                 .build();
                 PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
                                 .url("https://www.instagram.com/post-invalid")
@@ -529,6 +536,7 @@ class PostCommandServiceTest {
                                 .roadAddressName("도로명")
                                 .latitude(37.5)
                                 .longitude(127.5)
+                                .imageUrl("https://test.image/invalid-update.jpg")
                                 .build();
                 PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                                 .url("https://www.instagram.com/p/updated")
@@ -570,6 +578,7 @@ class PostCommandServiceTest {
                                 .roadAddressName("도로1")
                                 .latitude(37.51)
                                 .longitude(127.51)
+                                .imageUrl("https://test.image/dup-1.jpg")
                                 .build();
                 PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest p2 = PostCommandDto.UpdateRequest.UpdatePlaceInfoRequest.builder()
                                 .postPlaceId(401L)
@@ -579,6 +588,7 @@ class PostCommandServiceTest {
                                 .roadAddressName("도로2")
                                 .latitude(37.52)
                                 .longitude(127.52)
+                                .imageUrl("https://test.image/dup-2.jpg")
                                 .build();
                 PostCommandDto.UpdateRequest request = PostCommandDto.UpdateRequest.builder()
                                 .url("https://www.instagram.com/p/updated")

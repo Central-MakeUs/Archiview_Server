@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
+import zero.conflict.archiview.global.error.DomainException;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -67,6 +69,8 @@ public class PostPlace extends BaseTimeEntity {
 
     public static PostPlace createOf(Post post, Place place, String description, String imageUrl,
             UUID editorId) {
+        validateDescription(description);
+        validateImageUrl(imageUrl);
         return PostPlace.builder()
                 .post(post)
                 .place(place)
@@ -77,6 +81,8 @@ public class PostPlace extends BaseTimeEntity {
     }
 
     public void update(Place place, String description, String imageUrl) {
+        validateDescription(description);
+        validateImageUrl(imageUrl);
         this.place = place;
         this.description = description;
         this.imageUrl = imageUrl;
@@ -168,6 +174,22 @@ public class PostPlace extends BaseTimeEntity {
 
     public boolean isDeleted() {
         return this.deletedAt != null;
+    }
+
+    private static void validateDescription(String description) {
+        if (isBlank(description)) {
+            throw new DomainException(PostErrorCode.INVALID_DESCRIPTION);
+        }
+    }
+
+    private static void validateImageUrl(String imageUrl) {
+        if (isBlank(imageUrl)) {
+            throw new DomainException(PostErrorCode.INVALID_IMAGE_URL);
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 
 }
