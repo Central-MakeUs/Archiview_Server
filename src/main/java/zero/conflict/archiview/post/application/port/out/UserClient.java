@@ -15,6 +15,8 @@ public interface UserClient {
 
     Set<UUID> getBlockedEditorIds(UUID archiverId);
 
+    Set<UUID> getFollowingEditorIds(UUID archiverId);
+
     record EditorSummary(
             UUID userId,
             String nickname,

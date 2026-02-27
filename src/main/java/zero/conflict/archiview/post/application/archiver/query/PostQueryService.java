@@ -268,10 +268,17 @@ public class PostQueryService {
                                 .map(Place::getId)
                                 .toList();
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByPlaceIds(placeIds);
+                Map<Long, LocalDateTime> followLatestByPlaceId = Map.of();
                 if (archiverId != null) {
                         postPlaces = archiverVisibilityService.filterVisiblePostPlaces(
                                         postPlaces,
                                         archiverVisibilityService.getVisibilityFilter(archiverId));
+                        if (postPlaces == null) {
+                                postPlaces = List.of();
+                        }
+                        followLatestByPlaceId = computeFollowLatestByPlaceId(
+                                        postPlaces,
+                                        userClient.getFollowingEditorIds(archiverId));
                 }
 
                 Map<Long, PostPlace> representativePostPlaceByPlaceId = postPlaces.stream()
@@ -284,6 +291,7 @@ public class PostQueryService {
                                                 entry -> selectRepresentativeHotPlacePostPlace(entry.getValue())));
 
                 List<ArchiverHotPlaceDto.PlaceCardResponse> cards = places.stream()
+                                .sorted(hotPlaceComparator(followLatestByPlaceId))
                                 .filter(place -> representativePostPlaceByPlaceId.containsKey(place.getId()))
                                 .map(place -> ArchiverHotPlaceDto.PlaceCardResponse.from(
                                                 place,
@@ -291,6 +299,48 @@ public class PostQueryService {
                                 .toList();
 
                 return ArchiverHotPlaceDto.ListResponse.from(cards);
+        }
+
+        private Map<Long, LocalDateTime> computeFollowLatestByPlaceId(
+                        List<PostPlace> postPlaces,
+                        Set<UUID> followingEditorIds) {
+                if (postPlaces == null || postPlaces.isEmpty() || followingEditorIds == null || followingEditorIds.isEmpty()) {
+                        return Map.of();
+                }
+
+                return postPlaces.stream()
+                                .filter(postPlace -> postPlace != null
+                                                && postPlace.getPlace() != null
+                                                && postPlace.getPlace().getId() != null
+                                                && postPlace.getEditorId() != null
+                                                && followingEditorIds.contains(postPlace.getEditorId()))
+                                .collect(Collectors.groupingBy(
+                                                postPlace -> postPlace.getPlace().getId(),
+                                                Collectors.collectingAndThen(
+                                                                Collectors.toList(),
+                                                                list -> list.stream()
+                                                                                .map(this::getLastUpdatedAt)
+                                                                                .filter(updatedAt -> updatedAt != null)
+                                                                                .max(Comparator.naturalOrder())
+                                                                                .orElse(null))))
+                                .entrySet()
+                                .stream()
+                                .filter(entry -> entry.getValue() != null)
+                                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        }
+
+        private Comparator<Place> hotPlaceComparator(Map<Long, LocalDateTime> followLatestByPlaceId) {
+                return Comparator
+                                .comparing((Place place) -> followLatestByPlaceId.containsKey(place.getId()) ? 0 : 1)
+                                .thenComparing(
+                                                place -> followLatestByPlaceId.get(place.getId()),
+                                                Comparator.nullsLast(Comparator.reverseOrder()))
+                                .thenComparing(
+                                                (Place place) -> defaultZero(place.getViewCount()),
+                                                Comparator.reverseOrder())
+                                .thenComparing(
+                                                Place::getId,
+                                                Comparator.nullsLast(Comparator.reverseOrder()));
         }
 
         private PostPlace selectRepresentativeHotPlacePostPlace(List<PostPlace> postPlaces) {

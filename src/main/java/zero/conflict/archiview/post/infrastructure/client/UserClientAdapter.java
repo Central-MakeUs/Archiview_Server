@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.user.infrastructure.persistence.EditorBlockJpaRepository;
 import zero.conflict.archiview.user.infrastructure.persistence.EditorProfileJpaRepository;
+import zero.conflict.archiview.user.infrastructure.persistence.FollowJpaRepository;
 import zero.conflict.archiview.user.infrastructure.persistence.UserJpaRepository;
 
 import java.util.Collections;
@@ -22,6 +23,7 @@ public class UserClientAdapter implements UserClient {
     private final UserJpaRepository userJpaRepository;
     private final EditorProfileJpaRepository editorProfileJpaRepository;
     private final EditorBlockJpaRepository editorBlockJpaRepository;
+    private final FollowJpaRepository followJpaRepository;
 
     @Override
     public boolean existsUser(UUID userId) {
@@ -50,6 +52,13 @@ public class UserClientAdapter implements UserClient {
     public Set<UUID> getBlockedEditorIds(UUID archiverId) {
         return editorBlockJpaRepository.findAllByArchiverId(archiverId).stream()
                 .map(block -> block.getEditorId())
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<UUID> getFollowingEditorIds(UUID archiverId) {
+        return followJpaRepository.findAllByArchiverId(archiverId).stream()
+                .map(follow -> follow.getEditorId())
                 .collect(Collectors.toSet());
     }
 }

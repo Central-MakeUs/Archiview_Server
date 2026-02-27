@@ -31,7 +31,7 @@ public class ArchiverPlaceQueryController {
 
     private final ArchiverPostUseCase archiverPostUseCase;
 
-    @Operation(summary = "요즘 핫한 장소 조회", description = "장소 기준 조회수 내림차순으로 핫플레이스를 조회합니다.")
+    @Operation(summary = "요즘 핫한 장소 조회", description = "팔로우한 에디터의 최근 업로드 장소를 우선 노출하고, 그 외 장소는 조회수 내림차순으로 조회합니다.")
     @GetMapping("/places/hot")
     public ResponseEntity<ApiResponse<ArchiverHotPlaceDto.ListResponse>> getHotPlaces(
             @RequestParam(defaultValue = "10") int size,

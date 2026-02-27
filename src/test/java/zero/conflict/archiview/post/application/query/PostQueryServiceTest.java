@@ -31,6 +31,7 @@ import zero.conflict.archiview.post.infrastructure.persistence.CategoryPlaceRead
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -964,6 +965,218 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.latest");
                 assertThat(response.getPlaces().get(0).getHashTags()).containsExactly("#최신");
                 assertThat(response.getPlaces().get(0).getCategoryIds()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 팔로우한 에디터 업로드가 있으면 조회수보다 우선한다")
+        void getHotPlaces_prioritizesFollowedEditorsRecentUploads() {
+                UUID archiverId = UUID.randomUUID();
+                UUID followedEditorId = UUID.randomUUID();
+                UUID nonFollowedEditorId = UUID.randomUUID();
+
+                Place followedPlace = Place.builder().id(1L).name("팔로우 장소").viewCount(10L).build();
+                Place nonFollowedPlace = Place.builder().id(2L).name("비팔로우 장소").viewCount(1000L).build();
+
+                Post followedPost = Post.createOf(followedEditorId, "https://www.instagram.com/p/followed", List.of("#팔로우"));
+                Post nonFollowedPost = Post.createOf(nonFollowedEditorId, "https://www.instagram.com/p/non-followed",
+                                List.of("#비팔로우"));
+
+                PostPlace followedPostPlace = PostPlace.builder()
+                                .id(41L)
+                                .post(followedPost)
+                                .place(followedPlace)
+                                .editorId(followedEditorId)
+                                .description("팔로우 설명")
+                                .imageUrl("https://img.followed")
+                                .build();
+                setField(followedPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 20, 10, 0, 0));
+
+                PostPlace nonFollowedPostPlace = PostPlace.builder()
+                                .id(42L)
+                                .post(nonFollowedPost)
+                                .place(nonFollowedPlace)
+                                .editorId(nonFollowedEditorId)
+                                .description("비팔로우 설명")
+                                .imageUrl("https://img.non-followed")
+                                .build();
+                setField(nonFollowedPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 21, 10, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                Set.of(),
+                                Set.of());
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(nonFollowedPlace, followedPlace));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(2L, 1L)))
+                                .willReturn(List.of(nonFollowedPostPlace, followedPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                List.of(nonFollowedPostPlace, followedPostPlace),
+                                visibilityFilter))
+                                .willReturn(List.of(nonFollowedPostPlace, followedPostPlace));
+                given(userClient.getFollowingEditorIds(archiverId)).willReturn(Set.of(followedEditorId));
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, archiverId);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(1L);
+                assertThat(response.getPlaces().get(1).getPlaceId()).isEqualTo(2L);
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 팔로우 그룹 내부는 최근 수정 시각 순으로 정렬한다")
+        void getHotPlaces_ordersFollowedGroupByLatestUpdatedAt() {
+                UUID archiverId = UUID.randomUUID();
+                UUID followedEditorId = UUID.randomUUID();
+
+                Place olderFollowedPlace = Place.builder().id(10L).name("오래된 팔로우").viewCount(500L).build();
+                Place newerFollowedPlace = Place.builder().id(20L).name("최근 팔로우").viewCount(100L).build();
+
+                Post olderPost = Post.createOf(followedEditorId, "https://www.instagram.com/p/older", List.of("#old"));
+                Post newerPost = Post.createOf(followedEditorId, "https://www.instagram.com/p/newer", List.of("#new"));
+
+                PostPlace olderFollowedPostPlace = PostPlace.builder()
+                                .id(51L)
+                                .post(olderPost)
+                                .place(olderFollowedPlace)
+                                .editorId(followedEditorId)
+                                .description("오래된")
+                                .imageUrl("https://img.older")
+                                .build();
+                setField(olderFollowedPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 15, 9, 0, 0));
+
+                PostPlace newerFollowedPostPlace = PostPlace.builder()
+                                .id(52L)
+                                .post(newerPost)
+                                .place(newerFollowedPlace)
+                                .editorId(followedEditorId)
+                                .description("최근")
+                                .imageUrl("https://img.newer")
+                                .build();
+                setField(newerFollowedPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 16, 9, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                Set.of(),
+                                Set.of());
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(olderFollowedPlace, newerFollowedPlace));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(10L, 20L)))
+                                .willReturn(List.of(olderFollowedPostPlace, newerFollowedPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                List.of(olderFollowedPostPlace, newerFollowedPostPlace),
+                                visibilityFilter))
+                                .willReturn(List.of(olderFollowedPostPlace, newerFollowedPostPlace));
+                given(userClient.getFollowingEditorIds(archiverId)).willReturn(Set.of(followedEditorId));
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, archiverId);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(20L);
+                assertThat(response.getPlaces().get(1).getPlaceId()).isEqualTo(10L);
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 팔로우가 없으면 조회수 내림차순을 유지한다")
+        void getHotPlaces_keepsViewCountOrderingForNonFollowedPlaces() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorA = UUID.randomUUID();
+                UUID editorB = UUID.randomUUID();
+
+                Place highViewPlace = Place.builder().id(100L).name("조회수 높음").viewCount(900L).build();
+                Place lowViewPlace = Place.builder().id(200L).name("조회수 낮음").viewCount(100L).build();
+
+                Post postA = Post.createOf(editorA, "https://www.instagram.com/p/high", List.of("#high"));
+                Post postB = Post.createOf(editorB, "https://www.instagram.com/p/low", List.of("#low"));
+
+                PostPlace highViewPostPlace = PostPlace.builder()
+                                .id(61L)
+                                .post(postA)
+                                .place(highViewPlace)
+                                .editorId(editorA)
+                                .description("높은 조회수")
+                                .imageUrl("https://img.high")
+                                .build();
+                setField(highViewPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 9, 0, 0));
+
+                PostPlace lowViewPostPlace = PostPlace.builder()
+                                .id(62L)
+                                .post(postB)
+                                .place(lowViewPlace)
+                                .editorId(editorB)
+                                .description("낮은 조회수")
+                                .imageUrl("https://img.low")
+                                .build();
+                setField(lowViewPostPlace, "lastModifiedAt", LocalDateTime.of(2026, 2, 22, 9, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                Set.of(),
+                                Set.of());
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(highViewPlace, lowViewPlace));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(100L, 200L)))
+                                .willReturn(List.of(highViewPostPlace, lowViewPostPlace));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                List.of(highViewPostPlace, lowViewPostPlace),
+                                visibilityFilter))
+                                .willReturn(List.of(highViewPostPlace, lowViewPostPlace));
+                given(userClient.getFollowingEditorIds(archiverId)).willReturn(Set.of());
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, archiverId);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(100L);
+                assertThat(response.getPlaces().get(1).getPlaceId()).isEqualTo(200L);
+        }
+
+        @Test
+        @DisplayName("핫플 조회 - 동일 우선순위에서는 placeId 내림차순으로 정렬한다")
+        void getHotPlaces_breaksTiesWithPlaceIdDesc() {
+                UUID archiverId = UUID.randomUUID();
+                UUID editorA = UUID.randomUUID();
+                UUID editorB = UUID.randomUUID();
+
+                Place lowerIdPlace = Place.builder().id(301L).name("낮은 ID").viewCount(500L).build();
+                Place higherIdPlace = Place.builder().id(302L).name("높은 ID").viewCount(500L).build();
+
+                Post postA = Post.createOf(editorA, "https://www.instagram.com/p/a", List.of("#a"));
+                Post postB = Post.createOf(editorB, "https://www.instagram.com/p/b", List.of("#b"));
+
+                PostPlace postPlaceA = PostPlace.builder()
+                                .id(71L)
+                                .post(postA)
+                                .place(lowerIdPlace)
+                                .editorId(editorA)
+                                .description("A")
+                                .imageUrl("https://img.a")
+                                .build();
+                setField(postPlaceA, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 9, 0, 0));
+
+                PostPlace postPlaceB = PostPlace.builder()
+                                .id(72L)
+                                .post(postB)
+                                .place(higherIdPlace)
+                                .editorId(editorB)
+                                .description("B")
+                                .imageUrl("https://img.b")
+                                .build();
+                setField(postPlaceB, "lastModifiedAt", LocalDateTime.of(2026, 2, 10, 9, 0, 0));
+
+                ArchiverVisibilityService.VisibilityFilter visibilityFilter = new ArchiverVisibilityService.VisibilityFilter(
+                                Set.of(),
+                                Set.of());
+                given(placeRepository.findTopByViewCount(10)).willReturn(List.of(lowerIdPlace, higherIdPlace));
+                given(postPlaceRepository.findAllByPlaceIds(List.of(301L, 302L)))
+                                .willReturn(List.of(postPlaceA, postPlaceB));
+                given(archiverVisibilityService.getVisibilityFilter(archiverId)).willReturn(visibilityFilter);
+                given(archiverVisibilityService.filterVisiblePostPlaces(
+                                List.of(postPlaceA, postPlaceB),
+                                visibilityFilter))
+                                .willReturn(List.of(postPlaceA, postPlaceB));
+                given(userClient.getFollowingEditorIds(archiverId)).willReturn(Set.of());
+
+                ArchiverHotPlaceDto.ListResponse response = postQueryService.getHotPlaces(10, archiverId);
+
+                assertThat(response.getPlaces()).hasSize(2);
+                assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(302L);
+                assertThat(response.getPlaces().get(1).getPlaceId()).isEqualTo(301L);
         }
 
         @Test
