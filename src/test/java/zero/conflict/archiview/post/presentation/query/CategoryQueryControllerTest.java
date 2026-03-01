@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
-import zero.conflict.archiview.post.application.archiver.query.CategoryQueryService;
+import zero.conflict.archiview.post.application.port.in.ArchiverPostUseCase;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
 
 import java.util.List;
@@ -24,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class CategoryQueryControllerTest extends ControllerTestSupport {
 
     @MockBean
-    private CategoryQueryService categoryQueryService;
+    private ArchiverPostUseCase archiverPostUseCase;
 
     @Test
     @DisplayName("카테고리 목록 조회 - 성공")
@@ -35,9 +35,10 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .build();
         CategoryQueryDto.CategoryListResponse response = CategoryQueryDto.CategoryListResponse.of(List.of(category));
 
-        given(categoryQueryService.getCategories()).willReturn(response);
+        given(archiverPostUseCase.getCategories()).willReturn(response);
 
-        mockMvc.perform(get("/api/v1/categories"))
+        mockMvc.perform(get("/api/v1/categories")
+                        .with(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.categories[0].id").value(1L))
@@ -61,7 +62,7 @@ class CategoryQueryControllerTest extends ControllerTestSupport {
                 .places(List.of(place))
                 .build();
 
-        given(categoryQueryService.getPlacesByCategoryId(eq(categoryId), any(UUID.class))).willReturn(response);
+        given(archiverPostUseCase.getPlacesByCategoryId(eq(categoryId), any(UUID.class))).willReturn(response);
 
         mockMvc.perform(get("/api/v1/categories/{categoryId}/places", categoryId)
                         .with(authenticatedUser()))
