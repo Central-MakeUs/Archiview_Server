@@ -111,7 +111,7 @@ class AuthControllerTest extends ControllerTestSupport {
 
         mockMvc.perform(post("/api/v1/auth/mobile/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("idToken", "kakao-id-token"))))
+                        .content(objectMapper.writeValueAsString(Map.of("accessToken", "kakao-access-token"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.accessToken").value("access-token"));
@@ -131,29 +131,31 @@ class AuthControllerTest extends ControllerTestSupport {
 
         mockMvc.perform(post("/api/v1/auth/mobile/apple")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("idToken", "apple-id-token"))))
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "idToken", "apple-id-token",
+                                "authorizationCode", "apple-authorization-code"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.refreshToken").value("refresh-token"));
     }
 
     @Test
-    @DisplayName("모바일 로그인 실패 - idToken 누락")
+    @DisplayName("모바일 카카오 로그인 실패 - accessToken 누락")
     void mobileLogin_fail_missingIdToken() throws Exception {
         mockMvc.perform(post("/api/v1/auth/mobile/kakao")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Map.of("idToken", ""))))
+                        .content(objectMapper.writeValueAsString(Map.of("accessToken", ""))))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    @DisplayName("모바일 로그인 실패 - role 값 오류")
-    void mobileLogin_fail_invalidRole() throws Exception {
-        mockMvc.perform(post("/api/v1/auth/mobile/kakao")
+    @DisplayName("모바일 애플 로그인 실패 - authorizationCode 누락")
+    void mobileLogin_fail_missingAuthorizationCode() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/mobile/apple")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(Map.of(
-                                "idToken", "kakao-id-token",
-                                "role", "ADMIN"))))
+                                "idToken", "apple-id-token",
+                                "authorizationCode", ""))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
     }
