@@ -20,9 +20,13 @@ auth:
     apple:
       issuer: https://appleid.apple.com
       audience: test-audience
+      client-id: test-mobile-client-id
+      client-secret: test-mobile-client-secret
+      token-uri: https://appleid.apple.com/auth/token
     kakao:
       issuer: https://kauth.kakao.com
       audience: test-audience
+      user-info-uri: https://kapi.kakao.com/v2/user/me
 
 outbox:
   post:

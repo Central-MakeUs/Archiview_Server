@@ -3,13 +3,16 @@ package zero.conflict.archiview.auth.infrastructure.apple;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 import zero.conflict.archiview.auth.application.MobileAuthService.IdTokenInfo;
+import zero.conflict.archiview.auth.domain.error.AuthErrorCode;
 import zero.conflict.archiview.auth.infrastructure.jwt.AudienceValidator;
+import zero.conflict.archiview.global.error.DomainException;
 
 @Component
 public class AppleIdTokenVerifier {
@@ -31,12 +34,16 @@ public class AppleIdTokenVerifier {
     }
 
     public IdTokenInfo verify(String idToken) {
-        Jwt jwt = jwtDecoder.decode(idToken);
-        String name = jwt.getClaimAsString("name");
-        return new IdTokenInfo(
-                jwt.getSubject(),
-                jwt.getClaimAsString("email"),
-                name == null ? "apple-user" : name
-        );
+        try {
+            Jwt jwt = jwtDecoder.decode(idToken);
+            String name = jwt.getClaimAsString("name");
+            return new IdTokenInfo(
+                    jwt.getSubject(),
+                    jwt.getClaimAsString("email"),
+                    name == null ? "apple-user" : name
+            );
+        } catch (JwtException e) {
+            throw new DomainException(AuthErrorCode.INVALID_PROVIDER_TOKEN);
+        }
     }
 }
