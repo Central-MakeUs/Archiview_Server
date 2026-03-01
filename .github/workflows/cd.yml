@@ -88,6 +88,8 @@ jobs:
               -e APPLE_CLIENT_ID="${{ secrets.APPLE_CLIENT_ID }}" \
               -e APPLE_CLIENT_SECRET="${{ secrets.APPLE_CLIENT_SECRET }}" \
               -e APPLE_APP_BUNDLE_ID="${{ secrets.APPLE_APP_BUNDLE_ID }}" \
+              -e APPLE_MOBILE_CLIENT_ID="${{ secrets.APPLE_MOBILE_CLIENT_ID }}" \
+              -e APPLE_MOBILE_CLIENT_SECRET="${{ secrets.APPLE_MOBILE_CLIENT_SECRET }}" \
               -e KAKAO_MOBILE_CLIENT_ID="${{ secrets.KAKAO_MOBILE_CLIENT_ID }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
