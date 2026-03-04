@@ -9,13 +9,16 @@ import lombok.NoArgsConstructor;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
+import java.util.regex.Pattern;
+
 @Embeddable
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode
 public class InstagramUrl {
 
-    private static final String INSTAGRAM_PREFIX = "https://www.instagram.com/";
+    private static final Pattern INSTAGRAM_URL_PATTERN =
+            Pattern.compile("^https://(www\\.)?instagram\\.com/[^\\s]+$");
 
     @Column(name = "url", nullable = false)
     private String value;
@@ -26,7 +29,7 @@ public class InstagramUrl {
     }
 
     private void validate(String value) {
-        if (value == null || !value.startsWith(INSTAGRAM_PREFIX)) {
+        if (value == null || !INSTAGRAM_URL_PATTERN.matcher(value).matches()) {
             throw new DomainException(PostErrorCode.INVALID_INSTAGRAM_URL);
         }
     }

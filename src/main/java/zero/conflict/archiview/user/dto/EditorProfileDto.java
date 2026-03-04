@@ -196,9 +196,9 @@ public class EditorProfileDto {
         private String instagramId;
         @jakarta.validation.constraints.NotBlank
         @jakarta.validation.constraints.Pattern(
-                regexp = "^https://(www\\.)?instagram\\.com/[^\\s]+$",
+                regexp = "^https://(www\\.)?instagram\\.com(/[^\\s]*)?$",
                 message = "유효한 인스타그램 URL 형식이어야 합니다.")
-        @Schema(description = "인스타그램 URL", example = "https://www.instagram.com/editor_insta")
+        @Schema(description = "인스타그램 URL", example = "https://instagram.com/editor_insta")
         private String instagramUrl;
         @jakarta.validation.constraints.NotBlank
         @Schema(description = "한줄 소개", example = "서울의 숨은 맛집을 기록합니다.")
@@ -226,9 +226,9 @@ public class EditorProfileDto {
         private String instagramId;
         @jakarta.validation.constraints.NotBlank
         @jakarta.validation.constraints.Pattern(
-                regexp = "^https://(www\\.)?instagram\\.com/[^\\s]+$",
+                regexp = "^https://(www\\.)?instagram\\.com(/[^\\s]*)?$",
                 message = "유효한 인스타그램 URL 형식이어야 합니다.")
-        @Schema(description = "수정할 인스타그램 URL", example = "https://www.instagram.com/new_insta")
+        @Schema(description = "수정할 인스타그램 URL", example = "https://instagram.com/new_insta")
         private String instagramUrl;
         @jakarta.validation.constraints.NotBlank
         @Schema(description = "수정할 한줄 소개", example = "한줄 소개를 수정합니다.")

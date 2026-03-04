@@ -27,11 +27,41 @@ class PostDomainTest {
     }
 
     @Test
+    @DisplayName("www 없는 인스타그램 URL도 허용한다")
+    void createPost_success_withoutWww() {
+        // given
+        java.util.UUID editorId = java.util.UUID.randomUUID();
+        String url = "https://instagram.com/p/DBU0yXOz_A-/";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
+
+        // when
+        Post post = Post.createOf(editorId, url, hashTags);
+
+        // then
+        assertThat(post.getUrl()).isEqualTo(url);
+        assertThat(post.getHashTags()).isEqualTo(hashTags);
+    }
+
+    @Test
     @DisplayName("잘못된 형식의 인스타그램 URL은 예외를 발생시킨다")
     void createPost_invalidUrl_throwsException() {
         // given
         java.util.UUID editorId = java.util.UUID.randomUUID();
         String invalidUrl = "https://wrong-url.com";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
+
+        // when & then
+        assertThatThrownBy(() -> Post.createOf(editorId, invalidUrl, hashTags))
+                .isInstanceOf(DomainException.class)
+                .hasFieldOrPropertyWithValue("errorCode", PostErrorCode.INVALID_INSTAGRAM_URL);
+    }
+
+    @Test
+    @DisplayName("경로 없는 인스타그램 루트 URL은 예외를 발생시킨다")
+    void createPost_instagramRootUrl_throwsException() {
+        // given
+        java.util.UUID editorId = java.util.UUID.randomUUID();
+        String invalidUrl = "https://instagram.com/";
         java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
 
         // when & then
