@@ -1,6 +1,7 @@
 package zero.conflict.archiview.auth.application;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.auth.domain.error.AuthErrorCode;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class MobileAuthService {
 
@@ -54,14 +56,21 @@ public class MobileAuthService {
                     existing.updateName(info.name());
                     return userRepository.save(existing);
                 })
-                .orElseGet(() -> userRepository.save(
-                        User.builder()
-                                .email(info.email())
-                                .name(info.name())
-                                .provider(provider)
-                                .providerId(info.subject())
-                                .role(User.Role.GUEST)
-                                .build()));
+                .orElseGet(() -> {
+                    if (info.email() == null || info.email().isBlank()) {
+                        log.warn("소셜 로그인 이메일 누락 - provider={}, providerId={} ", provider, info.subject());
+                        throw new DomainException(AuthErrorCode.PROVIDER_USERINFO_FAILED);
+                    }
+
+                    return userRepository.save(
+                            User.builder()
+                                    .email(info.email())
+                                    .name(info.name())
+                                    .provider(provider)
+                                    .providerId(info.subject())
+                                    .role(User.Role.GUEST)
+                                    .build());
+                });
 
         String accessToken = jwtTokenProvider.createAccessToken(
                 new zero.conflict.archiview.auth.domain.CustomOAuth2User(user, new HashMap<>()));

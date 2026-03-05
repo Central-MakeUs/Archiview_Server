@@ -39,6 +39,12 @@ public class KakaoAccessTokenVerifier {
                 throw new DomainException(AuthErrorCode.PROVIDER_USERINFO_FAILED);
             }
             String email = extractEmail(response);
+            if (email == null || email.isBlank()) {
+                log.warn("Kakao 사용자 정보에 email 누락 - providerId={}, hasEmail={}, emailNeedsAgreement={}",
+                        subject,
+                        extractBoolean(response, "kakao_account", "has_email"),
+                        extractBoolean(response, "kakao_account", "email_needs_agreement"));
+            }
             String name = extractName(response);
             return new IdTokenInfo(subject, email, name == null ? "kakao-user" : name);
         } catch (RestClientException e) {
@@ -83,5 +89,18 @@ public class KakaoAccessTokenVerifier {
         }
         Object nickname = ((Map<String, Object>) profileMap).get("nickname");
         return nickname instanceof String ? (String) nickname : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Boolean extractBoolean(Map<String, Object> payload, String parentKey, String key) {
+        if (payload == null) {
+            return null;
+        }
+        Object parent = payload.get(parentKey);
+        if (!(parent instanceof Map<?, ?> parentMap)) {
+            return null;
+        }
+        Object value = ((Map<String, Object>) parentMap).get(key);
+        return value instanceof Boolean ? (Boolean) value : null;
     }
 }
