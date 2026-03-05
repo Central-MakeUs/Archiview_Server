@@ -8,6 +8,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import zero.conflict.archiview.auth.domain.error.AuthErrorCode;
 import zero.conflict.archiview.global.error.DomainException;
 
@@ -55,11 +56,23 @@ public class AppleAuthorizationCodeExchanger {
 
             String idToken = readString(response, "id_token");
             if (idToken == null || idToken.isBlank()) {
+                log.warn("Apple 인증코드 교환 응답에 id_token 없음 - error={}, errorDescription={}",
+                        readString(response, "error"),
+                        readString(response, "error_description"));
                 throw new DomainException(AuthErrorCode.APPLE_CODE_EXCHANGE_FAILED);
             }
             return idToken;
         } catch (RestClientException e) {
-            log.warn("Apple 인증코드 교환 실패", e);
+            if (e instanceof RestClientResponseException responseException) {
+                int status = responseException.getStatusCode().value();
+                String causeType = classifyCauseType(status);
+                log.warn("Apple 인증코드 교환 실패 - causeType={}, status={}, responseBody={}",
+                        causeType,
+                        status,
+                        truncate(responseException.getResponseBodyAsString()));
+            } else {
+                log.error("Apple 인증코드 교환 실패 - causeType=network_or_server, reason={}", e.getMessage(), e);
+            }
             throw new DomainException(AuthErrorCode.APPLE_CODE_EXCHANGE_FAILED);
         }
     }
@@ -70,5 +83,22 @@ public class AppleAuthorizationCodeExchanger {
         }
         Object value = map.get(key);
         return value instanceof String ? (String) value : null;
+    }
+
+    private String classifyCauseType(int status) {
+        if (status >= 400 && status < 500) {
+            return "client_request";
+        }
+        if (status >= 500 && status < 600) {
+            return "apple_server";
+        }
+        return "unknown";
+    }
+
+    private String truncate(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.length() > 500 ? value.substring(0, 500) : value;
     }
 }
