@@ -13,7 +13,12 @@ import java.util.Optional;
 public interface PlaceJpaRepository extends JpaRepository<Place, Long> {
     Page<Place> findAllByOrderByViewCountDesc(Pageable pageable);
 
-    Optional<Place> findByPosition_LatitudeAndPosition_Longitude(Double latitude, Double longitude);
+    Optional<Place> findFirstByNameAndAddress_AddressNameAndAddress_RoadAddressNameAndPosition_LatitudeAndPosition_LongitudeOrderByIdAsc(
+            String name,
+            String addressName,
+            String roadAddressName,
+            Double latitude,
+            Double longitude);
 
     @Modifying(flushAutomatically = true)
     @Query("""

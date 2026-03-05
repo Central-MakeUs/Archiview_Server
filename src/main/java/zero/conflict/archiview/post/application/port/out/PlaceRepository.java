@@ -2,6 +2,7 @@ package zero.conflict.archiview.post.application.port.out;
 // Trigger re-scan
 
 import zero.conflict.archiview.post.domain.Place;
+import zero.conflict.archiview.post.domain.Address;
 import zero.conflict.archiview.post.domain.Position;
 
 import java.util.Optional;
@@ -15,7 +16,7 @@ public interface PlaceRepository {
 
     List<Place> findTopByViewCount(int limit);
 
-    Optional<Place> findByPosition(Position position);
+    Optional<Place> findByIdentity(String name, Address address, Position position);
 
     List<Place> findAllByIds(List<Long> ids);
 

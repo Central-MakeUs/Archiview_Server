@@ -26,6 +26,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
@@ -98,7 +99,7 @@ class PostCommandServiceTest {
                                 placeInfoRequest.getNearestStationWalkTime(),
                                 null,
                                 placeInfoRequest.getPhoneNumber());
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willReturn(newPlace);
 
                 given(userClient.existsUser(editorId)).willReturn(true);
@@ -119,7 +120,7 @@ class PostCommandServiceTest {
                 assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1234-5678");
 
                 verify(postRepository).save(any(Post.class));
-                verify(placeRepository).findByPosition(any(Position.class));
+                verify(placeRepository).findByIdentity(anyString(), any(Address.class), any(Position.class));
                 verify(placeRepository).save(argThat(place -> "도보 5분".equals(place.getNearestStationWalkTime())));
                 verify(postPlacesRepository).save(any(PostPlace.class));
         }
@@ -161,7 +162,7 @@ class PostCommandServiceTest {
                                 Address.of("서울시 종로구 묘동 123-45", "서울시 종로구 묘동길 1"),
                                 Position.of(Double.valueOf("37.5700"), Double.valueOf("126.9800")),
                                 "도보 3분");
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.of(existingPlace));
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
 
                 PostPlace postPlace = PostPlace.createOf(savedPost, existingPlace,
@@ -177,7 +178,7 @@ class PostCommandServiceTest {
                 assertThat(response.getPlaceInfoResponseList().get(0).getPhoneNumber()).isEqualTo("02-1234-0000");
 
                 verify(postRepository).save(any(Post.class));
-                verify(placeRepository).findByPosition(any(Position.class));
+                verify(placeRepository).findByIdentity(anyString(), any(Address.class), any(Position.class));
                 verify(placeRepository).save(existingPlace);
                 verify(postPlacesRepository).save(any(PostPlace.class));
         }
@@ -211,7 +212,7 @@ class PostCommandServiceTest {
 
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
                 given(userClient.existsUser(editorId)).willReturn(true);
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.of(existingPlace));
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(postPlacesRepository.save(any(PostPlace.class)))
                                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -254,7 +255,7 @@ class PostCommandServiceTest {
 
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
                 given(userClient.existsUser(editorId)).willReturn(true);
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.of(existingPlace));
                 given(postPlacesRepository.save(any(PostPlace.class)))
                                 .willAnswer(invocation -> invocation.getArgument(0));
 
@@ -304,7 +305,7 @@ class PostCommandServiceTest {
                 Post savedPost = Post.createOf(editorId, url, hashTags);
                 given(postRepository.save(any(Post.class))).willReturn(savedPost);
                 given(userClient.existsUser(editorId)).willReturn(true);
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.empty());
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.empty());
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(postPlacesRepository.save(any(PostPlace.class)))
                                 .willAnswer(invocation -> invocation.getArgument(0));
@@ -316,9 +317,57 @@ class PostCommandServiceTest {
                 assertThat(response.getPlaceInfoResponseList()).hasSize(2);
 
                 verify(postRepository).save(any(Post.class));
-                verify(placeRepository, times(2)).findByPosition(any(Position.class));
+                verify(placeRepository, times(2)).findByIdentity(anyString(), any(Address.class), any(Position.class));
                 verify(placeRepository, times(2)).save(any(Place.class));
                 verify(postPlacesRepository, times(2)).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("같은 좌표라도 이름/주소가 다르면 Place를 새로 생성한다")
+        void createPost_withSamePositionButDifferentIdentity_createsTwoPlaces() {
+                UUID editorId = UUID.randomUUID();
+                String url = "https://www.instagram.com/post-same-position";
+                List<String> hashTags = List.of("#건물", "#맛집");
+
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest place1 = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
+                                .placeName("A매장")
+                                .addressName("서울시 성동구 성수동 1-1")
+                                .roadAddressName("서울시 성동구 연무장길 1")
+                                .description("A 설명")
+                                .latitude(37.5665)
+                                .longitude(126.9780)
+                                .imageUrl("https://test.image/same-pos-1.jpg")
+                                .build();
+
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest place2 = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
+                                .placeName("B매장")
+                                .addressName("서울시 성동구 성수동 1-2")
+                                .roadAddressName("서울시 성동구 연무장길 2")
+                                .description("B 설명")
+                                .latitude(37.5665)
+                                .longitude(126.9780)
+                                .imageUrl("https://test.image/same-pos-2.jpg")
+                                .build();
+
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                                .url(url)
+                                .hashTags(hashTags)
+                                .placeInfoRequestList(List.of(place1, place2))
+                                .build();
+
+                Post savedPost = Post.createOf(editorId, url, hashTags);
+                given(postRepository.save(any(Post.class))).willReturn(savedPost);
+                given(userClient.existsUser(editorId)).willReturn(true);
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class)))
+                                .willReturn(Optional.empty());
+                given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
+                given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+                PostCommandDto.Response response = postCommandService.createPost(request, editorId);
+
+                assertThat(response.getPlaceInfoResponseList()).hasSize(2);
+                verify(placeRepository, times(2)).findByIdentity(anyString(), any(Address.class), any(Position.class));
+                verify(placeRepository, times(2)).save(any(Place.class));
         }
 
         @Test
@@ -430,7 +479,7 @@ class PostCommandServiceTest {
 
                 given(postRepository.findById(postId)).willReturn(Optional.of(post));
                 given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(keepAndUpdate, toDelete));
-                given(placeRepository.findByPosition(any(Position.class)))
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class)))
                                 .willReturn(Optional.of(existingPlace), Optional.empty());
                 given(placeRepository.save(any(Place.class))).willAnswer(invocation -> invocation.getArgument(0));
                 given(categoryRepository.findById(1L)).willReturn(Optional.of(category1));
@@ -503,7 +552,7 @@ class PostCommandServiceTest {
 
                 given(postRepository.findById(postId)).willReturn(Optional.of(post));
                 given(postPlacesRepository.findAllByPostId(postId)).willReturn(List.of(existingPostPlace));
-                given(placeRepository.findByPosition(any(Position.class))).willReturn(Optional.of(existingPlace));
+                given(placeRepository.findByIdentity(anyString(), any(Address.class), any(Position.class))).willReturn(Optional.of(existingPlace));
                 given(categoryRepository.findById(1L)).willReturn(Optional.of(existingCategory));
                 given(postPlacesRepository.save(any(PostPlace.class))).willAnswer(invocation -> invocation.getArgument(0));
 

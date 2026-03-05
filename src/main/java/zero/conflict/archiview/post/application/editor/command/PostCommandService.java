@@ -243,7 +243,8 @@ public class PostCommandService {
 
     private Place getOrCreatePlace(PostCommandDto.PlaceInfoInput placeInfo) {
         Position position = Position.of(placeInfo.getLatitude(), placeInfo.getLongitude());
-        Place savedPlace = placeRepository.findByPosition(position)
+        Address address = Address.of(placeInfo.getAddressName(), placeInfo.getRoadAddressName());
+        Place savedPlace = placeRepository.findByIdentity(placeInfo.getPlaceName(), address, position)
                 .orElseGet(() -> {
                     Place newPlace = createPlace(placeInfo);
                     return placeRepository.save(newPlace);

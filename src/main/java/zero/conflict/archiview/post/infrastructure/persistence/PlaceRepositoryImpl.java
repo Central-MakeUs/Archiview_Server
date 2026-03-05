@@ -3,6 +3,7 @@ package zero.conflict.archiview.post.infrastructure.persistence;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
+import zero.conflict.archiview.post.domain.Address;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
 
@@ -35,9 +36,14 @@ public class PlaceRepositoryImpl implements PlaceRepository {
     }
 
     @Override
-    public Optional<Place> findByPosition(Position position) {
-        return placeJpaRepository.findByPosition_LatitudeAndPosition_Longitude(
-                position.getLatitude(), position.getLongitude());
+    public Optional<Place> findByIdentity(String name, Address address, Position position) {
+        return placeJpaRepository
+                .findFirstByNameAndAddress_AddressNameAndAddress_RoadAddressNameAndPosition_LatitudeAndPosition_LongitudeOrderByIdAsc(
+                        name,
+                        address.getAddressName(),
+                        address.getRoadAddressName(),
+                        position.getLatitude(),
+                        position.getLongitude());
     }
 
     @Override
