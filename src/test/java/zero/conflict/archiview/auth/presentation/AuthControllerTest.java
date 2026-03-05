@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.auth.application.MobileAuthService;
+import zero.conflict.archiview.auth.dto.MobileLoginResponse;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
@@ -100,13 +101,12 @@ class AuthControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("모바일 카카오 로그인 성공")
     void mobileKakaoLogin_success() throws Exception {
-        Map<String, Object> response = Map.of(
-                "accessToken", "access-token",
-                "refreshToken", "refresh-token",
-                "userId", UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                "email", "test@example.com",
-                "name", "testuser"
-        );
+        MobileLoginResponse response = new MobileLoginResponse(
+                "access-token",
+                "refresh-token",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "test@example.com",
+                "testuser");
         given(mobileAuthService.loginWithKakao(any())).willReturn(response);
 
         mockMvc.perform(post("/api/v1/auth/mobile/kakao")
@@ -120,13 +120,12 @@ class AuthControllerTest extends ControllerTestSupport {
     @Test
     @DisplayName("모바일 애플 로그인 성공")
     void mobileAppleLogin_success() throws Exception {
-        Map<String, Object> response = Map.of(
-                "accessToken", "access-token",
-                "refreshToken", "refresh-token",
-                "userId", UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                "email", "test@example.com",
-                "name", "testuser"
-        );
+        MobileLoginResponse response = new MobileLoginResponse(
+                "access-token",
+                "refresh-token",
+                UUID.fromString("00000000-0000-0000-0000-000000000001"),
+                "test@example.com",
+                "testuser");
         given(mobileAuthService.loginWithApple(any())).willReturn(response);
 
         mockMvc.perform(post("/api/v1/auth/mobile/apple")

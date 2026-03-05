@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.auth.dto.AppleMobileLoginRequest;
 import zero.conflict.archiview.auth.dto.KakaoMobileLoginRequest;
+import zero.conflict.archiview.auth.dto.MobileLoginResponse;
 import zero.conflict.archiview.auth.dto.RefreshTokenRequest;
 import zero.conflict.archiview.auth.application.MobileAuthService;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
@@ -90,8 +91,11 @@ public class AuthController {
      * 모바일 카카오 로그인 (ID Token 검증)
      */
     @Operation(summary = "모바일 카카오 로그인", description = "카카오 Access Token으로 사용자 정보를 검증해 로그인합니다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "모바일 카카오 로그인 성공")
     @PostMapping("/mobile/kakao")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> mobileKakaoLogin(
+    public ResponseEntity<ApiResponse<MobileLoginResponse>> mobileKakaoLogin(
             @Valid @RequestBody KakaoMobileLoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(mobileAuthService.loginWithKakao(request)));
     }
@@ -100,8 +104,11 @@ public class AuthController {
      * 모바일 애플 로그인 (ID Token 검증)
      */
     @Operation(summary = "모바일 애플 로그인", description = "애플 ID Token과 Authorization Code를 검증해 로그인합니다.")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(
+            responseCode = "200",
+            description = "모바일 애플 로그인 성공")
     @PostMapping("/mobile/apple")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> mobileAppleLogin(
+    public ResponseEntity<ApiResponse<MobileLoginResponse>> mobileAppleLogin(
             @Valid @RequestBody AppleMobileLoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success(mobileAuthService.loginWithApple(request)));
     }

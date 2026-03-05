@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.auth.domain.error.AuthErrorCode;
 import zero.conflict.archiview.auth.dto.AppleMobileLoginRequest;
 import zero.conflict.archiview.auth.dto.KakaoMobileLoginRequest;
+import zero.conflict.archiview.auth.dto.MobileLoginResponse;
 import zero.conflict.archiview.auth.infrastructure.JwtTokenProvider;
 import zero.conflict.archiview.auth.infrastructure.apple.AppleAuthorizationCodeExchanger;
 import zero.conflict.archiview.auth.infrastructure.apple.AppleIdTokenVerifier;
@@ -15,7 +16,6 @@ import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.domain.User;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -29,7 +29,7 @@ public class MobileAuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public Map<String, Object> loginWithApple(AppleMobileLoginRequest request) {
+    public MobileLoginResponse loginWithApple(AppleMobileLoginRequest request) {
         IdTokenInfo appProvidedInfo = appleIdTokenVerifier.verify(request.getIdToken());
         String exchangedIdToken = appleAuthorizationCodeExchanger.exchangeForIdToken(request.getAuthorizationCode());
         IdTokenInfo exchangedInfo = appleIdTokenVerifier.verify(exchangedIdToken);
@@ -41,12 +41,12 @@ public class MobileAuthService {
     }
 
     @Transactional
-    public Map<String, Object> loginWithKakao(KakaoMobileLoginRequest request) {
+    public MobileLoginResponse loginWithKakao(KakaoMobileLoginRequest request) {
         var info = kakaoAccessTokenVerifier.verify(request.getAccessToken());
         return loginWithProvider(info, User.OAuthProvider.KAKAO);
     }
 
-    private Map<String, Object> loginWithProvider(
+    private MobileLoginResponse loginWithProvider(
             IdTokenInfo info,
             User.OAuthProvider provider) {
         User user = userRepository.findByProviderAndProviderId(provider, info.subject())
@@ -67,14 +67,12 @@ public class MobileAuthService {
                 new zero.conflict.archiview.auth.domain.CustomOAuth2User(user, new HashMap<>()));
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getId());
 
-        Map<String, Object> tokenResponse = new HashMap<>();
-        tokenResponse.put("accessToken", accessToken);
-        tokenResponse.put("refreshToken", refreshToken);
-        tokenResponse.put("userId", user.getId());
-        tokenResponse.put("email", user.getEmail());
-        tokenResponse.put("name", user.getName());
-
-        return tokenResponse;
+        return new MobileLoginResponse(
+                accessToken,
+                refreshToken,
+                user.getId(),
+                user.getEmail(),
+                user.getName());
     }
 
     public record IdTokenInfo(String subject, String email, String name) {
