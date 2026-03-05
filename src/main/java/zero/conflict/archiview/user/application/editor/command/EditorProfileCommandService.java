@@ -1,6 +1,7 @@
 package zero.conflict.archiview.user.application.editor.command;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.global.error.DomainException;
@@ -40,7 +41,13 @@ public class EditorProfileCommandService {
                 request.getProfileImageUrl(),
                 Hashtags.of(request.getHashtags().get(0), request.getHashtags().get(1)));
 
-        EditorProfile savedProfile = editorProfileRepository.save(profile);
+        EditorProfile savedProfile;
+        try {
+            savedProfile = editorProfileRepository.save(profile);
+        } catch (DataIntegrityViolationException e) {
+            handleDuplicateProfileFields(request.getNickname(), request.getInstagramId());
+            throw e;
+        }
 
         return EditorProfileDto.Response.from(savedProfile);
     }
@@ -99,5 +106,14 @@ public class EditorProfileCommandService {
         }
 
         return normalized.replaceFirst("^https://www\\.", "https://");
+    }
+
+    private void handleDuplicateProfileFields(String nickname, String instagramId) {
+        if (editorProfileRepository.existsByNickname(nickname)) {
+            throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
+        }
+        if (editorProfileRepository.existsByInstagramId(instagramId)) {
+            throw new DomainException(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
+        }
     }
 }
