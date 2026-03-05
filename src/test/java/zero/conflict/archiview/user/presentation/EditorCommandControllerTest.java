@@ -48,4 +48,26 @@ class EditorCommandControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.instagramId").value("editor_insta"));
     }
+
+    @Test
+    @DisplayName("에디터 내 프로필 수정 - https 없는 instagram URL도 허용")
+    void updateMyProfile_success_withoutProtocol() throws Exception {
+        given(editorProfileCommandService.updateProfile(
+                eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001")), any()))
+                .willReturn(EditorProfileDto.Response.mock());
+
+        mockMvc.perform(put("/api/v1/editors/me/profile")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(Map.of(
+                                "nickname", "새닉네임",
+                                "instagramId", "new_insta",
+                                "instagramUrl", "instagram.com/new_insta",
+                                "introduction", "한줄 소개 수정",
+                                "hashtags", new String[]{"#신규", "#태그"},
+                                "profileImageUrl", "https://example.com/new.png"
+                        ))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
 }

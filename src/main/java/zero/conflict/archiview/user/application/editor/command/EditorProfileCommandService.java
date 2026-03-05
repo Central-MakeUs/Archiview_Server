@@ -29,13 +29,14 @@ public class EditorProfileCommandService {
 
         validateNickname(null, request.getNickname());
         validateInstagramId(null, request.getInstagramId());
+        String normalizedInstagramUrl = normalizeInstagramUrl(request.getInstagramUrl());
 
         EditorProfile profile = EditorProfile.createOf(
                 user,
                 request.getNickname(),
                 request.getIntroduction(),
                 request.getInstagramId(),
-                request.getInstagramUrl(),
+                normalizedInstagramUrl,
                 request.getProfileImageUrl(),
                 Hashtags.of(request.getHashtags().get(0), request.getHashtags().get(1)));
 
@@ -53,12 +54,13 @@ public class EditorProfileCommandService {
 
         validateNickname(profile.getNickname(), request.getNickname());
         validateInstagramId(profile.getInstagramId(), request.getInstagramId());
+        String normalizedInstagramUrl = normalizeInstagramUrl(request.getInstagramUrl());
 
         profile.update(
                 request.getNickname(),
                 request.getIntroduction(),
                 request.getInstagramId(),
-                request.getInstagramUrl(),
+                normalizedInstagramUrl,
                 request.getProfileImageUrl() == null ? profile.getProfileImageUrl() : request.getProfileImageUrl(),
                 Hashtags.of(request.getHashtags().get(0), request.getHashtags().get(1)));
 
@@ -88,5 +90,14 @@ public class EditorProfileCommandService {
                 && editorProfileRepository.existsByInstagramId(instagramId)) {
             throw new DomainException(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
         }
+    }
+
+    private String normalizeInstagramUrl(String instagramUrl) {
+        String normalized = instagramUrl;
+        if (!normalized.startsWith("https://")) {
+            normalized = "https://" + normalized;
+        }
+
+        return normalized.replaceFirst("^https://www\\.", "https://");
     }
 }

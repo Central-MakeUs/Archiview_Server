@@ -18,14 +18,15 @@ import java.util.regex.Pattern;
 public class InstagramUrl {
 
     private static final Pattern INSTAGRAM_URL_PATTERN =
-            Pattern.compile("^https://(www\\.)?instagram\\.com/[^\\s]+$");
+            Pattern.compile("^https://instagram\\.com/[^\\s]+$");
 
     @Column(name = "url", nullable = false)
     private String value;
 
     public InstagramUrl(String value) {
-        validate(value);
-        this.value = value;
+        String normalizedValue = normalize(value);
+        validate(normalizedValue);
+        this.value = normalizedValue;
     }
 
     private void validate(String value) {
@@ -36,5 +37,18 @@ public class InstagramUrl {
 
     public static InstagramUrl from(String value) {
         return new InstagramUrl(value);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalized = value;
+        if (!normalized.startsWith("https://")) {
+            normalized = "https://" + normalized;
+        }
+
+        return normalized.replaceFirst("^https://www\\.", "https://");
     }
 }

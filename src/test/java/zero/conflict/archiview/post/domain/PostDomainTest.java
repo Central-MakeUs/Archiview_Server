@@ -22,7 +22,7 @@ class PostDomainTest {
         Post post = Post.createOf(editorId, url, hashTags);
 
         // then
-        assertThat(post.getUrl()).isEqualTo(url);
+        assertThat(post.getUrl()).isEqualTo("https://instagram.com/p/DBU0yXOz_A-/");
         assertThat(post.getHashTags()).isEqualTo(hashTags);
     }
 
@@ -39,6 +39,22 @@ class PostDomainTest {
 
         // then
         assertThat(post.getUrl()).isEqualTo(url);
+        assertThat(post.getHashTags()).isEqualTo(hashTags);
+    }
+
+    @Test
+    @DisplayName("https 없는 인스타그램 URL도 허용하고 https://instagram.com 형식으로 저장한다")
+    void createPost_success_withoutProtocol() {
+        // given
+        java.util.UUID editorId = java.util.UUID.randomUUID();
+        String url = "www.instagram.com/p/DBU0yXOz_A-/";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
+
+        // when
+        Post post = Post.createOf(editorId, url, hashTags);
+
+        // then
+        assertThat(post.getUrl()).isEqualTo("https://instagram.com/p/DBU0yXOz_A-/");
         assertThat(post.getHashTags()).isEqualTo(hashTags);
     }
 

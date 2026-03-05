@@ -66,7 +66,7 @@ class PostCommandServiceTest {
         void createPost_withNewPlace_success() {
                 // given
                 java.util.UUID editorId = java.util.UUID.randomUUID();
-                String url = "https://www.instagram.com/post1";
+                String url = "https://instagram.com/post1";
                 java.util.List<String> hashTags = java.util.List.of("#여행", "#맛집");
 
                 PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest
