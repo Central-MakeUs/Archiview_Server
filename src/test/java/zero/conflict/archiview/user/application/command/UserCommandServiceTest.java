@@ -278,8 +278,8 @@ class UserCommandServiceTest {
         userCommandService.withdraw(userId);
 
         assertThat(profile.isDeleted()).isTrue();
-        assertThat(profile.getNickname()).startsWith("withdrawn_nick_");
-        assertThat(profile.getInstagramId()).startsWith("withdrawn_insta_");
+        assertThat(profile.getNickname()).startsWith("기존닉네임_deleted_");
+        assertThat(profile.getInstagramId()).startsWith("editor_insta_deleted_");
         verify(userRepository).save(user);
     }
 

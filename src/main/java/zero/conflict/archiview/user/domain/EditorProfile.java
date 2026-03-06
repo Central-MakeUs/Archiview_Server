@@ -22,6 +22,7 @@ import org.hibernate.annotations.SQLRestriction;
 import zero.conflict.archiview.global.domain.BaseTimeEntity;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "editor_profiles")
@@ -31,6 +32,8 @@ import java.time.LocalDateTime;
 @SuperBuilder
 @SQLRestriction("deleted_at IS NULL")
 public class EditorProfile extends BaseTimeEntity {
+
+    private static final DateTimeFormatter DELETED_AT_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -93,11 +96,13 @@ public class EditorProfile extends BaseTimeEntity {
             LocalDateTime now = deletedAt != null ? deletedAt : LocalDateTime.now();
             this.deletedAt = now;
 
-            String userSuffix = user != null && user.getId() != null
-                    ? user.getId().toString().replace("-", "")
-                    : String.valueOf(now.atZone(java.time.ZoneOffset.UTC).toInstant().toEpochMilli());
-            this.nickname = "withdrawn_nick_" + userSuffix;
-            this.instagramId = "withdrawn_insta_" + userSuffix;
+            String deletedAtText = now.format(DELETED_AT_FORMATTER);
+            String nicknameBase = this.nickname != null && !this.nickname.isBlank() ? this.nickname : "deleted_nick";
+            String instagramIdBase = this.instagramId != null && !this.instagramId.isBlank()
+                    ? this.instagramId
+                    : "deleted_insta";
+            this.nickname = nicknameBase + "_deleted_" + deletedAtText;
+            this.instagramId = instagramIdBase + "_deleted_" + deletedAtText;
         }
     }
 
