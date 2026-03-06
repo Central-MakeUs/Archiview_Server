@@ -14,6 +14,7 @@ import zero.conflict.archiview.user.application.port.out.ArchiverProfileReposito
 import zero.conflict.archiview.user.application.port.out.EditorProfileRepository;
 import zero.conflict.archiview.user.application.port.out.UserRepository;
 import zero.conflict.archiview.user.application.support.NicknameGenerator;
+import zero.conflict.archiview.user.domain.EditorProfile;
 import zero.conflict.archiview.user.domain.User;
 import zero.conflict.archiview.user.domain.error.UserErrorCode;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
@@ -253,6 +254,32 @@ class UserCommandServiceTest {
         userCommandService.withdraw(userId);
 
         assertThat(user.isDeleted()).isTrue();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 시 에디터 프로필의 unique 필드를 재사용 가능하게 변경한다")
+    void withdraw_editorProfile_releasesUniqueFields() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000123");
+        User user = createUser(userId, User.Role.EDITOR);
+        EditorProfile profile = EditorProfile.createOf(
+                user,
+                "기존닉네임",
+                "소개",
+                "editor_insta",
+                "https://instagram.com/editor_insta",
+                null,
+                zero.conflict.archiview.user.domain.Hashtags.of("#A", "#B"));
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileRepository.findByUserId(userId)).willReturn(Optional.of(profile));
+        given(archiverProfileRepository.findByUserId(userId)).willReturn(Optional.empty());
+
+        userCommandService.withdraw(userId);
+
+        assertThat(profile.isDeleted()).isTrue();
+        assertThat(profile.getNickname()).startsWith("withdrawn_nick_");
+        assertThat(profile.getInstagramId()).startsWith("withdrawn_insta_");
         verify(userRepository).save(user);
     }
 

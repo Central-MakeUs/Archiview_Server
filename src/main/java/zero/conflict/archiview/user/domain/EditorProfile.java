@@ -90,7 +90,14 @@ public class EditorProfile extends BaseTimeEntity {
 
     public void markDeleted(LocalDateTime deletedAt) {
         if (this.deletedAt == null) {
-            this.deletedAt = deletedAt != null ? deletedAt : LocalDateTime.now();
+            LocalDateTime now = deletedAt != null ? deletedAt : LocalDateTime.now();
+            this.deletedAt = now;
+
+            String userSuffix = user != null && user.getId() != null
+                    ? user.getId().toString().replace("-", "")
+                    : String.valueOf(now.atZone(java.time.ZoneOffset.UTC).toInstant().toEpochMilli());
+            this.nickname = "withdrawn_nick_" + userSuffix;
+            this.instagramId = "withdrawn_insta_" + userSuffix;
         }
     }
 

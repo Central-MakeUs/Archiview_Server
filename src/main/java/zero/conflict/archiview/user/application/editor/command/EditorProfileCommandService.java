@@ -45,7 +45,7 @@ public class EditorProfileCommandService {
         try {
             savedProfile = editorProfileRepository.save(profile);
         } catch (DataIntegrityViolationException e) {
-            throw resolveDuplicateProfileException(e);
+            throw resolveDuplicateProfileException(e, userId, request.getNickname(), request.getInstagramId());
         }
 
         return EditorProfileDto.Response.from(savedProfile);
@@ -107,8 +107,19 @@ public class EditorProfileCommandService {
         return normalized.replaceFirst("^https://www\\.", "https://");
     }
 
-    private DomainException resolveDuplicateProfileException(DataIntegrityViolationException exception) {
-        String message = buildExceptionMessage(exception);
+    private DomainException resolveDuplicateProfileException(DataIntegrityViolationException exception,
+            java.util.UUID userId, String nickname, String instagramId) {
+        if (editorProfileRepository.existsByUserId(userId)) {
+            throw new DomainException(UserErrorCode.EDITOR_PROFILE_ALREADY_EXISTS);
+        }
+        if (nickname != null && editorProfileRepository.existsByNickname(nickname)) {
+            throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
+        }
+        if (instagramId != null && editorProfileRepository.existsByInstagramId(instagramId)) {
+            throw new DomainException(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
+        }
+
+        String message = buildMostSpecificExceptionMessage(exception);
         if (containsAny(message, "nickname", "nick_name")) {
             throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
         }
@@ -118,16 +129,15 @@ public class EditorProfileCommandService {
         throw new DomainException(UserErrorCode.EDITOR_PROFILE_ALREADY_EXISTS);
     }
 
-    private String buildExceptionMessage(Throwable throwable) {
-        StringBuilder builder = new StringBuilder();
+    private String buildMostSpecificExceptionMessage(Throwable throwable) {
         Throwable current = throwable;
-        while (current != null) {
-            if (current.getMessage() != null && !current.getMessage().isBlank()) {
-                builder.append(current.getMessage()).append(' ');
-            }
+        while (current != null && current.getCause() != null) {
             current = current.getCause();
         }
-        return builder.toString().toLowerCase();
+        if (current == null || current.getMessage() == null) {
+            return "";
+        }
+        return current.getMessage().toLowerCase();
     }
 
     private boolean containsAny(String value, String... candidates) {
