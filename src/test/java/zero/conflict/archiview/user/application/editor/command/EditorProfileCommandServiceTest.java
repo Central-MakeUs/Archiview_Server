@@ -20,6 +20,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class EditorProfileCommandServiceTest {
@@ -65,5 +67,45 @@ class EditorProfileCommandServiceTest {
                 .isInstanceOf(DomainException.class)
                 .extracting(ex -> ((DomainException) ex).getErrorCode())
                 .isEqualTo(UserErrorCode.DUPLICATE_NICKNAME);
+
+        verify(editorProfileRepository, times(1)).existsByUserId(userId);
+    }
+
+    @Test
+    @DisplayName("저장 시 Duplicate entry 값이 instagramId와 같으면 USER_004 예외를 반환한다")
+    void createProfile_duplicateInstagramIdFromDuplicateEntry_throwsDomainException() {
+        UUID userId = UUID.randomUUID();
+        String instagramId = "@pmj0091";
+        User user = User.builder()
+                .id(userId)
+                .email("editor@archiview.com")
+                .name("editor")
+                .provider(User.OAuthProvider.KAKAO)
+                .providerId("kakao-editor")
+                .role(User.Role.EDITOR)
+                .build();
+
+        EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
+                .nickname("사용가능닉네임")
+                .instagramId(instagramId)
+                .instagramUrl("instagram.com/pmj0091")
+                .introduction("소개")
+                .hashtags(java.util.List.of("#A", "#B"))
+                .build();
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileRepository.existsByUserId(userId)).willReturn(false);
+        given(editorProfileRepository.existsByNickname("사용가능닉네임")).willReturn(false);
+        given(editorProfileRepository.existsByInstagramId(instagramId)).willReturn(false);
+        given(editorProfileRepository.save(any()))
+                .willThrow(new DataIntegrityViolationException(
+                        "Duplicate entry '@pmj0091' for key 'editor_profiles.UK5d371g1u5bqv3iyc74v8bmjim'"));
+
+        assertThatThrownBy(() -> editorProfileCommandService.createProfile(userId, request))
+                .isInstanceOf(DomainException.class)
+                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                .isEqualTo(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
+
+        verify(editorProfileRepository, times(1)).existsByUserId(userId);
     }
 }

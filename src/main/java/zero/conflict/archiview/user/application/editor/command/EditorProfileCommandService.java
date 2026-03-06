@@ -45,7 +45,7 @@ public class EditorProfileCommandService {
         try {
             savedProfile = editorProfileRepository.save(profile);
         } catch (DataIntegrityViolationException e) {
-            throw resolveDuplicateProfileException(e, userId, request.getNickname(), request.getInstagramId());
+            throw resolveDuplicateProfileException(e, request.getNickname(), request.getInstagramId());
         }
 
         return EditorProfileDto.Response.from(savedProfile);
@@ -108,18 +108,16 @@ public class EditorProfileCommandService {
     }
 
     private DomainException resolveDuplicateProfileException(DataIntegrityViolationException exception,
-            java.util.UUID userId, String nickname, String instagramId) {
-        if (editorProfileRepository.existsByUserId(userId)) {
-            throw new DomainException(UserErrorCode.EDITOR_PROFILE_ALREADY_EXISTS);
-        }
-        if (nickname != null && editorProfileRepository.existsByNickname(nickname)) {
-            throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
-        }
-        if (instagramId != null && editorProfileRepository.existsByInstagramId(instagramId)) {
+            String nickname, String instagramId) {
+        String message = buildMostSpecificExceptionMessage(exception);
+        String duplicateEntryValue = extractDuplicateEntryValue(message);
+
+        if (instagramId != null && duplicateEntryValue != null && instagramId.equals(duplicateEntryValue)) {
             throw new DomainException(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
         }
-
-        String message = buildMostSpecificExceptionMessage(exception);
+        if (nickname != null && duplicateEntryValue != null && nickname.equals(duplicateEntryValue)) {
+            throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
+        }
         if (containsAny(message, "nickname", "nick_name")) {
             throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
         }
@@ -138,6 +136,23 @@ public class EditorProfileCommandService {
             return "";
         }
         return current.getMessage().toLowerCase();
+    }
+
+    private String extractDuplicateEntryValue(String message) {
+        if (message == null || message.isBlank()) {
+            return null;
+        }
+        String marker = "duplicate entry '";
+        int markerIndex = message.indexOf(marker);
+        if (markerIndex < 0) {
+            return null;
+        }
+        int valueStart = markerIndex + marker.length();
+        int valueEnd = message.indexOf('\'', valueStart);
+        if (valueEnd < 0 || valueEnd <= valueStart) {
+            return null;
+        }
+        return message.substring(valueStart, valueEnd);
     }
 
     private boolean containsAny(String value, String... candidates) {
