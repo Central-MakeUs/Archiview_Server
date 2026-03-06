@@ -2,6 +2,7 @@ package zero.conflict.archiview.global.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,6 +31,7 @@ import java.util.Map;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class SecurityConfig {
         private static final String DEV_LOGIN_STATE_SESSION_KEY = "OAUTH2_DEV_LOGIN_STATE_MAP";
         private static final String LOCALHOST_SOURCE_STATE_SESSION_KEY = "OAUTH2_LOCALHOST_SOURCE_STATE_MAP";
@@ -155,11 +157,61 @@ public class SecurityConfig {
                                         request.getSession(true).setAttribute(LOCALHOST_SOURCE_STATE_SESSION_KEY,
                                                         localhostStateMap);
                                 }
+                                warnIfMobileAppUsesWebOAuth(request);
 
                                 return OAuth2AuthorizationRequest.from(authorizationRequest)
                                                 .additionalParameters(additionalParameters)
                                                 .attributes(attributes)
                                                 .build();
+                        }
+
+                        private void warnIfMobileAppUsesWebOAuth(HttpServletRequest request) {
+                                String requestUri = request.getRequestURI();
+                                boolean kakaoWebOAuthEndpoint = requestUri != null
+                                                && requestUri.startsWith("/oauth2/authorization/kakao");
+                                if (!kakaoWebOAuthEndpoint) {
+                                        return;
+                                }
+                                if (!isLikelyMobileAppRequest(request)) {
+                                        return;
+                                }
+                                log.warn(
+                                                "모바일 앱으로 추정되는 요청이 웹 OAuth 엔드포인트로 진입했습니다. uri={}, userAgent={}, xClientPlatform={}, xAppClient={}. 모바일 앱은 /api/v1/auth/mobile/kakao 사용이 권장됩니다.",
+                                                requestUri,
+                                                request.getHeader("User-Agent"),
+                                                request.getHeader("X-Client-Platform"),
+                                                request.getHeader("X-App-Client"));
+                        }
+
+                        private boolean isLikelyMobileAppRequest(HttpServletRequest request) {
+                                String clientPlatform = headerValue(request, "X-Client-Platform");
+                                if ("android".equals(clientPlatform) || "ios".equals(clientPlatform)
+                                                || "mobile-app".equals(clientPlatform) || "app".equals(clientPlatform)) {
+                                        return true;
+                                }
+                                String appClient = headerValue(request, "X-App-Client");
+                                if ("true".equals(appClient) || "1".equals(appClient)) {
+                                        return true;
+                                }
+                                String requestedFromApp = headerValue(request, "X-Requested-From-App");
+                                if ("true".equals(requestedFromApp) || "1".equals(requestedFromApp)) {
+                                        return true;
+                                }
+                                String userAgent = headerValue(request, "User-Agent");
+                                return userAgent.contains("okhttp")
+                                                || userAgent.contains("dalvik")
+                                                || userAgent.contains("cfnetwork")
+                                                || userAgent.contains("kakaotalk")
+                                                || userAgent.contains("androidapp")
+                                                || userAgent.contains("iosapp");
+                        }
+
+                        private String headerValue(HttpServletRequest request, String name) {
+                                String value = request.getHeader(name);
+                                if (value == null || value.isBlank()) {
+                                        return "";
+                                }
+                                return value.trim().toLowerCase();
                         }
 
                         private boolean isLocalhostSourceRequest(HttpServletRequest request) {
