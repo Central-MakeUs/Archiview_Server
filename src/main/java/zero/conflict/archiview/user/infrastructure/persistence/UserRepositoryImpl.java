@@ -20,6 +20,11 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public User saveAndFlush(User user) {
+        return userJpaRepository.saveAndFlush(user);
+    }
+
+    @Override
     public Optional<User> findById(UUID id) {
         return userJpaRepository.findByIdAndDeletedAtIsNull(id);
     }

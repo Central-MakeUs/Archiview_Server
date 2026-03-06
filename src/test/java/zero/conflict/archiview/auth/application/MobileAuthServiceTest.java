@@ -83,7 +83,7 @@ class MobileAuthServiceTest {
                 .willReturn(Optional.empty());
         given(userRepository.findByEmail("kakao@example.com"))
                 .willReturn(Optional.of(existing));
-        given(userRepository.save(existing)).willReturn(existing);
+        given(userRepository.saveAndFlush(existing)).willReturn(existing);
         given(jwtTokenProvider.createAccessToken(any())).willReturn("new-access-token");
         given(jwtTokenProvider.createRefreshToken(userId)).willReturn("new-refresh-token");
 
@@ -132,7 +132,7 @@ class MobileAuthServiceTest {
         given(userRepository.findByProviderAndProviderId(User.OAuthProvider.KAKAO, "kakao-subject"))
                 .willReturn(Optional.empty());
         given(userRepository.findByEmail("dup@example.com")).willReturn(Optional.empty());
-        given(userRepository.save(any(User.class))).willThrow(new DataIntegrityViolationException("duplicate"));
+        given(userRepository.saveAndFlush(any(User.class))).willThrow(new DataIntegrityViolationException("duplicate"));
 
         Throwable throwable = catchThrowable(() -> mobileAuthService.loginWithKakao(request));
 

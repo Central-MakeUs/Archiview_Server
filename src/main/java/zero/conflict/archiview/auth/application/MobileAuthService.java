@@ -119,7 +119,7 @@ public class MobileAuthService {
 
     private User saveWithDuplicateHandling(User user) {
         try {
-            return userRepository.save(user);
+            return userRepository.saveAndFlush(user);
         } catch (DataIntegrityViolationException e) {
             log.warn("소셜 로그인 저장 중 unique 충돌 - provider={}, providerId={}, email={}",
                     user.getProvider(),
