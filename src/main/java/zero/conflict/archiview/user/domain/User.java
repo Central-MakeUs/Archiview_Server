@@ -65,6 +65,11 @@ public class User extends BaseTimeEntity {
         this.role = role;
     }
 
+    public void relinkSocialAccount(OAuthProvider provider, String providerId) {
+        this.provider = provider;
+        this.providerId = providerId;
+    }
+
     public void markDeleted(LocalDateTime deletedAt) {
         if (this.deletedAt != null) {
             return;
