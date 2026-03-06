@@ -591,6 +591,7 @@ public class PostQueryService {
                                 .placeId(placeId)
                                 .placeName(placeName)
                                 .latestDescription(latestPostPlace.getDescription())
+                                .imageUrl(latestPostPlace.getImageUrl())
                                 .viewCount(viewCount)
                                 .saveCount(saveCount)
                                 .build();

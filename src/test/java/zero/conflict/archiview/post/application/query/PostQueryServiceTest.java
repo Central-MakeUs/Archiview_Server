@@ -89,6 +89,7 @@ class PostQueryServiceTest {
                                 .place(place)
                                 .editorId(UUID.randomUUID())
                                 .description("최근 설명")
+                                .imageUrl("https://img.recent")
                                 .viewCount(100L)
                                 .saveCount(20L)
                                 .build();
@@ -108,6 +109,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
                 assertThat(response.getPlaces().get(0).getPlaceName()).isEqualTo("성수 카페");
                 assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("최근 설명");
+                assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.recent");
                 assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(100L);
                 assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(20L);
         }
@@ -130,6 +132,7 @@ class PostQueryServiceTest {
                                 .place(visiblePlace)
                                 .editorId(editorId)
                                 .description("노출 설명")
+                                .imageUrl("https://img.visible")
                                 .saveCount(20L)
                                 .build();
                 PostPlace hiddenPostPlace = PostPlace.builder()
@@ -138,6 +141,7 @@ class PostQueryServiceTest {
                                 .place(hiddenPlace)
                                 .editorId(editorId)
                                 .description("숨김 설명")
+                                .imageUrl("https://img.hidden")
                                 .saveCount(10L)
                                 .build();
                 setField(visiblePostPlace, "createdAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
@@ -164,6 +168,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces()).hasSize(1);
                 assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
                 assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("노출 설명");
+                assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.visible");
         }
 
         @Test
