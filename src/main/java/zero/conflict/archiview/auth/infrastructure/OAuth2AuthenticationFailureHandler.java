@@ -37,6 +37,19 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         Map<String, Object> errorResponse = new HashMap<>();
         String message = exception.getMessage();
         errorResponse.put("error", "OAuth2 인증 실패");
+
+        if (isProviderTokenRateLimited(exception)) {
+            message = "카카오 토큰 발급 요청 한도를 초과했습니다. 잠시 후 다시 시도해 주세요.";
+            errorResponse.put("message", message);
+            errorResponse.put("hint", "같은 계정으로 짧은 시간 내 반복 로그인 시 KOE237이 발생할 수 있습니다.");
+            errorResponse.put("providerErrorCode", "KOE237");
+            errorResponse.put("retryAfterSeconds", 60);
+            response.setContentType("application/json;charset=UTF-8");
+            response.setStatus(429);
+            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+            return;
+        }
+
         if (isAuthorizationRequestNotFound(exception)) {
             message = "모바일 앱 로그인은 웹 OAuth 콜백 대신 /api/v1/auth/mobile/kakao 엔드포인트를 사용하세요.";
             errorResponse.put("hint", "카카오 SDK에서 access token을 획득한 뒤 /api/v1/auth/mobile/kakao 로 POST 요청");
@@ -46,6 +59,15 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+    }
+
+    private boolean isProviderTokenRateLimited(AuthenticationException exception) {
+        String message = exception.getMessage();
+        if (message == null || message.isBlank()) {
+            return false;
+        }
+        String normalized = message.toLowerCase();
+        return normalized.contains("koe237") || normalized.contains("token request rate limit exceeded");
     }
 
     private boolean isAuthorizationRequestNotFound(AuthenticationException exception) {

@@ -57,4 +57,25 @@ class OAuth2AuthenticationFailureHandlerTest {
         assertThat(body.get("message")).isEqualTo("bad credentials");
         assertThat(body).doesNotContainKey("hint");
     }
+
+    @Test
+    @DisplayName("카카오 토큰 발급 rate limit(KOE237) 실패 시 429와 재시도 안내를 응답한다")
+    void onAuthenticationFailure_kakaoTokenRateLimit() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("/login/oauth2/code/kakao");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        OAuth2AuthenticationException exception = new OAuth2AuthenticationException(
+                new OAuth2Error("invalid_token_response"),
+                "429 : \"{\"error\":\"invalid_request\",\"error_description\":\"token request rate limit exceeded\",\"error_code\":\"KOE237\"}\"");
+
+        handler.onAuthenticationFailure(request, response, exception);
+
+        Map<String, Object> body = objectMapper.readValue(response.getContentAsByteArray(), new TypeReference<>() {
+        });
+        assertThat(response.getStatus()).isEqualTo(429);
+        assertThat(body.get("message")).isNotNull();
+        assertThat(body.get("providerErrorCode")).isEqualTo("KOE237");
+        assertThat(body.get("retryAfterSeconds")).isEqualTo(60);
+    }
 }
