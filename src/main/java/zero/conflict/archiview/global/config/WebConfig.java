@@ -24,8 +24,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:8080")
                 .allowedOriginPatterns(
                         "http://192.168.*.*:*",
-                        "https://192.168.*.*:*",
-                        "https://172.20.*.*:*")
+                        "http://192.168.*.*:*",
+                        "http://172.20.*.*:*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)
