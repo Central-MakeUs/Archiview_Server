@@ -45,8 +45,7 @@ public class EditorProfileCommandService {
         try {
             savedProfile = editorProfileRepository.save(profile);
         } catch (DataIntegrityViolationException e) {
-            handleDuplicateProfileFields(request.getNickname(), request.getInstagramId());
-            throw e;
+            throw resolveDuplicateProfileException(e);
         }
 
         return EditorProfileDto.Response.from(savedProfile);
@@ -108,12 +107,35 @@ public class EditorProfileCommandService {
         return normalized.replaceFirst("^https://www\\.", "https://");
     }
 
-    private void handleDuplicateProfileFields(String nickname, String instagramId) {
-        if (editorProfileRepository.existsByNickname(nickname)) {
+    private DomainException resolveDuplicateProfileException(DataIntegrityViolationException exception) {
+        String message = buildExceptionMessage(exception);
+        if (containsAny(message, "nickname", "nick_name")) {
             throw new DomainException(UserErrorCode.DUPLICATE_NICKNAME);
         }
-        if (editorProfileRepository.existsByInstagramId(instagramId)) {
+        if (containsAny(message, "instagram_id", "instagramid")) {
             throw new DomainException(UserErrorCode.DUPLICATE_INSTAGRAM_ID);
         }
+        throw new DomainException(UserErrorCode.EDITOR_PROFILE_ALREADY_EXISTS);
+    }
+
+    private String buildExceptionMessage(Throwable throwable) {
+        StringBuilder builder = new StringBuilder();
+        Throwable current = throwable;
+        while (current != null) {
+            if (current.getMessage() != null && !current.getMessage().isBlank()) {
+                builder.append(current.getMessage()).append(' ');
+            }
+            current = current.getCause();
+        }
+        return builder.toString().toLowerCase();
+    }
+
+    private boolean containsAny(String value, String... candidates) {
+        for (String candidate : candidates) {
+            if (value.contains(candidate)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

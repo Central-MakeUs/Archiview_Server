@@ -56,7 +56,7 @@ class EditorProfileCommandServiceTest {
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
         given(editorProfileRepository.existsByUserId(userId)).willReturn(false);
-        given(editorProfileRepository.existsByNickname("중복닉네임")).willReturn(false, true);
+        given(editorProfileRepository.existsByNickname("중복닉네임")).willReturn(false);
         given(editorProfileRepository.existsByInstagramId("editor_insta")).willReturn(false);
         given(editorProfileRepository.save(any()))
                 .willThrow(new DataIntegrityViolationException("duplicate nickname"));
