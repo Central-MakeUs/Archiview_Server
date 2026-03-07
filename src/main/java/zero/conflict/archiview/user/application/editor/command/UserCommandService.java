@@ -90,16 +90,13 @@ public class UserCommandService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
 
-        if (user.getRole() == User.Role.GUEST) {
-            throw new DomainException(UserErrorCode.ONBOARDING_REQUIRED_FOR_EDITOR_PROFILE);
-        }
+        EditorProfileDto.Response editorProfile = editorProfileCommandService.createProfile(userId, request);
 
-        if (user.getRole() == User.Role.ARCHIVER) {
+        if (user.getRole() != User.Role.EDITOR) {
             user.assignRole(User.Role.EDITOR);
             userRepository.save(user);
         }
 
-        EditorProfileDto.Response editorProfile = editorProfileCommandService.createProfile(userId, request);
         String accessToken = jwtTokenProvider.createAccessToken(new CustomOAuth2User(user, java.util.Map.of()));
 
         return UserDto.RegisterEditorProfileResponse.builder()

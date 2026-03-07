@@ -103,8 +103,8 @@ class UserCommandServiceTest {
     }
 
     @Test
-    @DisplayName("GUEST는 에디터 프로필 등록할 수 없다")
-    void registerEditorProfile_guest_throwsException() {
+    @DisplayName("GUEST가 에디터 프로필 등록 성공 시 EDITOR로 전환하고 토큰을 발급한다")
+    void registerEditorProfile_guest_success() {
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000113");
         User user = createUser(userId, User.Role.GUEST);
         EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
@@ -116,11 +116,43 @@ class UserCommandServiceTest {
                 .build();
 
         given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileCommandService.createProfile(userId, request)).willReturn(EditorProfileDto.Response.mock());
+        given(jwtTokenProvider.createAccessToken(any())).willReturn("editor-access-token");
+
+        UserDto.RegisterEditorProfileResponse response = userCommandService.registerEditorProfile(userId, request);
+
+        assertThat(response.getAccessToken()).isEqualTo("editor-access-token");
+        assertThat(response.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(user.getRole()).isEqualTo(User.Role.EDITOR);
+        assertThat(response.getEditorProfile()).isNotNull();
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    @DisplayName("에디터 프로필 등록 실패 시 역할은 변경되지 않는다")
+    void registerEditorProfile_whenCreateProfileFails_roleNotChanged() {
+        UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000115");
+        User user = createUser(userId, User.Role.GUEST);
+        EditorProfileDto.CreateRequest request = EditorProfileDto.CreateRequest.builder()
+                .nickname("맛집탐방가")
+                .instagramId("editor_insta")
+                .instagramUrl("https://www.instagram.com/editor_insta")
+                .introduction("소개")
+                .hashtags(java.util.List.of("#A", "#B"))
+                .build();
+
+        given(userRepository.findById(userId)).willReturn(Optional.of(user));
+        given(editorProfileCommandService.createProfile(userId, request))
+                .willThrow(new DomainException(UserErrorCode.DUPLICATE_NICKNAME));
 
         assertThatThrownBy(() -> userCommandService.registerEditorProfile(userId, request))
                 .isInstanceOf(DomainException.class)
                 .extracting(ex -> ((DomainException) ex).getErrorCode())
-                .isEqualTo(UserErrorCode.ONBOARDING_REQUIRED_FOR_EDITOR_PROFILE);
+                .isEqualTo(UserErrorCode.DUPLICATE_NICKNAME);
+
+        assertThat(user.getRole()).isEqualTo(User.Role.GUEST);
+        verify(userRepository, never()).save(user);
+        verify(jwtTokenProvider, never()).createAccessToken(any());
     }
 
     @Test

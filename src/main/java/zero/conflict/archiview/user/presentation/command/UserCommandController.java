@@ -24,7 +24,7 @@ public class UserCommandController {
 
     @Operation(
             summary = "에디터 프로필 등록",
-            description = "로그인한 사용자의 에디터 프로필을 등록하고 역할을 EDITOR로 전환한 뒤 신규 토큰을 발급합니다.")
+            description = "로그인한 사용자의 에디터 프로필을 등록하고, 등록 성공 시 역할을 EDITOR로 전환한 뒤 신규 토큰을 발급합니다.")
     @PostMapping("/me/editor-profile")
     public ResponseEntity<ApiResponse<UserDto.RegisterEditorProfileResponse>> registerEditorProfile(
             @RequestBody @Valid EditorProfileDto.CreateRequest request,

@@ -22,7 +22,7 @@ public class EditorProfileCommandService {
 
     @Transactional
     public EditorProfileDto.Response createProfile(java.util.UUID userId, EditorProfileDto.CreateRequest request) {
-        User user = getEditorUser(userId);
+        User user = getUser(userId);
 
         if (editorProfileRepository.existsByUserId(userId)) {
             throw new DomainException(UserErrorCode.EDITOR_PROFILE_ALREADY_EXISTS);
@@ -73,9 +73,13 @@ public class EditorProfileCommandService {
         return EditorProfileDto.Response.from(profile);
     }
 
-    private User getEditorUser(java.util.UUID userId) {
-        User user = userRepository.findById(userId)
+    private User getUser(java.util.UUID userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new DomainException(UserErrorCode.USER_NOT_FOUND));
+    }
+
+    private User getEditorUser(java.util.UUID userId) {
+        User user = getUser(userId);
 
         if (user.getRole() != User.Role.EDITOR) {
             throw new DomainException(UserErrorCode.INVALID_ROLE_FOR_EDITOR_PROFILE);
