@@ -106,6 +106,30 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
     }
 
     @Test
+    @DisplayName("게시글 이미지 presigned URL 발급 성공 - HEIC")
+    void createPostImagePresignedUrl_heic_success() throws Exception {
+        PresignedUrlCommandDto.Request request = PresignedUrlCommandDto.Request.builder()
+                .filename("photo.heic")
+                .contentType("image/heic")
+                .size(1024L)
+                .build();
+        PresignedUrlCommandDto.Response response = PresignedUrlCommandDto.Response.of(
+                "https://upload.url", "https://image.url", "posts/key");
+
+        given(postCommandService.createPostImagePresignedUrl(any(PresignedUrlCommandDto.Request.class)))
+                .willReturn(response);
+
+        mockMvc.perform(post("/api/v1/editors/posts/presigned-url")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.uploadUrl").value("https://upload.url"))
+                .andExpect(jsonPath("$.data.imageKey").value("posts/key"));
+    }
+
+    @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_success() throws Exception {
         Long postId = 10L;

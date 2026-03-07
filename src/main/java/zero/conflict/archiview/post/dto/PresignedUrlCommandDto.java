@@ -28,7 +28,7 @@ public class PresignedUrlCommandDto {
 
         @NotBlank(message = "파일 타입은 필수입니다.")
         @Pattern(
-                regexp = "^image/(jpeg|jpg|png|webp)$",
+                regexp = "^image/(jpeg|jpg|png|webp|heic|heif)$",
                 message = "지원하지 않는 이미지 타입입니다.")
         @Schema(description = "파일 MIME 타입", example = "image/png")
         private String contentType;
