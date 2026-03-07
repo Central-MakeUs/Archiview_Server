@@ -29,17 +29,17 @@ public class TestAuthController {
 
     private static final long ONE_MONTH = 1000L * 60 * 60 * 24 * 30;
 
-    @Operation(summary = "테스트용 에디터 로그인", description = "EDITOR 권한의 테스트 계정 토큰을 1개월 만료 기한으로 발급합니다.")
-    @GetMapping("/editor")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getEditorTestToken() {
-        return createTestToken("test-editor@archiview.com", "테스트 에디터", User.Role.EDITOR);
-    }
-
-    @Operation(summary = "테스트용 아카이버 로그인", description = "ARCHIVER 권한의 테스트 계정 토큰을 1개월 만료 기한으로 발급합니다.")
-    @GetMapping("/archiver")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getArchiverTestToken() {
-        return createTestToken("test-archiver@archiview.com", "테스트 아카이버", User.Role.ARCHIVER);
-    }
+//    @Operation(summary = "테스트용 에디터 로그인", description = "EDITOR 권한의 테스트 계정 토큰을 1개월 만료 기한으로 발급합니다.")
+//    @GetMapping("/editor")
+//    public ResponseEntity<ApiResponse<Map<String, Object>>> getEditorTestToken() {
+//        return createTestToken("test-editor@archiview.com", "테스트 에디터", User.Role.EDITOR);
+//    }
+//
+//    @Operation(summary = "테스트용 아카이버 로그인", description = "ARCHIVER 권한의 테스트 계정 토큰을 1개월 만료 기한으로 발급합니다.")
+//    @GetMapping("/archiver")
+//    public ResponseEntity<ApiResponse<Map<String, Object>>> getArchiverTestToken() {
+//        return createTestToken("test-archiver@archiview.com", "테스트 아카이버", User.Role.ARCHIVER);
+//    }
 
     private ResponseEntity<ApiResponse<Map<String, Object>>> createTestToken(String email, String name,
             User.Role role) {
