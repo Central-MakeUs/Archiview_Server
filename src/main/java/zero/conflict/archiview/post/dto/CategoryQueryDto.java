@@ -61,6 +61,7 @@ public class CategoryQueryDto {
     public static class CategoryPlaceResponse {
         private Long placeId;
         private String placeName;
+        private List<Long> categoryIds;
         private Double latitude;
         private Double longitude;
         private String latestDescription;
@@ -72,6 +73,7 @@ public class CategoryQueryDto {
             return CategoryPlaceResponse.builder()
                     .placeId(projection.getPlaceId())
                     .placeName(projection.getPlaceName())
+                    .categoryIds(List.of())
                     .latestDescription(projection.getLatestDescription())
                     .imageUrl(null)
                     .viewCount(projection.getViewCount())
@@ -102,6 +104,7 @@ public class CategoryQueryDto {
                     CategoryPlaceResponse.builder()
                             .placeId(101L)
                             .placeName("성수 감성 카페")
+                            .categoryIds(List.of(1L, 2L))
                             .latitude(37.5445)
                             .longitude(127.0560)
                             .latestDescription("채광이 좋고 디저트가 맛있어요.")
@@ -112,6 +115,7 @@ public class CategoryQueryDto {
                     CategoryPlaceResponse.builder()
                             .placeId(102L)
                             .placeName("연남 브런치 하우스")
+                            .categoryIds(List.of(3L))
                             .latitude(37.5624)
                             .longitude(126.9235)
                             .latestDescription("주말 오픈런 필수인 브런치 맛집.")

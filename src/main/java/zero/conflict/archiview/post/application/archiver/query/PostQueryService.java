@@ -590,10 +590,18 @@ public class PostQueryService {
                                 .map(PostPlace::getSaveCount)
                                 .mapToLong(this::defaultZero)
                                 .sum();
+                List<Long> categoryIds = postPlaces.stream()
+                                .flatMap(postPlace -> postPlace.getPostPlaceCategories().stream())
+                                .map(PostPlaceCategory::getCategory)
+                                .filter(category -> category != null && category.getId() != null)
+                                .map(category -> category.getId())
+                                .distinct()
+                                .toList();
 
                 return CategoryQueryDto.CategoryPlaceResponse.builder()
                                 .placeId(placeId)
                                 .placeName(placeName)
+                                .categoryIds(categoryIds)
                                 .latitude(latitude)
                                 .longitude(longitude)
                                 .latestDescription(latestPostPlace.getDescription())
@@ -613,6 +621,7 @@ public class PostQueryService {
                         return CategoryQueryDto.CategoryPlaceResponse.builder()
                                         .placeId(place.getId())
                                         .placeName(place.getName())
+                                        .categoryIds(List.of())
                                         .latitude(place.getPosition() != null ? place.getPosition().getLatitude() : null)
                                         .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
                                         .latestDescription(null)

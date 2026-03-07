@@ -130,6 +130,7 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
         CategoryQueryDto.CategoryPlaceResponse place = CategoryQueryDto.CategoryPlaceResponse.builder()
                 .placeId(1L)
                 .placeName("성수 감성 카페")
+                .categoryIds(List.of(1L, 2L))
                 .latitude(37.5445)
                 .longitude(127.0560)
                 .latestDescription("최근 설명")
@@ -150,6 +151,8 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(1))
                 .andExpect(jsonPath("$.data.places[0].placeName").value("성수 감성 카페"))
+                .andExpect(jsonPath("$.data.places[0].categoryIds[0]").value(1L))
+                .andExpect(jsonPath("$.data.places[0].categoryIds[1]").value(2L))
                 .andExpect(jsonPath("$.data.places[0].latitude").value(37.5445))
                 .andExpect(jsonPath("$.data.places[0].longitude").value(127.0560))
                 .andExpect(jsonPath("$.data.places[0].saveCount").value(45));
@@ -167,6 +170,8 @@ class ArchiverPlaceQueryControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.totalCount").value(2))
                 .andExpect(jsonPath("$.data.places").isArray())
+                .andExpect(jsonPath("$.data.places[0].categoryIds[0]").value(1L))
+                .andExpect(jsonPath("$.data.places[0].categoryIds[1]").value(2L))
                 .andExpect(jsonPath("$.data.places[0].latitude").value(37.5445))
                 .andExpect(jsonPath("$.data.places[0].longitude").value(127.0560));
     }

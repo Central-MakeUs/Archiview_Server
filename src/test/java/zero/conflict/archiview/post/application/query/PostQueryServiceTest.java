@@ -91,6 +91,8 @@ class PostQueryServiceTest {
                 Double latitude = 37.5445;
                 Double longitude = 127.0560;
                 Place place = Place.builder().id(11L).name("성수 카페").viewCount(100L).build();
+                Category category1 = Category.builder().id(1L).name("카페").build();
+                Category category2 = Category.builder().id(2L).name("디저트").build();
                 Post post = Post.builder().id(10L).build();
                 PostPlace postPlace = PostPlace.builder()
                                 .id(21L)
@@ -102,6 +104,8 @@ class PostQueryServiceTest {
                                 .viewCount(100L)
                                 .saveCount(20L)
                                 .build();
+                postPlace.addCategory(category1);
+                postPlace.addCategory(category2);
                 setField(postPlace, "createdAt", LocalDateTime.of(2026, 2, 10, 12, 0, 0));
 
                 given(categoryPlaceReadRepository.findPlacesNearby(latitude, longitude, 1000))
@@ -121,6 +125,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.recent");
                 assertThat(response.getPlaces().get(0).getViewCount()).isEqualTo(100L);
                 assertThat(response.getPlaces().get(0).getSaveCount()).isEqualTo(20L);
+                assertThat(response.getPlaces().get(0).getCategoryIds()).containsExactly(1L, 2L);
         }
 
         @Test
@@ -130,6 +135,7 @@ class PostQueryServiceTest {
                 Double longitude = 127.0560;
                 UUID archiverId = UUID.randomUUID();
                 UUID editorId = UUID.randomUUID();
+                Category category = Category.builder().id(7L).name("카페").build();
 
                 Place visiblePlace = Place.builder().id(11L).name("노출 장소").viewCount(100L).build();
                 Place hiddenPlace = Place.builder().id(12L).name("숨김 장소").viewCount(80L).build();
@@ -144,6 +150,7 @@ class PostQueryServiceTest {
                                 .imageUrl("https://img.visible")
                                 .saveCount(20L)
                                 .build();
+                visiblePostPlace.addCategory(category);
                 PostPlace hiddenPostPlace = PostPlace.builder()
                                 .id(22L)
                                 .post(post)
@@ -178,6 +185,7 @@ class PostQueryServiceTest {
                 assertThat(response.getPlaces().get(0).getPlaceId()).isEqualTo(11L);
                 assertThat(response.getPlaces().get(0).getLatestDescription()).isEqualTo("노출 설명");
                 assertThat(response.getPlaces().get(0).getImageUrl()).isEqualTo("https://img.visible");
+                assertThat(response.getPlaces().get(0).getCategoryIds()).containsExactly(7L);
         }
 
         @Test
