@@ -112,6 +112,8 @@ public class PostQueryService {
 
                 List<CategoryQueryDto.CategoryPlaceResponse> places = nearbyPlaces.stream()
                                 .map(place -> toCategoryPlaceResponse(place.getId(), place.getName(),
+                                                place.getPosition() != null ? place.getPosition().getLatitude() : null,
+                                                place.getPosition() != null ? place.getPosition().getLongitude() : null,
                                                 visibleByPlaceId.get(place.getId())))
                                 .filter(response -> response != null)
                                 .sorted(categoryPlaceResponseComparator(visibleByPlaceId))
@@ -561,6 +563,8 @@ public class PostQueryService {
         private CategoryQueryDto.CategoryPlaceResponse toCategoryPlaceResponse(
                         Long placeId,
                         String placeName,
+                        Double latitude,
+                        Double longitude,
                         List<PostPlace> postPlaces) {
                 if (postPlaces == null || postPlaces.isEmpty()) {
                         return null;
@@ -590,6 +594,8 @@ public class PostQueryService {
                 return CategoryQueryDto.CategoryPlaceResponse.builder()
                                 .placeId(placeId)
                                 .placeName(placeName)
+                                .latitude(latitude)
+                                .longitude(longitude)
                                 .latestDescription(latestPostPlace.getDescription())
                                 .imageUrl(latestPostPlace.getImageUrl())
                                 .viewCount(viewCount)
@@ -607,12 +613,19 @@ public class PostQueryService {
                         return CategoryQueryDto.CategoryPlaceResponse.builder()
                                         .placeId(place.getId())
                                         .placeName(place.getName())
+                                        .latitude(place.getPosition() != null ? place.getPosition().getLatitude() : null)
+                                        .longitude(place.getPosition() != null ? place.getPosition().getLongitude() : null)
                                         .latestDescription(null)
                                         .viewCount(defaultZero(place.getViewCount()))
                                         .saveCount(0L)
                                         .build();
                 }
-                return toCategoryPlaceResponse(place.getId(), place.getName(), postPlaces);
+                return toCategoryPlaceResponse(
+                                place.getId(),
+                                place.getName(),
+                                place.getPosition() != null ? place.getPosition().getLatitude() : null,
+                                place.getPosition() != null ? place.getPosition().getLongitude() : null,
+                                postPlaces);
         }
 
         private Comparator<CategoryQueryDto.CategoryPlaceResponse> categoryPlaceResponseComparator(
