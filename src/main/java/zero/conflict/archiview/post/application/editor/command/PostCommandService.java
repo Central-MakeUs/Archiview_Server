@@ -54,6 +54,9 @@ public class PostCommandService {
         if (!userClient.existsUser(editorId)) {
             throw new DomainException(PostErrorCode.POST_EDITOR_NOT_FOUND);
         }
+        if (!userClient.existsEditorProfile(editorId)) {
+            throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
+        }
 
         List<PostCommandDto.Response.PlaceInfoResponse> placeInfoResponses = createPlacesAndPostPlaces(
                 request.getPlaceInfoRequestList(), savedPost, editorId);

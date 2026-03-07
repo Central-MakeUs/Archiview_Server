@@ -231,4 +231,34 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("POST_INVALID_CREATE_POST_PLACE_ID"));
     }
+
+    @Test
+    @DisplayName("게시글 생성 실패 - 에디터 프로필 미등록")
+    void createPost_Fail_EditorProfileRequired() throws Exception {
+        PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfo = PostCommandDto.CreateRequest.CreatePlaceInfoRequest.builder()
+                .placeName("테스트 장소")
+                .description("테스트 설명")
+                .addressName("서울 노원구 공릉동 596-12")
+                .roadAddressName("인천 중구 백운로228번길 81-10")
+                .latitude(37.5665)
+                .longitude(126.9780)
+                .imageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/create_photo.png")
+                .build();
+
+        PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                .url("https://www.instagram.com/post")
+                .hashTags(java.util.List.of("#테스트"))
+                .placeInfoRequestList(Collections.singletonList(placeInfo))
+                .build();
+
+        given(postCommandService.createPost(any(PostCommandDto.CreateRequest.class), any()))
+                .willThrow(new DomainException(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED));
+
+        mockMvc.perform(post("/api/v1/editors/posts")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("POST_EDITOR_PROFILE_REQUIRED"));
+    }
 }

@@ -68,6 +68,7 @@ public class EditorPostQueryService {
                         Long categoryId,
                         Double latitude,
                         Double longitude) {
+                ensureEditorProfileExists(editorId);
                 validateNearbyCoordinates(filter, latitude, longitude);
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
@@ -103,6 +104,7 @@ public class EditorPostQueryService {
                         Long categoryId,
                         Double latitude,
                         Double longitude) {
+                ensureEditorProfileExists(editorId);
                 validateNearbyCoordinates(filter, latitude, longitude);
 
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
@@ -129,6 +131,7 @@ public class EditorPostQueryService {
         }
 
         public EditorInsightDto.SummaryResponse getInsightSummary(UUID editorId, EditorInsightDto.Period period) {
+                ensureEditorProfileExists(editorId);
                 Map<UUID, UserClient.EditorSummary> editorProfiles = userClient.getEditorSummaries(List.of(editorId));
                 UserClient.EditorSummary editorProfile = editorProfiles.get(editorId);
                 if (editorProfile == null) {
@@ -167,6 +170,7 @@ public class EditorPostQueryService {
         }
 
         public EditorInsightDto.PlaceCardListResponse getInsightPlaces(UUID editorId, EditorInsightDto.PlaceSort sort) {
+                ensureEditorProfileExists(editorId);
                 List<PostPlace> postPlaces = postPlaceRepository.findAllByEditorId(editorId);
                 if (postPlaces.isEmpty()) {
                         return EditorInsightDto.PlaceCardListResponse.empty(sort);
@@ -189,6 +193,7 @@ public class EditorPostQueryService {
         }
 
         public EditorInsightDto.PlaceDetailResponse getInsightPlaceDetail(UUID editorId, Long placeId) {
+                ensureEditorProfileExists(editorId);
                 List<PostPlace> ownPostPlaces = postPlaceRepository.findAllByEditorIdAndPlaceId(editorId, placeId);
                 if (ownPostPlaces.isEmpty()) {
                         return EditorInsightDto.PlaceDetailResponse.empty(placeId);
@@ -255,6 +260,12 @@ public class EditorPostQueryService {
                                 archiverSaveTotal,
                                 detailStats,
                                 details);
+        }
+
+        private void ensureEditorProfileExists(UUID editorId) {
+                if (!userClient.existsEditorProfile(editorId)) {
+                        throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
+                }
         }
 
         private EditorUploadedPlaceDto.PlaceCardResponse toPlaceCardResponse(

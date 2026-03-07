@@ -1,6 +1,7 @@
 package zero.conflict.archiview.post.application.query;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,6 +24,7 @@ import zero.conflict.archiview.post.dto.ArchiverArchivedPostPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverHotPlaceDto;
 import zero.conflict.archiview.post.dto.ArchiverPlaceDetailDto;
 import zero.conflict.archiview.post.dto.CategoryQueryDto;
+import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
@@ -36,8 +38,10 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -74,6 +78,11 @@ class PostQueryServiceTest {
 
         @Mock
         private PostPlaceCountService postPlaceCountService;
+
+        @BeforeEach
+        void setUp() {
+                lenient().when(userClient.existsEditorProfile(any(UUID.class))).thenReturn(true);
+        }
 
         @Test
         @DisplayName("좌표 기준 1km 내 장소 목록을 조회한다")
@@ -202,6 +211,33 @@ class PostQueryServiceTest {
                 assertThat(response.getPostPlaces().get(1).getPostPlaceId()).isEqualTo(101L);
                 assertThat(response.getPostPlaces().get(0).getPlaceUrl()).isEqualTo("https://place1.url");
                 assertThat(response.getPostPlaces().get(0).getPhoneNumber()).isEqualTo("02-1111-1111");
+        }
+
+        @Test
+        @DisplayName("에디터 인사이트 요약 조회 시 에디터 프로필이 없으면 예외")
+        void getInsightSummary_withoutEditorProfile_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                given(userClient.existsEditorProfile(editorId)).willReturn(false);
+
+                assertThatThrownBy(() -> editorPostQueryService.getInsightSummary(editorId, EditorInsightDto.Period.ALL))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
+
+                verify(userClient, never()).getEditorSummaries(List.of(editorId));
+                verify(postPlaceRepository, never()).findAllByEditorId(editorId);
+        }
+
+        @Test
+        @DisplayName("에디터 지도 핀 조회 시 에디터 프로필이 없으면 예외")
+        void getMapPins_withoutEditorProfile_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                given(userClient.existsEditorProfile(editorId)).willReturn(false);
+
+                assertThatThrownBy(() -> editorPostQueryService.getMapPins(editorId, MapFilter.ALL, null, null, null))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
         }
 
         @Test

@@ -1,6 +1,7 @@
 package zero.conflict.archiview.post.application;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +29,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
 
@@ -61,6 +63,11 @@ class PostCommandServiceTest {
 
         @Mock
         private PostPlaceCountService postPlaceCountService;
+
+        @BeforeEach
+        void setUp() {
+                lenient().when(userClient.existsEditorProfile(any(java.util.UUID.class))).thenReturn(true);
+        }
 
         @Test
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
@@ -397,6 +404,37 @@ class PostCommandServiceTest {
                                 .isEqualTo(PostErrorCode.POST_INVALID_CREATE_POST_PLACE_ID);
 
                 verify(postRepository, never()).save(any(Post.class));
+                verify(postPlacesRepository, never()).save(any(PostPlace.class));
+        }
+
+        @Test
+        @DisplayName("Post 생성 시 에디터 프로필이 없으면 예외")
+        void createPost_withoutEditorProfile_throwsException() {
+                UUID editorId = UUID.randomUUID();
+                PostCommandDto.CreateRequest.CreatePlaceInfoRequest placeInfoRequest = PostCommandDto.CreateRequest.CreatePlaceInfoRequest
+                                .builder()
+                                .placeName("장소")
+                                .description("설명")
+                                .addressName("주소")
+                                .roadAddressName("도로명")
+                                .latitude(37.5665)
+                                .longitude(126.9780)
+                                .imageUrl("https://test.image/no-profile.jpg")
+                                .build();
+                PostCommandDto.CreateRequest request = PostCommandDto.CreateRequest.builder()
+                                .url("https://www.instagram.com/post")
+                                .hashTags(List.of("#테스트"))
+                                .placeInfoRequestList(List.of(placeInfoRequest))
+                                .build();
+
+                given(userClient.existsUser(editorId)).willReturn(true);
+                given(userClient.existsEditorProfile(editorId)).willReturn(false);
+
+                assertThatThrownBy(() -> postCommandService.createPost(request, editorId))
+                                .isInstanceOf(DomainException.class)
+                                .extracting(ex -> ((DomainException) ex).getErrorCode())
+                                .isEqualTo(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
+
                 verify(postPlacesRepository, never()).save(any(PostPlace.class));
         }
 

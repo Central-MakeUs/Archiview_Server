@@ -6,7 +6,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import zero.conflict.archiview.ControllerTestSupport;
+import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.editor.query.EditorPostQueryService;
+import zero.conflict.archiview.post.domain.error.PostErrorCode;
 import zero.conflict.archiview.post.dto.EditorInsightDto;
 import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
@@ -44,6 +46,20 @@ class EditorPostQueryControllerTest extends ControllerTestSupport {
                                 .andExpect(jsonPath("$.success").value(true))
                                 .andExpect(jsonPath("$.data.editorNickname").value("에디터A"))
                                 .andExpect(jsonPath("$.data.totalPlaceCount").value(10));
+        }
+
+        @Test
+        @DisplayName("에디터 인사이트 요약 조회 - 에디터 프로필 미등록")
+        void getInsightSummary_withoutEditorProfile_returnsBadRequest() throws Exception {
+                given(editorPostQueryService.getInsightSummary(
+                                org.mockito.ArgumentMatchers.any(),
+                                org.mockito.ArgumentMatchers.eq(EditorInsightDto.Period.ALL)))
+                                .willThrow(new DomainException(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED));
+
+                mockMvc.perform(get("/api/v1/editors/me/insights/summary")
+                                .with(authenticatedUser()))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.code").value("POST_EDITOR_PROFILE_REQUIRED"));
         }
 
         @Test

@@ -27,6 +27,8 @@ public enum PostErrorCode implements DomainErrorCode {
     POST_INVALID_UPDATE_POST_PLACE_ID(HttpStatus.BAD_REQUEST, "POST_INVALID_UPDATE_POST_PLACE_ID",
             "error.post.invalid_update_post_place_id"),
     POST_EDITOR_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_EDITOR_NOT_FOUND", "error.post.editor_not_found"),
+    POST_EDITOR_PROFILE_REQUIRED(HttpStatus.BAD_REQUEST, "POST_EDITOR_PROFILE_REQUIRED",
+            "error.post.editor_profile_required"),
     POST_EDITOR_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_EDITOR_PROFILE_NOT_FOUND",
             "error.post.editor_profile_not_found"),
     POST_PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "POST_PLACE_NOT_FOUND", "error.post.place_not_found"),
