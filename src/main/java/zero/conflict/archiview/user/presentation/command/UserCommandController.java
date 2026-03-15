@@ -1,8 +1,5 @@
 package zero.conflict.archiview.user.presentation.command;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,47 +11,44 @@ import zero.conflict.archiview.user.application.editor.EditorUserUseCase;
 import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.UserDto;
 
-@Tag(name = "User Command", description = "공통 프로필 업데이트 관련 API (CUD)")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/users")
-public class UserCommandController {
+public class UserCommandController implements UserCommandApi {
 
     private final EditorUserUseCase editorUserUseCase;
 
-    @Operation(
-            summary = "에디터 프로필 등록",
-            description = "로그인한 사용자의 에디터 프로필을 등록하고, 등록 성공 시 역할을 EDITOR로 전환한 뒤 신규 토큰을 발급합니다.")
+    @Override
     @PostMapping("/me/editor-profile")
     public ResponseEntity<ApiResponse<UserDto.RegisterEditorProfileResponse>> registerEditorProfile(
             @RequestBody @Valid EditorProfileDto.CreateRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         return ResponseEntity.ok(ApiResponse.success(
                 editorUserUseCase.registerEditorProfile(oAuth2User.getUserId(), request)));
     }
 
-    @Operation(summary = "온보딩 완료", description = "최초 로그인 후 에디터 또는 아카이버 역할을 선택하여 회원가입을 완료합니다.")
+    @Override
     @PostMapping("/onboarding")
     public ResponseEntity<ApiResponse<Void>> completeOnboarding(
             @RequestBody @Valid UserDto.OnboardingRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
 
         editorUserUseCase.completeOnboarding(oAuth2User.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "역할 전환", description = "뷰 전환용 API입니다. 토큰을 재발급하며, EDITOR 사용자의 DB role은 ARCHIVER로 내려가지 않습니다.")
+    @Override
     @PostMapping("/switch-role")
     public ResponseEntity<ApiResponse<UserDto.SwitchRoleResponse>> switchRole(
             @RequestBody @Valid UserDto.SwitchRoleRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         return ResponseEntity.ok(ApiResponse.success(editorUserUseCase.switchRole(oAuth2User.getUserId(), request)));
     }
 
-    @Operation(summary = "회원 탈퇴", description = "로그인한 사용자의 계정을 삭제합니다.")
+    @Override
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> withdraw(
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         editorUserUseCase.withdraw(oAuth2User.getUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }

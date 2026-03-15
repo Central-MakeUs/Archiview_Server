@@ -1,8 +1,5 @@
 package zero.conflict.archiview.user.presentation.query;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,19 +17,18 @@ import zero.conflict.archiview.user.dto.EditorProfileDto;
 import zero.conflict.archiview.user.dto.FollowDto;
 import zero.conflict.archiview.user.dto.TrustedEditorDto;
 
-@Tag(name = "Archiver User Query", description = "아카이버 전용 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers")
-public class ArchiverQueryController {
+public class ArchiverQueryController implements ArchiverQueryApi {
 
     private final ArchiverUserUseCase archiverUserUseCase;
 
-    @Operation(summary = "내 프로필 조회 (아카이버)", description = "로그인한 아카이버 자신의 프로필 정보를 조회합니다.")
+    @Override
     @GetMapping("/me/profile")
     public ResponseEntity<ApiResponse<ArchiverProfileDto.Response>> getMyProfile(
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverProfileDto.Response.mock()));
         }
@@ -40,11 +36,11 @@ public class ArchiverQueryController {
                 archiverUserUseCase.getMyProfile(oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "내 팔로우 목록", description = "아카이버의 팔로잉 목록을 조회합니다.")
+    @Override
     @GetMapping("/follows")
     public ResponseEntity<ApiResponse<FollowDto.ListResponse>> getMyFollowings(
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(FollowDto.ListResponse.mock()));
         }
@@ -52,11 +48,11 @@ public class ArchiverQueryController {
                 archiverUserUseCase.getMyFollowings(oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "내 차단 에디터 목록", description = "아카이버가 차단한 에디터 목록을 조회합니다.")
+    @Override
     @GetMapping("/blocks")
     public ResponseEntity<ApiResponse<BlockDto.ListResponse>> getMyBlockedEditors(
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(BlockDto.ListResponse.mock()));
         }
@@ -64,7 +60,7 @@ public class ArchiverQueryController {
                 archiverUserUseCase.getMyBlockedEditors(oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "믿고 먹는 에디터 조회", description = "팔로워 수와 등록한 포스트 장소 수를 기준으로 상위 에디터를 조회합니다.")
+    @Override
     @GetMapping("/editors/trusted")
     public ResponseEntity<ApiResponse<TrustedEditorDto.ListResponse>> getTrustedEditors(
             @RequestParam(defaultValue = "false") boolean useMock) {
@@ -74,12 +70,12 @@ public class ArchiverQueryController {
         return ResponseEntity.ok(ApiResponse.success(archiverUserUseCase.getTrustedEditors()));
     }
 
-    @Operation(summary = "에디터 프로필 조회 (아카이버)", description = "아카이버가 특정 에디터의 프로필 정보를 조회합니다.")
+    @Override
     @GetMapping("/editors/{editorId}/profile")
     public ResponseEntity<ApiResponse<EditorProfileDto.ArchiverEditorProfileResponse>> getEditorProfile(
             @PathVariable java.util.UUID editorId,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorProfileDto.ArchiverEditorProfileResponse.mock()));
         }

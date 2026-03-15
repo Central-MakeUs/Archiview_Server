@@ -1,8 +1,5 @@
 package zero.conflict.archiview.post.presentation.query;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,45 +20,44 @@ import zero.conflict.archiview.post.dto.EditorMapDto;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "Archiver Place Query", description = "아카이버용 핫플레이스 조회 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers")
-public class ArchiverPlaceQueryController {
+public class ArchiverPlaceQueryController implements ArchiverPlaceQueryApi {
 
     private final ArchiverPostUseCase archiverPostUseCase;
 
-    @Operation(summary = "요즘 핫한 장소 조회", description = "팔로우한 에디터의 최근 업로드 장소를 우선 노출하고, 그 외 장소는 조회수 내림차순으로 조회합니다.")
+    @Override
     @GetMapping("/places/hot")
     public ResponseEntity<ApiResponse<ArchiverHotPlaceDto.ListResponse>> getHotPlaces(
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverHotPlaceDto.ListResponse.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getHotPlaces(size, oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "장소 상세 조회 (아카이버)", description = "placeId로 장소 상세와 연결된 게시글 목록을 조회합니다.")
+    @Override
     @GetMapping("/places/{placeId}")
     public ResponseEntity<ApiResponse<ArchiverPlaceDetailDto.Response>> getPlaceDetail(
             @PathVariable Long placeId,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));
         }
         return ResponseEntity.ok(ApiResponse.success(archiverPostUseCase.getArchiverPlaceDetail(placeId, oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "특정 에디터가 업로드한 장소 상세 조회 (아카이버용)", description = "아카이버 장소 상세 응답 형식으로 특정 에디터가 업로드한 장소카드만 조회합니다.")
+    @Override
     @GetMapping("/editors/{editorId}/places/{placeId}")
     public ResponseEntity<ApiResponse<ArchiverPlaceDetailDto.Response>> getPlaceDetailByEditor(
             @PathVariable UUID editorId,
             @PathVariable Long placeId,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverPlaceDetailDto.Response.mock()));
         }
@@ -69,13 +65,13 @@ public class ArchiverPlaceQueryController {
                 archiverPostUseCase.getArchiverPlaceDetailByEditor(placeId, editorId, oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "내 주변 1km 장소 조회", description = "현재 좌표 기준 1km 내 장소 목록을 조회합니다.")
+    @Override
     @GetMapping("/places/nearby")
     public ResponseEntity<ApiResponse<CategoryQueryDto.CategoryPlaceListResponse>> getNearbyPlaces(
             @RequestParam Double latitude,
             @RequestParam Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(CategoryQueryDto.CategoryPlaceListResponse.mock()));
         }
@@ -85,13 +81,13 @@ public class ArchiverPlaceQueryController {
                 oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "에디터 업로드 장소 목록 조회 (아카이버)", description = "아카이버가 특정 에디터가 업로드한 postPlace 목록을 조회합니다.")
+    @Override
     @GetMapping("/editors/{editorId}/post-places")
     public ResponseEntity<ApiResponse<ArchiverEditorPostPlaceDto.ListResponse>> getEditorUploadedPostPlaces(
             @PathVariable UUID editorId,
             @RequestParam(defaultValue = "LATEST") ArchiverEditorPostPlaceDto.Sort sort,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(ArchiverEditorPostPlaceDto.ListResponse.mock()));
         }
@@ -101,7 +97,7 @@ public class ArchiverPlaceQueryController {
                 oAuth2User.getUserId())));
     }
 
-    @Operation(summary = "에디터 업로드 장소 핀 지도 조회 (아카이버)", description = "아카이버가 특정 에디터의 장소 핀을 필터 조건으로 조회합니다.")
+    @Override
     @GetMapping("/editors/{editorId}/map/places")
     public ResponseEntity<ApiResponse<EditorMapDto.Response>> getEditorMapPins(
             @PathVariable UUID editorId,
@@ -110,7 +106,7 @@ public class ArchiverPlaceQueryController {
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
             @RequestParam(defaultValue = "false") boolean useMock,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         if (useMock) {
             return ResponseEntity.ok(ApiResponse.success(EditorMapDto.Response.mock()));
         }

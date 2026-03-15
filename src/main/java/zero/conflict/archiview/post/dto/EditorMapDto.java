@@ -13,6 +13,7 @@ import java.util.List;
 
 public class EditorMapDto {
 
+    @Schema(description = "지도 조회 필터. ALL은 전체, NEARBY는 전달한 좌표 기준 주변 1km 필터")
     public enum MapFilter {
         ALL, NEARBY
     }
@@ -21,21 +22,21 @@ public class EditorMapDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(description = "에디터 지도 장소 핀 응답")
+    @Schema(description = "지도 위에 표시할 단일 장소 핀 정보")
     public static class PlacePinResponse {
-        @Schema(description = "장소 ID")
+        @Schema(description = "장소 ID", example = "101")
         private Long placeId;
-        @Schema(description = "장소명")
+        @Schema(description = "장소명", example = "아카이브 성수")
         private String name;
-        @Schema(description = "장소 URL")
+        @Schema(description = "외부 장소 상세 URL", example = "https://place.map.kakao.com/123456")
         private String placeUrl;
-        @Schema(description = "전화번호")
+        @Schema(description = "장소 전화번호", example = "02-1234-5678")
         private String phoneNumber;
-        @Schema(description = "위도")
+        @Schema(description = "위도", example = "37.5445")
         private Double latitude;
-        @Schema(description = "경도")
+        @Schema(description = "경도", example = "127.0560")
         private Double longitude;
-        @Schema(description = "장소 카테고리 ID 목록")
+        @Schema(description = "장소에 연결된 카테고리 ID 목록", example = "[1, 2]")
         private List<Long> categoryIds;
 
         public static PlacePinResponse from(
@@ -66,7 +67,7 @@ public class EditorMapDto {
     @Builder
     @Schema(name = "EditorMapResponse", description = "에디터 지도 장소 목록 응답")
     public static class Response {
-        @Schema(description = "필터링된 장소 핀 목록")
+        @Schema(description = "필터링된 장소 핀 목록. 비어 있을 수 있음")
         private List<PlacePinResponse> pins;
 
         public static Response from(List<PlacePinResponse> pins) {

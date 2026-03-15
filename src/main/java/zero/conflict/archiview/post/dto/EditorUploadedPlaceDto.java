@@ -13,6 +13,7 @@ import java.util.List;
 
 public class EditorUploadedPlaceDto {
 
+    @Schema(description = "업로드 장소 목록 정렬 기준. UPDATED는 최근 수정순, CREATED는 생성순")
     public enum PlaceSort {
         UPDATED,
         CREATED
@@ -22,8 +23,9 @@ public class EditorUploadedPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(name = "EditorUploadedPlaceListResponse")
+    @Schema(name = "EditorUploadedPlaceListResponse", description = "에디터가 업로드한 장소 목록 응답")
     public static class ListResponse {
+        @Schema(description = "조건에 맞는 장소 카드 목록", example = "[]")
         private List<PlaceCardResponse> places;
 
         public static ListResponse from(List<PlaceCardResponse> places) {
@@ -73,14 +75,21 @@ public class EditorUploadedPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    @Schema(name = "EditorUploadedPlaceCardResponse")
+    @Schema(name = "EditorUploadedPlaceCardResponse", description = "업로드한 장소 카드 1건")
     public static class PlaceCardResponse {
+        @Schema(description = "장소 ID", example = "101")
         private Long placeId;
+        @Schema(description = "장소명", example = "성수동 카페거리 샘플")
         private String placeName;
+        @Schema(description = "외부 장소 URL", example = "https://place.map.kakao.com/123456")
         private String placeUrl;
+        @Schema(description = "장소 전화번호", example = "02-1234-5678")
         private String phoneNumber;
+        @Schema(description = "장소 대표 이미지 URL", example = "https://picsum.photos/400/300?random=11")
         private String placeImageUrl;
+        @Schema(description = "에디터가 작성한 장소 한줄 설명", example = "성수동에서 가장 인기 있는 카페입니다.")
         private String editorSummary;
+        @Schema(description = "장소 통계 정보")
         private Stats stats;
 
         public static PlaceCardResponse of(Long placeId, String placeName, String imageUrl, String description,
@@ -126,10 +135,15 @@ public class EditorUploadedPlaceDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
+    @Schema(name = "EditorUploadedPlaceStats", description = "장소 통계 정보")
     public static class Stats {
+        @Schema(description = "저장 수", example = "300")
         private Long saveCount;
+        @Schema(description = "조회 수", example = "1000")
         private Long viewCount;
+        @Schema(description = "인스타그램 유입 수", example = "500")
         private Long instagramInflowCount;
+        @Schema(description = "길찾기 클릭 수", example = "150")
         private Long directionCount;
 
         public static Stats from(long saveCount, long viewCount, long instagramInflowCount, long directionCount) {

@@ -8,13 +8,15 @@ import zero.conflict.archiview.global.infra.response.ApiResponse;
 import java.util.Map;
 
 @RestController
-public class HealthCheckController {
+public class HealthCheckController implements HealthCheckApi {
 
+    @Override
     @GetMapping("/health")
     public ResponseEntity<ApiResponse<Map<String, String>>> health() {
         return ResponseEntity.ok(ApiResponse.success(Map.of("status", "ok")));
     }
 
+    @Override
     @GetMapping("/")
     public ResponseEntity<ApiResponse<Map<String, String>>> root() {
         return ResponseEntity.ok(ApiResponse.success(Map.of("status", "ok")));

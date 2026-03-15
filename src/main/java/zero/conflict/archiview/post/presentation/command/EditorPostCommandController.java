@@ -1,13 +1,16 @@
 package zero.conflict.archiview.post.presentation.command;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
@@ -18,50 +21,48 @@ import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 @RestController
 @RequestMapping("/api/v1/editors")
 @RequiredArgsConstructor
-@Tag(name = "Editor Place Command", description = "에디터용 장소 정보 업데이트 API (CUD)")
-public class EditorPostCommandController {
+public class EditorPostCommandController implements EditorPostCommandApi {
 
     private final EditorPostUseCase editorPostUseCase;
 
-    @Operation(summary = "게시글(장소) 등록", description = "에디터가 새로운 장소 정보를 포함한 게시글을 등록합니다.")
+    @Override
     @PostMapping(value = "/posts", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> createPost(
             @RequestBody @Valid PostCommandDto.CreateRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+            @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.createPost(request, user.getUserId())));
     }
 
-    @Operation(summary = "인스타그램 게시글 자동완성 미리보기",
-            description = "인스타그램 게시글 URL로 게시글 등록 자동완성에 필요한 caption, hashtag, image 정보를 추출합니다.")
+    @Override
     @PostMapping(value = "/posts/instagram-preview", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<InstagramPreviewDto.Response>> previewInstagramPost(
             @RequestBody @Valid InstagramPreviewDto.Request request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+            @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.previewInstagramPost(request, user.getUserId())));
     }
 
-    @Operation(summary = "게시글 이미지 presigned URL 발급", description = "에디터가 게시글 이미지 업로드를 위한 presigned URL을 발급받습니다.")
+    @Override
     @PostMapping("/posts/presigned-url")
     public ResponseEntity<ApiResponse<PresignedUrlCommandDto.Response>> createPostImagePresignedUrl(
             @RequestBody @Valid PresignedUrlCommandDto.Request request) {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.createPostImagePresignedUrl(request)));
     }
 
-    @Operation(summary = "게시글 수정", description = "에디터가 등록한 게시글 정보를 수정합니다.")
+    @Override
     @PutMapping(value = "/me/posts/{postId}", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<PostCommandDto.Response>> updatePost(
             @PathVariable Long postId,
             @RequestBody @Valid PostCommandDto.UpdateRequest request,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+            @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(
                 editorPostUseCase.updatePost(postId, request, user.getUserId())));
     }
 
-    @Operation(summary = "게시글 삭제", description = "에디터가 등록한 게시글을 삭제합니다.")
+    @Override
     @DeleteMapping("/me/posts/{postId}")
     public ResponseEntity<ApiResponse<Void>> deletePost(
             @PathVariable Long postId,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+            @AuthenticationPrincipal CustomOAuth2User user) {
         editorPostUseCase.deletePost(postId, user.getUserId());
         return ResponseEntity.ok(ApiResponse.success(null));
     }

@@ -1,8 +1,5 @@
 package zero.conflict.archiview.user.presentation.command;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,28 +14,27 @@ import zero.conflict.archiview.user.application.port.in.ArchiverUserUseCase;
 
 import java.util.UUID;
 
-@Tag(name = "Archiver User Command", description = "아카이버 사용자 차단 API")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/archivers/blocks/editors")
-public class ArchiverBlockCommandController {
+public class ArchiverBlockCommandController implements ArchiverBlockCommandApi {
 
     private final ArchiverUserUseCase archiverUserUseCase;
 
-    @Operation(summary = "에디터 차단", description = "아카이버가 에디터를 차단하고 해당 에디터의 게시글/장소카드를 숨깁니다.")
+    @Override
     @PostMapping("/{editorId}")
     public ResponseEntity<ApiResponse<Void>> blockEditor(
             @PathVariable UUID editorId,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         archiverUserUseCase.blockEditor(oAuth2User.getUserId(), editorId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
 
-    @Operation(summary = "에디터 차단 해제", description = "아카이버가 에디터 차단을 해제합니다.")
+    @Override
     @DeleteMapping("/{editorId}")
     public ResponseEntity<ApiResponse<Void>> unblockEditor(
             @PathVariable UUID editorId,
-            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
+            @AuthenticationPrincipal CustomOAuth2User oAuth2User) {
         archiverUserUseCase.unblockEditor(oAuth2User.getUserId(), editorId);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
