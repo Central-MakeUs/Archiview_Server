@@ -11,8 +11,11 @@ import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
+import zero.conflict.archiview.post.application.port.out.InstagramMediaStorage;
+import zero.conflict.archiview.post.application.port.out.InstagramPostExtractor;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.PostCommandDto;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
@@ -56,6 +59,12 @@ class PostCommandServiceTest {
         private UserClient userClient;
 
         @Mock
+        private InstagramPostExtractor instagramPostExtractor;
+
+        @Mock
+        private InstagramMediaStorage instagramMediaStorage;
+
+        @Mock
         private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
         @Mock
@@ -67,6 +76,67 @@ class PostCommandServiceTest {
         @BeforeEach
         void setUp() {
                 lenient().when(userClient.existsEditorProfile(any(java.util.UUID.class))).thenReturn(true);
+                lenient().when(userClient.existsUser(any(java.util.UUID.class))).thenReturn(true);
+        }
+
+        @Test
+        @DisplayName("인스타그램 자동완성 미리보기 성공")
+        void previewInstagramPost_success() {
+                UUID editorId = UUID.randomUUID();
+                InstagramPreviewDto.Request request = InstagramPreviewDto.Request.builder()
+                                .url("https://www.instagram.com/p/test-post/")
+                                .build();
+
+                InstagramPostExtractor.ExtractedMedia extractedMedia = new InstagramPostExtractor.ExtractedMedia(
+                                "https://instagram.example/source.jpg",
+                                InstagramPreviewDto.MediaType.IMAGE);
+                given(instagramPostExtractor.extract("https://instagram.com/p/test-post/"))
+                                .willReturn(new InstagramPostExtractor.ExtractedInstagramPost(
+                                                "https://instagram.com/p/test-post/",
+                                                "캡션 #테스트",
+                                                List.of("#테스트"),
+                                                List.of(extractedMedia)));
+                given(instagramMediaStorage.store(extractedMedia))
+                                .willReturn(new InstagramMediaStorage.StoredMedia(
+                                                extractedMedia.sourceUrl(),
+                                                "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp",
+                                                InstagramPreviewDto.MediaType.IMAGE));
+
+                InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
+
+                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.SUCCESS);
+                assertThat(response.getPrimaryImageUrl())
+                                .isEqualTo("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp");
+                assertThat(response.getHashTags()).containsExactly("#테스트");
+                assertThat(response.getMissingFields()).isEmpty();
+        }
+
+        @Test
+        @DisplayName("인스타그램 자동완성 미리보기는 일부 미디어 업로드 실패를 부분 성공으로 처리한다")
+        void previewInstagramPost_partialSuccessWhenMediaUploadFails() {
+                UUID editorId = UUID.randomUUID();
+                InstagramPreviewDto.Request request = InstagramPreviewDto.Request.builder()
+                                .url("https://www.instagram.com/p/test-post/")
+                                .build();
+
+                InstagramPostExtractor.ExtractedMedia extractedMedia = new InstagramPostExtractor.ExtractedMedia(
+                                "https://instagram.example/source.jpg",
+                                InstagramPreviewDto.MediaType.IMAGE);
+                given(instagramPostExtractor.extract("https://instagram.com/p/test-post/"))
+                                .willReturn(new InstagramPostExtractor.ExtractedInstagramPost(
+                                                "https://instagram.com/p/test-post/",
+                                                "캡션 #테스트",
+                                                List.of("#테스트"),
+                                                List.of(extractedMedia)));
+                given(instagramMediaStorage.store(extractedMedia))
+                                .willThrow(new DomainException(PostErrorCode.POST_INSTAGRAM_MEDIA_DOWNLOAD_FAILED));
+
+                InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
+
+                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS);
+                assertThat(response.getAllImageUrls()).isEmpty();
+                assertThat(response.getMissingFields()).contains("image");
+                assertThat(response.getWarnings()).isNotEmpty();
         }
 
         @Test

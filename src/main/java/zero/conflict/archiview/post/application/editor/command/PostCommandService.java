@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
-import zero.conflict.archiview.post.dto.PostCommandDto;
-import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
+import zero.conflict.archiview.post.application.port.out.InstagramMediaStorage;
+import zero.conflict.archiview.post.application.port.out.InstagramPostExtractor;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostRepository;
@@ -15,11 +15,15 @@ import zero.conflict.archiview.post.application.port.out.UserClient;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.Address;
 import zero.conflict.archiview.post.domain.Category;
+import zero.conflict.archiview.post.domain.InstagramUrl;
 import zero.conflict.archiview.post.domain.Place;
 import zero.conflict.archiview.post.domain.Position;
 import zero.conflict.archiview.post.domain.Post;
 import zero.conflict.archiview.post.domain.PostPlace;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
+import zero.conflict.archiview.post.dto.PostCommandDto;
+import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 import zero.conflict.archiview.global.infra.s3.PresignedUrlInfo;
 import zero.conflict.archiview.global.infra.s3.S3Service;
 
@@ -41,6 +45,8 @@ public class PostCommandService {
     private final PostPlaceRepository postPlacesRepository;
     private final CategoryRepository categoryRepository;
     private final UserClient userClient;
+    private final InstagramPostExtractor instagramPostExtractor;
+    private final InstagramMediaStorage instagramMediaStorage;
     private final S3Service s3Service;
     private final PostOutboxService postOutboxService;
     private final PostPlaceCountService postPlaceCountService;
@@ -66,6 +72,72 @@ public class PostCommandService {
         postOutboxService.appendPostCreatedEvent(savedPost, placeIds);
 
         return mapPostToResponse(savedPost, placeInfoResponses);
+    }
+
+    public InstagramPreviewDto.Response previewInstagramPost(InstagramPreviewDto.Request request, java.util.UUID editorId) {
+        if (!userClient.existsUser(editorId)) {
+            throw new DomainException(PostErrorCode.POST_EDITOR_NOT_FOUND);
+        }
+        if (!userClient.existsEditorProfile(editorId)) {
+            throw new DomainException(PostErrorCode.POST_EDITOR_PROFILE_REQUIRED);
+        }
+
+        String normalizedUrl = InstagramUrl.from(request.getUrl()).getValue();
+        InstagramPostExtractor.ExtractedInstagramPost extracted = instagramPostExtractor.extract(normalizedUrl);
+        List<InstagramPostExtractor.ExtractedMedia> extractedMediaList = extracted.mediaList() == null
+                ? List.of()
+                : extracted.mediaList();
+        List<String> extractedHashTags = extracted.hashTags() == null
+                ? List.of()
+                : extracted.hashTags();
+
+        List<InstagramPreviewDto.MediaItem> mediaItems = new ArrayList<>();
+        List<String> imageUrls = new ArrayList<>();
+        List<String> warnings = new ArrayList<>();
+        for (InstagramPostExtractor.ExtractedMedia media : extractedMediaList) {
+            try {
+                InstagramMediaStorage.StoredMedia storedMedia = instagramMediaStorage.store(media);
+                mediaItems.add(InstagramPreviewDto.MediaItem.builder()
+                        .sourceUrl(storedMedia.sourceUrl())
+                        .storedUrl(storedMedia.storedUrl())
+                        .mediaType(storedMedia.mediaType())
+                        .build());
+                imageUrls.add(storedMedia.storedUrl());
+            } catch (DomainException e) {
+                if (e.getErrorCode() != PostErrorCode.POST_INSTAGRAM_MEDIA_DOWNLOAD_FAILED) {
+                    throw e;
+                }
+                warnings.add("일부 이미지를 가져오지 못했습니다.");
+            }
+        }
+
+        List<String> missingFields = new ArrayList<>();
+        if (extracted.caption() == null || extracted.caption().isBlank()) {
+            missingFields.add("caption");
+        }
+        if (imageUrls.isEmpty()) {
+            missingFields.add("image");
+        }
+
+        InstagramPreviewDto.ExtractStatus status = determinePreviewStatus(extracted.caption(), imageUrls);
+        if (status == InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS && warnings.isEmpty()) {
+            warnings.add("일부 필드를 자동완성하지 못했습니다.");
+        }
+        if (status == InstagramPreviewDto.ExtractStatus.FAILED) {
+            warnings.add("자동완성에 필요한 caption/image를 추출하지 못했습니다.");
+        }
+
+        return InstagramPreviewDto.Response.builder()
+                .sourceUrl(extracted.sourceUrl())
+                .caption(extracted.caption())
+                .hashTags(extractedHashTags)
+                .primaryImageUrl(imageUrls.isEmpty() ? null : imageUrls.get(0))
+                .allImageUrls(imageUrls)
+                .mediaList(mediaItems)
+                .extractStatus(status)
+                .missingFields(missingFields)
+                .warnings(warnings)
+                .build();
     }
 
     public PresignedUrlCommandDto.Response createPostImagePresignedUrl(PresignedUrlCommandDto.Request request) {
@@ -288,5 +360,17 @@ public class PostCommandService {
 
     private static PostCommandDto.Response.PlaceInfoResponse mapPlaceToResponse(Place place) {
         return PostCommandDto.Response.PlaceInfoResponse.from(place);
+    }
+
+    private InstagramPreviewDto.ExtractStatus determinePreviewStatus(String caption, List<String> imageUrls) {
+        boolean hasCaption = caption != null && !caption.isBlank();
+        boolean hasImage = imageUrls != null && !imageUrls.isEmpty();
+        if (hasCaption && hasImage) {
+            return InstagramPreviewDto.ExtractStatus.SUCCESS;
+        }
+        if (hasCaption || hasImage) {
+            return InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS;
+        }
+        return InstagramPreviewDto.ExtractStatus.FAILED;
     }
 }

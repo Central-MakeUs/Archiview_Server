@@ -5,6 +5,7 @@ import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto.PlaceSort;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 
@@ -14,6 +15,8 @@ import java.util.UUID;
 public interface EditorPostUseCase {
 
         PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, UUID editorId);
+
+        InstagramPreviewDto.Response previewInstagramPost(InstagramPreviewDto.Request request, UUID editorId);
 
         PresignedUrlCommandDto.Response createPostImagePresignedUrl(PresignedUrlCommandDto.Request request);
 

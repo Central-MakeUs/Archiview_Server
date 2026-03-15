@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import zero.conflict.archiview.auth.domain.CustomOAuth2User;
 import zero.conflict.archiview.global.infra.response.ApiResponse;
 import zero.conflict.archiview.post.application.port.in.EditorPostUseCase;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 
@@ -28,6 +29,15 @@ public class EditorPostCommandController {
             @RequestBody @Valid PostCommandDto.CreateRequest request,
             @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
         return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.createPost(request, user.getUserId())));
+    }
+
+    @Operation(summary = "인스타그램 게시글 자동완성 미리보기",
+            description = "인스타그램 게시글 URL로 게시글 등록 자동완성에 필요한 caption, hashtag, image 정보를 추출합니다.")
+    @PostMapping(value = "/posts/instagram-preview", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<ApiResponse<InstagramPreviewDto.Response>> previewInstagramPost(
+            @RequestBody @Valid InstagramPreviewDto.Request request,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomOAuth2User user) {
+        return ResponseEntity.ok(ApiResponse.success(editorPostUseCase.previewInstagramPost(request, user.getUserId())));
     }
 
     @Operation(summary = "게시글 이미지 presigned URL 발급", description = "에디터가 게시글 이미지 업로드를 위한 presigned URL을 발급받습니다.")

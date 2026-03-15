@@ -41,24 +41,26 @@ public class S3Service {
      * @return 업로드된 파일의 S3 URL
      */
     public String upload(MultipartFile file, String dirName) {
-        String fileName = convertToWebpKey(dirName, file.getOriginalFilename());
-
         try (InputStream inputStream = file.getInputStream()) {
-            s3Template.upload(bucket, fileName, inputStream);
-
-            GetUrlRequest getUrlRequest = GetUrlRequest.builder()
-                    .bucket(bucket)
-                    .key(fileName)
-                    .build();
-
-            String url = s3Client.utilities().getUrl(getUrlRequest).toString();
-
-            log.info("File uploaded to S3: {}", url);
-            return url;
+            return upload(inputStream, dirName, file.getOriginalFilename());
         } catch (IOException e) {
             log.error("Failed to upload file to S3", e);
             throw new RuntimeException("파일 업로드에 실패했습니다.", e);
         }
+    }
+
+    public String upload(InputStream inputStream, String dirName, String originalFilename) {
+        String fileName = convertToWebpKey(dirName, originalFilename);
+        s3Template.upload(bucket, fileName, inputStream);
+
+        GetUrlRequest getUrlRequest = GetUrlRequest.builder()
+                .bucket(bucket)
+                .key(fileName)
+                .build();
+
+        String url = s3Client.utilities().getUrl(getUrlRequest).toString();
+        log.info("File uploaded to S3: {}", url);
+        return url;
     }
 
     public PresignedUrlInfo generatePresignedUploadUrl(String dirName, String originalFilename, String contentType) {

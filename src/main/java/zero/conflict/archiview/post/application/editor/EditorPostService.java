@@ -11,6 +11,7 @@ import zero.conflict.archiview.post.dto.EditorMapDto;
 import zero.conflict.archiview.post.dto.EditorPostByPostPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto;
 import zero.conflict.archiview.post.dto.EditorUploadedPlaceDto.PlaceSort;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 
@@ -29,6 +30,12 @@ public class EditorPostService implements EditorPostUseCase {
     @Transactional
     public PostCommandDto.Response createPost(PostCommandDto.CreateRequest request, UUID editorId) {
         return postCommandService.createPost(request, editorId);
+    }
+
+    @Override
+    @Transactional
+    public InstagramPreviewDto.Response previewInstagramPost(InstagramPreviewDto.Request request, UUID editorId) {
+        return postCommandService.previewInstagramPost(request, editorId);
     }
 
     @Override

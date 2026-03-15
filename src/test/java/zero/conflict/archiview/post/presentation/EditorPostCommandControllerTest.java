@@ -8,6 +8,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import zero.conflict.archiview.ControllerTestSupport;
 import zero.conflict.archiview.post.application.editor.command.PostCommandService;
+import zero.conflict.archiview.post.dto.InstagramPreviewDto;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.PresignedUrlCommandDto;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
@@ -79,6 +80,43 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.postId").value(1))
                 .andExpect(jsonPath("$.data.placeInfoResponseList[0].phoneNumber").value("02-1234-5678"));
+    }
+
+    @Test
+    @DisplayName("인스타그램 게시글 자동완성 미리보기 성공")
+    void previewInstagramPost_success() throws Exception {
+        InstagramPreviewDto.Request request = InstagramPreviewDto.Request.builder()
+                .url("https://www.instagram.com/p/test-post/")
+                .build();
+        InstagramPreviewDto.Response response = InstagramPreviewDto.Response.builder()
+                .sourceUrl("https://instagram.com/p/test-post/")
+                .caption("테스트 캡션 #테스트")
+                .hashTags(java.util.List.of("#테스트"))
+                .primaryImageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp")
+                .allImageUrls(java.util.List.of("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp"))
+                .mediaList(java.util.List.of(InstagramPreviewDto.MediaItem.builder()
+                        .sourceUrl("https://instagram.example/source.jpg")
+                        .storedUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp")
+                        .mediaType(InstagramPreviewDto.MediaType.IMAGE)
+                        .build()))
+                .extractStatus(InstagramPreviewDto.ExtractStatus.SUCCESS)
+                .missingFields(java.util.List.of())
+                .warnings(java.util.List.of())
+                .build();
+
+        given(postCommandService.previewInstagramPost(any(InstagramPreviewDto.Request.class),
+                eq(java.util.UUID.fromString("00000000-0000-0000-0000-000000000001"))))
+                .willReturn(response);
+
+        mockMvc.perform(post("/api/v1/editors/posts/instagram-preview")
+                        .with(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.extractStatus").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.primaryImageUrl")
+                        .value("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp"));
     }
 
     @Test

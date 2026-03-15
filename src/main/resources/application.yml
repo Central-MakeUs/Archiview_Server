@@ -113,3 +113,13 @@ sentry:
   environment: ${SENTRY_ENVIRONMENT:local}
   release: ${SENTRY_RELEASE:unknown}
   send-default-pii: true
+
+instagram:
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY:adfadsfvcvdfwedsfd}
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
+      timeout-ms: ${GEMINI_TIMEOUT_MS:5000}
+  html:
+    max-chars: ${INSTAGRAM_HTML_MAX_CHARS:12000}
