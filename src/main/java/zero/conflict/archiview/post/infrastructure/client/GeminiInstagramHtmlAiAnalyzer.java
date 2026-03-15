@@ -40,7 +40,7 @@ public class GeminiInstagramHtmlAiAnalyzer implements InstagramHtmlAiAnalyzer {
     public GeminiInstagramHtmlAiAnalyzer(
             ObjectMapper objectMapper,
             @Value("${instagram.ai.gemini.api-key:}") String apiKey,
-            @Value("${instagram.ai.gemini.model:gemini-2.0-flash}") String model,
+            @Value("${instagram.ai.gemini.model:gemini-3-flash-preview}") String model,
             @Value("${instagram.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}") String baseUrl,
             @Value("${instagram.ai.gemini.timeout-ms:5000}") long timeoutMs) {
         this.objectMapper = objectMapper;
