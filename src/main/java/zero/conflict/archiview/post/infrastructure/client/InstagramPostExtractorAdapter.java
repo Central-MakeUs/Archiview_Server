@@ -9,9 +9,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.util.UriComponentsBuilder;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.application.port.out.InstagramHtmlAiAnalyzer;
 import zero.conflict.archiview.post.application.port.out.InstagramPostExtractor;
@@ -24,6 +26,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,16 +61,37 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
     @Override
     public ExtractedInstagramPost extract(String instagramUrl) {
         String normalizedUrl = InstagramUrl.from(instagramUrl).getValue();
-        try {
-            String html = restClient.get()
-                    .uri(normalizedUrl)
-                    .retrieve()
-                    .body(String.class);
-            return analyzeHtml(normalizedUrl, html);
-        } catch (RestClientException e) {
-            log.warn("Instagram preview fetch failed. url={}", normalizedUrl, e);
-            throw new DomainException(PostErrorCode.POST_INSTAGRAM_PREVIEW_UNAVAILABLE);
+        boolean blockedOrPrivate = false;
+        ExtractedInstagramPost merged = null;
+
+        for (String fetchUrl : candidateUrls(normalizedUrl)) {
+            String html = fetchHtml(fetchUrl);
+            if (html == null || html.isBlank()) {
+                continue;
+            }
+            if (isPrivateOrBlocked(html)) {
+                blockedOrPrivate = true;
+                continue;
+            }
+
+            ExtractedInstagramPost extracted = analyzeHtml(normalizedUrl, html);
+            merged = mergeExtractedPosts(merged, extracted);
+            if (isUsable(merged)) {
+                return merged;
+            }
         }
+
+        merged = mergeExtractedPosts(merged, fetchFromOEmbed(normalizedUrl));
+        if (isUsable(merged)) {
+            return merged;
+        }
+        if (merged != null) {
+            return merged;
+        }
+        if (blockedOrPrivate) {
+            throw new DomainException(PostErrorCode.POST_INSTAGRAM_PRIVATE_OR_BLOCKED);
+        }
+        throw new DomainException(PostErrorCode.POST_INSTAGRAM_PREVIEW_UNAVAILABLE);
     }
 
     ExtractedInstagramPost analyzeHtml(String sourceUrl, String html) {
@@ -94,6 +118,46 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
         return parseWithFallback(sourceUrl, document, html);
     }
 
+    private List<String> candidateUrls(String normalizedUrl) {
+        String trimmed = normalizedUrl.endsWith("/") ? normalizedUrl.substring(0, normalizedUrl.length() - 1) : normalizedUrl;
+        return List.of(trimmed + "/", trimmed + "/embed/captioned/");
+    }
+
+    private String fetchHtml(String url) {
+        try {
+            return restClient.get()
+                    .uri(url)
+                    .header(HttpHeaders.ACCEPT,
+                            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                    .header(HttpHeaders.REFERER, "https://www.instagram.com/")
+                    .retrieve()
+                    .body(String.class);
+        } catch (RestClientException e) {
+            log.warn("Instagram preview fetch failed. url={}", url, e);
+            return null;
+        }
+    }
+
+    private ExtractedInstagramPost fetchFromOEmbed(String normalizedUrl) {
+        try {
+            String json = restClient.get()
+                    .uri(UriComponentsBuilder.fromUriString("https://www.instagram.com/api/v1/oembed/")
+                            .queryParam("url", normalizedUrl)
+                            .build(true)
+                            .toUri())
+                    .header(HttpHeaders.ACCEPT, "application/json")
+                    .retrieve()
+                    .body(String.class);
+            if (json == null || json.isBlank()) {
+                return null;
+            }
+            return parseOEmbed(normalizedUrl, objectMapper.readTree(json));
+        } catch (RestClientException | IOException e) {
+            log.info("Instagram oEmbed fetch failed. url={}", normalizedUrl, e);
+            return null;
+        }
+    }
+
     private boolean isUsable(ExtractedInstagramPost extracted) {
         if (extracted == null) {
             return false;
@@ -113,6 +177,83 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
         List<ExtractedMedia> mediaList = extractMedia(document, html);
 
         return new ExtractedInstagramPost(sourceUrl, blankToNull(caption), hashTags, mediaList);
+    }
+
+    ExtractedInstagramPost mergeExtractedPosts(ExtractedInstagramPost primary, ExtractedInstagramPost secondary) {
+        if (primary == null) {
+            return secondary;
+        }
+        if (secondary == null) {
+            return primary;
+        }
+
+        String caption = firstNonBlank(primary.caption(), secondary.caption());
+        Set<String> hashTags = new LinkedHashSet<>();
+        if (primary.hashTags() != null) {
+            hashTags.addAll(primary.hashTags());
+        }
+        if (secondary.hashTags() != null) {
+            hashTags.addAll(secondary.hashTags());
+        }
+
+        Map<String, ExtractedMedia> mediaByUrl = new java.util.LinkedHashMap<>();
+        mergeMedia(mediaByUrl, primary.mediaList());
+        mergeMedia(mediaByUrl, secondary.mediaList());
+
+        return new ExtractedInstagramPost(
+                primary.sourceUrl() != null ? primary.sourceUrl() : secondary.sourceUrl(),
+                blankToNull(caption),
+                List.copyOf(hashTags).subList(0, Math.min(hashTags.size(), 3)),
+                List.copyOf(mediaByUrl.values()));
+    }
+
+    private void mergeMedia(Map<String, ExtractedMedia> mediaByUrl, List<ExtractedMedia> mediaList) {
+        if (mediaList == null) {
+            return;
+        }
+        for (ExtractedMedia media : mediaList) {
+            if (media == null || media.sourceUrl() == null || media.sourceUrl().isBlank()) {
+                continue;
+            }
+            mediaByUrl.merge(media.sourceUrl(), media, (existing, incoming) ->
+                    existing.mediaType() == InstagramPreviewDto.MediaType.VIDEO ? existing : incoming);
+        }
+    }
+
+    ExtractedInstagramPost parseOEmbed(String sourceUrl, JsonNode root) {
+        if (root == null || root.isNull()) {
+            return null;
+        }
+        String caption = readNullableText(root, "title");
+        String thumbnailUrl = readNullableText(root, "thumbnail_url");
+        String html = readNullableText(root, "html");
+        boolean isVideo = isVideoOEmbed(sourceUrl, html);
+
+        List<ExtractedMedia> mediaList = thumbnailUrl == null
+                ? List.of()
+                : List.of(new ExtractedMedia(
+                        thumbnailUrl,
+                        isVideo ? InstagramPreviewDto.MediaType.VIDEO : InstagramPreviewDto.MediaType.IMAGE));
+
+        return new ExtractedInstagramPost(
+                sourceUrl,
+                caption,
+                extractHashTags(caption),
+                mediaList);
+    }
+
+    private boolean isVideoOEmbed(String sourceUrl, String html) {
+        String loweredSourceUrl = sourceUrl.toLowerCase(Locale.ROOT);
+        if (loweredSourceUrl.contains("/reel/")) {
+            return true;
+        }
+        if (html == null) {
+            return false;
+        }
+        String loweredHtml = html.toLowerCase(Locale.ROOT);
+        return loweredHtml.contains("/reel/")
+                || loweredHtml.contains("instagram reel")
+                || loweredHtml.contains("data-instgrm-permalink=\"https://www.instagram.com/reel/");
     }
 
     String normalizeHtmlForAi(Document originalDocument) {
@@ -334,7 +475,7 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
             }
         }
 
-        boolean hasVideo = document.selectFirst("meta[property=og:video]") != null;
+        boolean hasVideo = hasVideoSignal(document, html);
         List<ExtractedMedia> mediaList = new ArrayList<>();
         boolean first = true;
         for (String imageUrl : imageUrls) {
@@ -344,6 +485,23 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
             first = false;
         }
         return mediaList;
+    }
+
+    private boolean hasVideoSignal(Document document, String html) {
+        if (document.selectFirst("meta[property=og:video]") != null) {
+            return true;
+        }
+        String ogUrl = extractMeta(document, "meta[property=og:url]");
+        if (ogUrl != null && ogUrl.contains("/reel/")) {
+            return true;
+        }
+        String twitterTitle = extractMeta(document, "meta[name=twitter:title]");
+        if (twitterTitle != null && twitterTitle.toLowerCase(Locale.ROOT).contains("instagram reel")) {
+            return true;
+        }
+        String loweredHtml = html.toLowerCase(Locale.ROOT);
+        return loweredHtml.contains("data-media-type=\"graphvideo\"")
+                || loweredHtml.contains("\"graphvideo\"");
     }
 
     private void collectImageUrls(JsonNode node, Set<String> imageUrls) {
@@ -370,6 +528,18 @@ public class InstagramPostExtractorAdapter implements InstagramPostExtractor {
         while (fields.hasNext()) {
             collectImageUrls(fields.next().getValue(), imageUrls);
         }
+    }
+
+    private String readNullableText(JsonNode node, String fieldName) {
+        if (node == null || node.isNull()) {
+            return null;
+        }
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull() || !field.isTextual()) {
+            return null;
+        }
+        String value = field.asText().trim();
+        return value.isBlank() ? null : value;
     }
 
     private void addIfPresent(Set<String> values, String value) {

@@ -83,7 +83,25 @@ public class PostCommandService {
         }
 
         String normalizedUrl = InstagramUrl.from(request.getUrl()).getValue();
-        InstagramPostExtractor.ExtractedInstagramPost extracted = instagramPostExtractor.extract(normalizedUrl);
+        InstagramPostExtractor.ExtractedInstagramPost extracted;
+        try {
+            extracted = instagramPostExtractor.extract(normalizedUrl);
+        } catch (DomainException e) {
+            if (e.getErrorCode() != PostErrorCode.POST_INSTAGRAM_PREVIEW_UNAVAILABLE) {
+                throw e;
+            }
+            return InstagramPreviewDto.Response.builder()
+                    .sourceUrl(normalizedUrl)
+                    .caption(null)
+                    .hashTags(List.of())
+                    .primaryImageUrl(null)
+                    .allImageUrls(List.of())
+                    .mediaList(List.of())
+                    .extractStatus(InstagramPreviewDto.ExtractStatus.FAILED)
+                    .missingFields(List.of("caption", "image"))
+                    .warnings(List.of("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요."))
+                    .build();
+        }
         List<InstagramPostExtractor.ExtractedMedia> extractedMediaList = extracted.mediaList() == null
                 ? List.of()
                 : extracted.mediaList();

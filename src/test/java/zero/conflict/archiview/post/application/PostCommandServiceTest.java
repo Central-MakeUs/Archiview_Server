@@ -140,6 +140,28 @@ class PostCommandServiceTest {
         }
 
         @Test
+        @DisplayName("인스타그램 미리보기를 불러오지 못하면 실패 응답으로 반환한다")
+        void previewInstagramPost_failedWhenPreviewUnavailable() {
+                UUID editorId = UUID.randomUUID();
+                InstagramPreviewDto.Request request = InstagramPreviewDto.Request.builder()
+                                .url("https://www.instagram.com/p/test-post/")
+                                .build();
+
+                given(instagramPostExtractor.extract("https://instagram.com/p/test-post/"))
+                                .willThrow(new DomainException(PostErrorCode.POST_INSTAGRAM_PREVIEW_UNAVAILABLE));
+
+                InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
+
+                assertThat(response.getSourceUrl()).isEqualTo("https://instagram.com/p/test-post/");
+                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.FAILED);
+                assertThat(response.getMissingFields()).containsExactly("caption", "image");
+                assertThat(response.getWarnings())
+                                .containsExactly("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요.");
+                assertThat(response.getAllImageUrls()).isEmpty();
+                assertThat(response.getMediaList()).isEmpty();
+        }
+
+        @Test
         @DisplayName("Post 생성 시 Place가 새로 생성되어야 한다")
         void createPost_withNewPlace_success() {
                 // given
