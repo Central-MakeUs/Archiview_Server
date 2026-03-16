@@ -46,6 +46,8 @@ public class InstagramPreviewDto {
         private List<String> missingFields;
         @Schema(description = "부분 성공 또는 스킵 이유 목록")
         private List<String> warnings;
+        @Schema(description = "캡션/미디어 기반 상세 분석 결과")
+        private ContentAnalysis contentAnalysis;
     }
 
     @Getter
@@ -61,9 +63,35 @@ public class InstagramPreviewDto {
         private MediaType mediaType;
     }
 
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ContentAnalysis {
+        @Schema(description = "분석 상태", example = "PARTIAL_SUCCESS")
+        private AnalysisStatus status;
+        @Schema(description = "작성자 캡션 요약")
+        private String captionSummary;
+        @Schema(description = "이미지/썸네일에서 읽은 텍스트")
+        private String visibleText;
+        @Schema(description = "이미지/썸네일 장면 설명")
+        private String sceneDescription;
+        @Schema(description = "음성 전사 텍스트")
+        private String audioTranscript;
+        @Schema(description = "분석 경고 목록")
+        private List<String> warnings;
+    }
+
     public enum ExtractStatus {
         SUCCESS,
         PARTIAL_SUCCESS,
+        FAILED
+    }
+
+    public enum AnalysisStatus {
+        SUCCESS,
+        PARTIAL_SUCCESS,
+        SKIPPED,
         FAILED
     }
 

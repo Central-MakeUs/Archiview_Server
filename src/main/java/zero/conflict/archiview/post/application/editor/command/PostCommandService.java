@@ -7,6 +7,7 @@ import zero.conflict.archiview.post.application.editor.command.event.PostOutboxS
 import zero.conflict.archiview.post.application.command.PostPlaceCountService;
 import zero.conflict.archiview.post.application.port.out.CategoryRepository;
 import zero.conflict.archiview.post.application.port.out.InstagramMediaStorage;
+import zero.conflict.archiview.post.application.port.out.InstagramPreviewContentAnalyzer;
 import zero.conflict.archiview.post.application.port.out.InstagramPostExtractor;
 import zero.conflict.archiview.post.application.port.out.PlaceRepository;
 import zero.conflict.archiview.post.application.port.out.PostPlaceRepository;
@@ -47,6 +48,7 @@ public class PostCommandService {
     private final UserClient userClient;
     private final InstagramPostExtractor instagramPostExtractor;
     private final InstagramMediaStorage instagramMediaStorage;
+    private final InstagramPreviewContentAnalyzer instagramPreviewContentAnalyzer;
     private final S3Service s3Service;
     private final PostOutboxService postOutboxService;
     private final PostPlaceCountService postPlaceCountService;
@@ -100,6 +102,7 @@ public class PostCommandService {
                     .extractStatus(InstagramPreviewDto.ExtractStatus.FAILED)
                     .missingFields(List.of("caption", "image"))
                     .warnings(List.of("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요."))
+                    .contentAnalysis(defaultSkippedContentAnalysis("미디어 상세 분석을 수행할 수 없습니다."))
                     .build();
         }
         List<InstagramPostExtractor.ExtractedMedia> extractedMediaList = extracted.mediaList() == null
@@ -145,6 +148,8 @@ public class PostCommandService {
             warnings.add("자동완성에 필요한 caption/image를 추출하지 못했습니다.");
         }
 
+        InstagramPreviewDto.ContentAnalysis contentAnalysis = analyzeContent(extracted.caption(), mediaItems);
+
         return InstagramPreviewDto.Response.builder()
                 .sourceUrl(extracted.sourceUrl())
                 .caption(extracted.caption())
@@ -155,6 +160,7 @@ public class PostCommandService {
                 .extractStatus(status)
                 .missingFields(missingFields)
                 .warnings(warnings)
+                .contentAnalysis(contentAnalysis)
                 .build();
     }
 
@@ -390,5 +396,33 @@ public class PostCommandService {
             return InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS;
         }
         return InstagramPreviewDto.ExtractStatus.FAILED;
+    }
+
+    private InstagramPreviewDto.ContentAnalysis analyzeContent(
+            String caption,
+            List<InstagramPreviewDto.MediaItem> mediaItems) {
+        try {
+            return instagramPreviewContentAnalyzer.analyze(caption, mediaItems);
+        } catch (RuntimeException e) {
+            return InstagramPreviewDto.ContentAnalysis.builder()
+                    .status(InstagramPreviewDto.AnalysisStatus.FAILED)
+                    .captionSummary(null)
+                    .visibleText(null)
+                    .sceneDescription(null)
+                    .audioTranscript(null)
+                    .warnings(List.of("미디어 상세 분석에 실패했습니다."))
+                    .build();
+        }
+    }
+
+    private InstagramPreviewDto.ContentAnalysis defaultSkippedContentAnalysis(String warning) {
+        return InstagramPreviewDto.ContentAnalysis.builder()
+                .status(InstagramPreviewDto.AnalysisStatus.SKIPPED)
+                .captionSummary(null)
+                .visibleText(null)
+                .sceneDescription(null)
+                .audioTranscript(null)
+                .warnings(List.of(warning))
+                .build();
     }
 }

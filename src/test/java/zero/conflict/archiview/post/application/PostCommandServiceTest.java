@@ -13,6 +13,7 @@ import zero.conflict.archiview.post.application.editor.command.PostCommandServic
 import zero.conflict.archiview.post.application.editor.command.event.PostOutboxService;
 import zero.conflict.archiview.post.application.port.out.InstagramMediaStorage;
 import zero.conflict.archiview.post.application.port.out.InstagramPostExtractor;
+import zero.conflict.archiview.post.application.port.out.InstagramPreviewContentAnalyzer;
 import zero.conflict.archiview.post.domain.*;
 import zero.conflict.archiview.post.dto.PostCommandDto;
 import zero.conflict.archiview.post.dto.InstagramPreviewDto;
@@ -65,6 +66,9 @@ class PostCommandServiceTest {
         private InstagramMediaStorage instagramMediaStorage;
 
         @Mock
+        private InstagramPreviewContentAnalyzer instagramPreviewContentAnalyzer;
+
+        @Mock
         private zero.conflict.archiview.global.infra.s3.S3Service s3Service;
 
         @Mock
@@ -101,6 +105,15 @@ class PostCommandServiceTest {
                                                 extractedMedia.sourceUrl(),
                                                 "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp",
                                                 InstagramPreviewDto.MediaType.IMAGE));
+                given(instagramPreviewContentAnalyzer.analyze(any(), any()))
+                                .willReturn(InstagramPreviewDto.ContentAnalysis.builder()
+                                                .status(InstagramPreviewDto.AnalysisStatus.SUCCESS)
+                                                .captionSummary("요약")
+                                                .visibleText("텍스트")
+                                                .sceneDescription("장면")
+                                                .audioTranscript(null)
+                                                .warnings(List.of())
+                                                .build());
 
                 InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
 
@@ -109,6 +122,8 @@ class PostCommandServiceTest {
                                 .isEqualTo("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp");
                 assertThat(response.getHashTags()).containsExactly("#테스트");
                 assertThat(response.getMissingFields()).isEmpty();
+                assertThat(response.getContentAnalysis()).isNotNull();
+                assertThat(response.getContentAnalysis().getCaptionSummary()).isEqualTo("요약");
         }
 
         @Test
@@ -130,6 +145,15 @@ class PostCommandServiceTest {
                                                 List.of(extractedMedia)));
                 given(instagramMediaStorage.store(extractedMedia))
                                 .willThrow(new DomainException(PostErrorCode.POST_INSTAGRAM_MEDIA_DOWNLOAD_FAILED));
+                given(instagramPreviewContentAnalyzer.analyze(any(), any()))
+                                .willReturn(InstagramPreviewDto.ContentAnalysis.builder()
+                                                .status(InstagramPreviewDto.AnalysisStatus.PARTIAL_SUCCESS)
+                                                .captionSummary("요약")
+                                                .visibleText(null)
+                                                .sceneDescription(null)
+                                                .audioTranscript(null)
+                                                .warnings(List.of("음성 전사를 지원하지 않습니다."))
+                                                .build());
 
                 InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
 
@@ -137,6 +161,7 @@ class PostCommandServiceTest {
                 assertThat(response.getAllImageUrls()).isEmpty();
                 assertThat(response.getMissingFields()).contains("image");
                 assertThat(response.getWarnings()).isNotEmpty();
+                assertThat(response.getContentAnalysis()).isNotNull();
         }
 
         @Test
@@ -159,6 +184,8 @@ class PostCommandServiceTest {
                                 .containsExactly("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요.");
                 assertThat(response.getAllImageUrls()).isEmpty();
                 assertThat(response.getMediaList()).isEmpty();
+                assertThat(response.getContentAnalysis()).isNotNull();
+                assertThat(response.getContentAnalysis().getStatus()).isEqualTo(InstagramPreviewDto.AnalysisStatus.SKIPPED);
         }
 
         @Test
