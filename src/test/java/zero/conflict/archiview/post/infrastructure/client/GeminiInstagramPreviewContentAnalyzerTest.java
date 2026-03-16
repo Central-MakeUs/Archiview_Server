@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.web.client.ResourceAccessException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -76,5 +77,23 @@ class GeminiInstagramPreviewContentAnalyzerTest {
                 MediaType.APPLICATION_OCTET_STREAM);
 
         assertThat(mimeType).isEqualTo("image/webp");
+    }
+
+    @Test
+    @DisplayName("Gemini timeout 예외는 재시도 대상으로 판별한다")
+    void isTimeoutException_returnsTrueForNestedTimeout() {
+        GeminiInstagramPreviewContentAnalyzer analyzer = new GeminiInstagramPreviewContentAnalyzer(
+                new ObjectMapper(),
+                new InstagramPromptTemplateLoader(),
+                "test-key",
+                "gemini-test",
+                "https://example.com",
+                1000);
+
+        RuntimeException exception = new ResourceAccessException(
+                "Request timed out",
+                new java.io.IOException("Request timed out", new java.util.concurrent.TimeoutException()));
+
+        assertThat(analyzer.isTimeoutException(exception)).isTrue();
     }
 }

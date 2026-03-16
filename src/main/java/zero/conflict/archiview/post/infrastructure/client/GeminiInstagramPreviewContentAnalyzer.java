@@ -10,6 +10,7 @@ import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.util.UriComponentsBuilder;
 import zero.conflict.archiview.post.application.port.out.InstagramPreviewContentAnalyzer;
 import zero.conflict.archiview.post.domain.Category;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 @Component
@@ -94,6 +96,19 @@ public class GeminiInstagramPreviewContentAnalyzer implements InstagramPreviewCo
                     .warnings(mergeWarnings(warnings, result.warnings()))
                     .build();
         } catch (RuntimeException e) {
+            if (!imageParts.isEmpty() && isTimeoutException(e)) {
+                warnings.add("AI 이미지 분석이 지연돼 텍스트 기준으로 다시 시도했습니다.");
+                try {
+                    GeminiDraftResult fallbackResult = requestGemini(caption, hashTags, List.of(), categories);
+                    return InstagramPreviewDto.DraftAnalysis.builder()
+                            .hashTags(normalizeHashTags(fallbackResult.hashTags(), caption, hashTags))
+                            .draftPlaces(normalizeCandidates(fallbackResult.draftPlaces()))
+                            .warnings(mergeWarnings(warnings, fallbackResult.warnings()))
+                            .build();
+                } catch (RuntimeException retryException) {
+                    log.info("Gemini Instagram draft analysis retry failed", retryException);
+                }
+            }
             log.info("Gemini Instagram draft analysis failed", e);
             warnings.add("AI 초안 생성에 실패해 휴리스틱 초안으로 대체했습니다.");
             return heuristicDraft(caption, hashTags, mediaItems, categories, warnings);
@@ -197,6 +212,22 @@ public class GeminiInstagramPreviewContentAnalyzer implements InstagramPreviewCo
                     String mimeType = normalizeMimeType(url, contentType);
                     return new ImagePart(mediaIndex, mimeType, Base64.getEncoder().encodeToString(bytes));
                 });
+    }
+
+    boolean isTimeoutException(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            if (current instanceof TimeoutException) {
+                return true;
+            }
+            if (current instanceof ResourceAccessException
+                    && current.getMessage() != null
+                    && current.getMessage().toLowerCase(Locale.ROOT).contains("timed out")) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     String normalizeMimeType(String url, MediaType contentType) {
