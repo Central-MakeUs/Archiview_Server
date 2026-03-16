@@ -59,6 +59,19 @@ class PostDomainTest {
     }
 
     @Test
+    @DisplayName("인스타그램 URL의 쿼리 파라미터와 프래그먼트는 자동으로 제거한다")
+    void createPost_success_withQueryParameters() {
+        java.util.UUID editorId = java.util.UUID.randomUUID();
+        String url = "https://www.instagram.com/p/DBU0yXOz_A-/?img_index=1&utm_source=ig_web_copy_link#section";
+        java.util.List<String> hashTags = java.util.List.of("#성수", "#카페");
+
+        Post post = Post.createOf(editorId, url, hashTags);
+
+        assertThat(post.getUrl()).isEqualTo("https://instagram.com/p/DBU0yXOz_A-/");
+        assertThat(post.getHashTags()).isEqualTo(hashTags);
+    }
+
+    @Test
     @DisplayName("잘못된 형식의 인스타그램 URL은 예외를 발생시킨다")
     void createPost_invalidUrl_throwsException() {
         // given

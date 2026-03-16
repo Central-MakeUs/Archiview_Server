@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 import zero.conflict.archiview.global.error.DomainException;
 import zero.conflict.archiview.post.domain.error.PostErrorCode;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
 @Embeddable
@@ -49,6 +51,24 @@ public class InstagramUrl {
             normalized = "https://" + normalized;
         }
 
-        return normalized.replaceFirst("^https://www\\.", "https://");
+        normalized = normalized.replaceFirst("^https://www\\.", "https://");
+        normalized = stripQueryAndFragment(normalized);
+
+        return normalized;
+    }
+
+    private String stripQueryAndFragment(String value) {
+        try {
+            URI uri = new URI(value);
+            return new URI(
+                    uri.getScheme(),
+                    uri.getAuthority(),
+                    uri.getPath(),
+                    null,
+                    null)
+                    .toString();
+        } catch (URISyntaxException e) {
+            return value.replaceFirst("[?#].*$", "");
+        }
     }
 }
