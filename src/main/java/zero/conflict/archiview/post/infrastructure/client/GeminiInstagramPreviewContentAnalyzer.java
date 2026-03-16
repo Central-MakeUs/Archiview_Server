@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Slf4j
 @Component
@@ -35,6 +36,7 @@ public class GeminiInstagramPreviewContentAnalyzer implements InstagramPreviewCo
     private static final int MAX_IMAGE_COUNT = 3;
     private static final int MAX_HASHTAG_COUNT = 3;
     private static final int MAX_DESCRIPTION_LENGTH = 50;
+    private static final Pattern FILE_EXTENSION_PATTERN = Pattern.compile("\\.([a-zA-Z0-9]+)(?:\\?|$)");
 
     private final ObjectMapper objectMapper;
     private final RestClient geminiRestClient;
@@ -192,9 +194,50 @@ public class GeminiInstagramPreviewContentAnalyzer implements InstagramPreviewCo
                     if (bytes.length == 0) {
                         throw new IllegalStateException("Downloaded media is empty");
                     }
-                    String mimeType = contentType == null ? MediaType.IMAGE_JPEG_VALUE : contentType.toString();
+                    String mimeType = normalizeMimeType(url, contentType);
                     return new ImagePart(mediaIndex, mimeType, Base64.getEncoder().encodeToString(bytes));
                 });
+    }
+
+    String normalizeMimeType(String url, MediaType contentType) {
+        if (contentType != null && isSupportedImageMimeType(contentType.toString())) {
+            return contentType.toString();
+        }
+
+        String inferredMimeType = inferMimeTypeFromUrl(url);
+        if (inferredMimeType != null) {
+            return inferredMimeType;
+        }
+
+        if (contentType != null && MediaType.IMAGE_GIF_VALUE.equalsIgnoreCase(contentType.toString())) {
+            return MediaType.IMAGE_PNG_VALUE;
+        }
+
+        throw new IllegalStateException("Unsupported media MIME type: "
+                + (contentType == null ? "null" : contentType));
+    }
+
+    private boolean isSupportedImageMimeType(String mimeType) {
+        return MediaType.IMAGE_JPEG_VALUE.equalsIgnoreCase(mimeType)
+                || MediaType.IMAGE_PNG_VALUE.equalsIgnoreCase(mimeType)
+                || "image/webp".equalsIgnoreCase(mimeType);
+    }
+
+    private String inferMimeTypeFromUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
+        }
+        var matcher = FILE_EXTENSION_PATTERN.matcher(url);
+        if (!matcher.find()) {
+            return null;
+        }
+        String extension = matcher.group(1).toLowerCase(Locale.ROOT);
+        return switch (extension) {
+            case "jpg", "jpeg" -> MediaType.IMAGE_JPEG_VALUE;
+            case "png" -> MediaType.IMAGE_PNG_VALUE;
+            case "webp" -> "image/webp";
+            default -> null;
+        };
     }
 
     private GeminiDraftResult requestGemini(
