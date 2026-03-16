@@ -94,6 +94,7 @@ jobs:
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e AWS_ACCESS_KEY="${{ secrets.AWS_ACCESS_KEY }}" \
               -e AWS_SECRET_KEY="${{ secrets.AWS_SECRET_KEY }}" \
+              -e GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
               -e SENTRY_DSN="${{ secrets.SENTRY_DSN }}" \
               -e SENTRY_ENVIRONMENT="production" \
               -e SENTRY_RELEASE="${{ github.sha }}" \
