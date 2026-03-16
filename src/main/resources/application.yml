@@ -117,7 +117,7 @@ sentry:
 instagram:
   ai:
     gemini:
-      api-key: ${GEMINI_API_KEY:adfadsfvcvdfwedsfd}
+      api-key: ${GEMINI_API_KEY:}
       model: ${GEMINI_MODEL:gemini-3-flash-preview}
       base-url: ${GEMINI_BASE_URL:https://generativelanguage.googleapis.com/v1beta}
       timeout-ms: ${GEMINI_TIMEOUT_MS:5000}
