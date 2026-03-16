@@ -105,25 +105,28 @@ class PostCommandServiceTest {
                                                 extractedMedia.sourceUrl(),
                                                 "https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp",
                                                 InstagramPreviewDto.MediaType.IMAGE));
-                given(instagramPreviewContentAnalyzer.analyze(any(), any()))
-                                .willReturn(InstagramPreviewDto.ContentAnalysis.builder()
-                                                .status(InstagramPreviewDto.AnalysisStatus.SUCCESS)
-                                                .captionSummary("요약")
-                                                .visibleText("텍스트")
-                                                .sceneDescription("장면")
-                                                .audioTranscript(null)
+                given(categoryRepository.findAll()).willReturn(List.of(
+                                Category.builder().id(1L).name("한식").build(),
+                                Category.builder().id(2L).name("카페").build()));
+                given(instagramPreviewContentAnalyzer.analyze(any(), any(), any(), any()))
+                                .willReturn(InstagramPreviewDto.DraftAnalysis.builder()
+                                                .hashTags(List.of("#테스트", "#맛집"))
+                                                .draftPlaces(List.of(InstagramPreviewDto.DraftPlaceCandidate.builder()
+                                                                .imageIndex(0)
+                                                                .description("한입부터 반해버릴 분위기 맛집")
+                                                                .categoryIds(List.of(1L, 2L))
+                                                                .build()))
                                                 .warnings(List.of())
                                                 .build());
 
                 InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
 
-                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.SUCCESS);
-                assertThat(response.getPrimaryImageUrl())
+                assertThat(response.getHashTags()).containsExactly("#테스트", "#맛집");
+                assertThat(response.getDraftPlaces()).hasSize(1);
+                assertThat(response.getDraftPlaces().get(0).getImageUrl())
                                 .isEqualTo("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp");
-                assertThat(response.getHashTags()).containsExactly("#테스트");
-                assertThat(response.getMissingFields()).isEmpty();
-                assertThat(response.getContentAnalysis()).isNotNull();
-                assertThat(response.getContentAnalysis().getCaptionSummary()).isEqualTo("요약");
+                assertThat(response.getDraftPlaces().get(0).getCategoryIds()).containsExactly(1L, 2L);
+                assertThat(response.getWarnings()).isEmpty();
         }
 
         @Test
@@ -145,23 +148,19 @@ class PostCommandServiceTest {
                                                 List.of(extractedMedia)));
                 given(instagramMediaStorage.store(extractedMedia))
                                 .willThrow(new DomainException(PostErrorCode.POST_INSTAGRAM_MEDIA_DOWNLOAD_FAILED));
-                given(instagramPreviewContentAnalyzer.analyze(any(), any()))
-                                .willReturn(InstagramPreviewDto.ContentAnalysis.builder()
-                                                .status(InstagramPreviewDto.AnalysisStatus.PARTIAL_SUCCESS)
-                                                .captionSummary("요약")
-                                                .visibleText(null)
-                                                .sceneDescription(null)
-                                                .audioTranscript(null)
-                                                .warnings(List.of("음성 전사를 지원하지 않습니다."))
+                given(categoryRepository.findAll()).willReturn(List.of(Category.builder().id(3L).name("디저트").build()));
+                given(instagramPreviewContentAnalyzer.analyze(any(), any(), any(), any()))
+                                .willReturn(InstagramPreviewDto.DraftAnalysis.builder()
+                                                .hashTags(List.of("#테스트"))
+                                                .draftPlaces(List.of())
+                                                .warnings(List.of("AI가 장소를 분리하지 못했습니다."))
                                                 .build());
 
                 InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
 
-                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS);
-                assertThat(response.getAllImageUrls()).isEmpty();
-                assertThat(response.getMissingFields()).contains("image");
+                assertThat(response.getDraftPlaces()).isEmpty();
                 assertThat(response.getWarnings()).isNotEmpty();
-                assertThat(response.getContentAnalysis()).isNotNull();
+                assertThat(response.getWarnings()).contains("일부 이미지를 가져오지 못했습니다.");
         }
 
         @Test
@@ -178,14 +177,10 @@ class PostCommandServiceTest {
                 InstagramPreviewDto.Response response = postCommandService.previewInstagramPost(request, editorId);
 
                 assertThat(response.getSourceUrl()).isEqualTo("https://instagram.com/p/test-post/");
-                assertThat(response.getExtractStatus()).isEqualTo(InstagramPreviewDto.ExtractStatus.FAILED);
-                assertThat(response.getMissingFields()).containsExactly("caption", "image");
+                assertThat(response.getDraftPlaces()).isEmpty();
                 assertThat(response.getWarnings())
                                 .containsExactly("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요.");
-                assertThat(response.getAllImageUrls()).isEmpty();
-                assertThat(response.getMediaList()).isEmpty();
-                assertThat(response.getContentAnalysis()).isNotNull();
-                assertThat(response.getContentAnalysis().getStatus()).isEqualTo(InstagramPreviewDto.AnalysisStatus.SKIPPED);
+                assertThat(response.getHashTags()).isEmpty();
         }
 
         @Test

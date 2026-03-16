@@ -30,24 +30,25 @@ public class InstagramPreviewDto {
     public static class Response {
         @Schema(description = "정규화된 인스타그램 URL")
         private String sourceUrl;
-        @Schema(description = "게시글 캡션")
-        private String caption;
-        @Schema(description = "자동 추출된 해시태그 최대 3개")
+        @Schema(description = "AI가 post 생성용으로 정리한 해시태그 최대 3개")
         private List<String> hashTags;
-        @Schema(description = "대표 이미지 URL")
-        private String primaryImageUrl;
-        @Schema(description = "S3에 저장된 전체 이미지 URL 목록")
-        private List<String> allImageUrls;
-        @Schema(description = "추출된 미디어 목록")
-        private List<MediaItem> mediaList;
-        @Schema(description = "추출 상태", example = "PARTIAL_SUCCESS")
-        private ExtractStatus extractStatus;
-        @Schema(description = "누락된 필드 목록")
-        private List<String> missingFields;
-        @Schema(description = "부분 성공 또는 스킵 이유 목록")
+        @Schema(description = "AI가 장소별로 정리한 post 생성 초안 목록")
+        private List<DraftPlace> draftPlaces;
+        @Schema(description = "부분 성공 또는 보정 이유 목록")
         private List<String> warnings;
-        @Schema(description = "캡션/미디어 기반 상세 분석 결과")
-        private ContentAnalysis contentAnalysis;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DraftPlace {
+        @Schema(description = "장소 대표 사진 URL")
+        private String imageUrl;
+        @Schema(description = "50자 이내 맛집 소개 문체 설명")
+        private String description;
+        @Schema(description = "기존 카테고리 ID 목록, 1~2개")
+        private List<Long> categoryIds;
     }
 
     @Getter
@@ -67,32 +68,26 @@ public class InstagramPreviewDto {
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
-    public static class ContentAnalysis {
-        @Schema(description = "분석 상태", example = "PARTIAL_SUCCESS")
-        private AnalysisStatus status;
-        @Schema(description = "작성자 캡션 요약")
-        private String captionSummary;
-        @Schema(description = "이미지/썸네일에서 읽은 텍스트")
-        private String visibleText;
-        @Schema(description = "이미지/썸네일 장면 설명")
-        private String sceneDescription;
-        @Schema(description = "음성 전사 텍스트")
-        private String audioTranscript;
-        @Schema(description = "분석 경고 목록")
+    public static class DraftAnalysis {
+        @Schema(description = "AI가 정리한 해시태그 최대 3개")
+        private List<String> hashTags;
+        @Schema(description = "AI가 정리한 장소 초안 목록")
+        private List<DraftPlaceCandidate> draftPlaces;
+        @Schema(description = "AI 분석 경고 목록")
         private List<String> warnings;
     }
 
-    public enum ExtractStatus {
-        SUCCESS,
-        PARTIAL_SUCCESS,
-        FAILED
-    }
-
-    public enum AnalysisStatus {
-        SUCCESS,
-        PARTIAL_SUCCESS,
-        SKIPPED,
-        FAILED
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class DraftPlaceCandidate {
+        @Schema(description = "입력 미디어 목록 기준 0-based 대표 이미지 인덱스")
+        private Integer imageIndex;
+        @Schema(description = "50자 이내 맛집 소개 문체 설명")
+        private String description;
+        @Schema(description = "기존 카테고리 ID 목록, 1~2개")
+        private List<Long> categoryIds;
     }
 
     public enum MediaType {

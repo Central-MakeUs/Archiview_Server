@@ -90,17 +90,12 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                 .build();
         InstagramPreviewDto.Response response = InstagramPreviewDto.Response.builder()
                 .sourceUrl("https://instagram.com/p/test-post/")
-                .caption("테스트 캡션 #테스트")
                 .hashTags(java.util.List.of("#테스트"))
-                .primaryImageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp")
-                .allImageUrls(java.util.List.of("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp"))
-                .mediaList(java.util.List.of(InstagramPreviewDto.MediaItem.builder()
-                        .sourceUrl("https://instagram.example/source.jpg")
-                        .storedUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp")
-                        .mediaType(InstagramPreviewDto.MediaType.IMAGE)
+                .draftPlaces(java.util.List.of(InstagramPreviewDto.DraftPlace.builder()
+                        .imageUrl("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp")
+                        .description("저장각 나오는 한 끼 맛집")
+                        .categoryIds(java.util.List.of(1L, 2L))
                         .build()))
-                .extractStatus(InstagramPreviewDto.ExtractStatus.SUCCESS)
-                .missingFields(java.util.List.of())
                 .warnings(java.util.List.of())
                 .build();
 
@@ -114,9 +109,10 @@ class EditorPostCommandControllerTest extends ControllerTestSupport {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.extractStatus").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.primaryImageUrl")
-                        .value("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp"));
+                .andExpect(jsonPath("$.data.hashTags[0]").value("#테스트"))
+                .andExpect(jsonPath("$.data.draftPlaces[0].imageUrl")
+                        .value("https://bucket.s3.ap-northeast-2.amazonaws.com/posts/test.webp"))
+                .andExpect(jsonPath("$.data.draftPlaces[0].categoryIds[0]").value(1L));
     }
 
     @Test

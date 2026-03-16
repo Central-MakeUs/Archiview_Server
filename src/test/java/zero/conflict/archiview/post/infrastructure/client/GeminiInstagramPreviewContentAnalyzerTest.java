@@ -9,10 +9,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class GeminiInstagramPreviewContentAnalyzerTest {
 
     @Test
-    @DisplayName("Gemini 미디어 분석 응답 JSON을 구조화 결과로 파싱한다")
+    @DisplayName("Gemini 초안 응답 JSON을 post 초안 결과로 파싱한다")
     void parseResponse_success() throws Exception {
         GeminiInstagramPreviewContentAnalyzer analyzer = new GeminiInstagramPreviewContentAnalyzer(
                 new ObjectMapper(),
+                new InstagramPromptTemplateLoader(),
                 "test-key",
                 "gemini-test",
                 "https://example.com",
@@ -21,8 +22,15 @@ class GeminiInstagramPreviewContentAnalyzerTest {
         String responseText = """
                 ```json
                 {
-                  "visibleText": "매장명\\n행사중",
-                  "sceneDescription": "뷔페 음식이 놓인 실내 장면"
+                  "hashTags": ["#성수맛집", "#데이트"],
+                  "draftPlaces": [
+                    {
+                      "imageIndex": 1,
+                      "description": "분위기까지 꽉 찬 성수 데이트 맛집",
+                      "categoryIds": [3, 5]
+                    }
+                  ],
+                  "warnings": ["대표 사진은 1장만 선택했습니다."]
                 }
                 ```
                 """;
@@ -41,9 +49,13 @@ class GeminiInstagramPreviewContentAnalyzerTest {
                 }
                 """.formatted(new ObjectMapper().writeValueAsString(responseText)));
 
-        GeminiInstagramPreviewContentAnalyzer.GeminiAnalysisResult result = analyzer.parseResponse(response);
+        GeminiInstagramPreviewContentAnalyzer.GeminiDraftResult result = analyzer.parseResponse(response);
 
-        assertThat(result.visibleText()).isEqualTo("매장명\n행사중");
-        assertThat(result.sceneDescription()).isEqualTo("뷔페 음식이 놓인 실내 장면");
+        assertThat(result.hashTags()).containsExactly("#성수맛집", "#데이트");
+        assertThat(result.draftPlaces()).hasSize(1);
+        assertThat(result.draftPlaces().get(0).getImageIndex()).isEqualTo(1);
+        assertThat(result.draftPlaces().get(0).getDescription()).isEqualTo("분위기까지 꽉 찬 성수 데이트 맛집");
+        assertThat(result.draftPlaces().get(0).getCategoryIds()).containsExactly(3L, 5L);
+        assertThat(result.warnings()).containsExactly("대표 사진은 1장만 선택했습니다.");
     }
 }

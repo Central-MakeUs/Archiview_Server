@@ -36,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -94,15 +95,9 @@ public class PostCommandService {
             }
             return InstagramPreviewDto.Response.builder()
                     .sourceUrl(normalizedUrl)
-                    .caption(null)
                     .hashTags(List.of())
-                    .primaryImageUrl(null)
-                    .allImageUrls(List.of())
-                    .mediaList(List.of())
-                    .extractStatus(InstagramPreviewDto.ExtractStatus.FAILED)
-                    .missingFields(List.of("caption", "image"))
+                    .draftPlaces(List.of())
                     .warnings(List.of("인스타그램 게시글 미리보기를 불러오지 못했습니다. 내용을 직접 입력해 주세요."))
-                    .contentAnalysis(defaultSkippedContentAnalysis("미디어 상세 분석을 수행할 수 없습니다."))
                     .build();
         }
         List<InstagramPostExtractor.ExtractedMedia> extractedMediaList = extracted.mediaList() == null
@@ -113,7 +108,6 @@ public class PostCommandService {
                 : extracted.hashTags();
 
         List<InstagramPreviewDto.MediaItem> mediaItems = new ArrayList<>();
-        List<String> imageUrls = new ArrayList<>();
         List<String> warnings = new ArrayList<>();
         for (InstagramPostExtractor.ExtractedMedia media : extractedMediaList) {
             try {
@@ -123,7 +117,6 @@ public class PostCommandService {
                         .storedUrl(storedMedia.storedUrl())
                         .mediaType(storedMedia.mediaType())
                         .build());
-                imageUrls.add(storedMedia.storedUrl());
             } catch (DomainException e) {
                 if (e.getErrorCode() != PostErrorCode.POST_INSTAGRAM_MEDIA_DOWNLOAD_FAILED) {
                     throw e;
@@ -131,36 +124,19 @@ public class PostCommandService {
                 warnings.add("일부 이미지를 가져오지 못했습니다.");
             }
         }
-
-        List<String> missingFields = new ArrayList<>();
-        if (extracted.caption() == null || extracted.caption().isBlank()) {
-            missingFields.add("caption");
-        }
-        if (imageUrls.isEmpty()) {
-            missingFields.add("image");
-        }
-
-        InstagramPreviewDto.ExtractStatus status = determinePreviewStatus(extracted.caption(), imageUrls);
-        if (status == InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS && warnings.isEmpty()) {
-            warnings.add("일부 필드를 자동완성하지 못했습니다.");
-        }
-        if (status == InstagramPreviewDto.ExtractStatus.FAILED) {
-            warnings.add("자동완성에 필요한 caption/image를 추출하지 못했습니다.");
-        }
-
-        InstagramPreviewDto.ContentAnalysis contentAnalysis = analyzeContent(extracted.caption(), mediaItems);
+        List<Category> categories = categoryRepository.findAll();
+        InstagramPreviewDto.DraftAnalysis draftAnalysis = analyzeDraft(
+                extracted.caption(),
+                extractedHashTags,
+                mediaItems,
+                categories);
+        warnings.addAll(draftAnalysis.getWarnings());
 
         return InstagramPreviewDto.Response.builder()
                 .sourceUrl(extracted.sourceUrl())
-                .caption(extracted.caption())
-                .hashTags(extractedHashTags)
-                .primaryImageUrl(imageUrls.isEmpty() ? null : imageUrls.get(0))
-                .allImageUrls(imageUrls)
-                .mediaList(mediaItems)
-                .extractStatus(status)
-                .missingFields(missingFields)
-                .warnings(warnings)
-                .contentAnalysis(contentAnalysis)
+                .hashTags(normalizeHashTags(draftAnalysis.getHashTags(), extractedHashTags))
+                .draftPlaces(buildDraftPlaces(mediaItems, draftAnalysis.getDraftPlaces(), categories, warnings))
+                .warnings(deduplicateWarnings(warnings))
                 .build();
     }
 
@@ -386,43 +362,114 @@ public class PostCommandService {
         return PostCommandDto.Response.PlaceInfoResponse.from(place);
     }
 
-    private InstagramPreviewDto.ExtractStatus determinePreviewStatus(String caption, List<String> imageUrls) {
-        boolean hasCaption = caption != null && !caption.isBlank();
-        boolean hasImage = imageUrls != null && !imageUrls.isEmpty();
-        if (hasCaption && hasImage) {
-            return InstagramPreviewDto.ExtractStatus.SUCCESS;
-        }
-        if (hasCaption || hasImage) {
-            return InstagramPreviewDto.ExtractStatus.PARTIAL_SUCCESS;
-        }
-        return InstagramPreviewDto.ExtractStatus.FAILED;
-    }
-
-    private InstagramPreviewDto.ContentAnalysis analyzeContent(
+    private InstagramPreviewDto.DraftAnalysis analyzeDraft(
             String caption,
-            List<InstagramPreviewDto.MediaItem> mediaItems) {
+            List<String> hashTags,
+            List<InstagramPreviewDto.MediaItem> mediaItems,
+            List<Category> categories) {
         try {
-            return instagramPreviewContentAnalyzer.analyze(caption, mediaItems);
+            return instagramPreviewContentAnalyzer.analyze(caption, hashTags, mediaItems, categories);
         } catch (RuntimeException e) {
-            return InstagramPreviewDto.ContentAnalysis.builder()
-                    .status(InstagramPreviewDto.AnalysisStatus.FAILED)
-                    .captionSummary(null)
-                    .visibleText(null)
-                    .sceneDescription(null)
-                    .audioTranscript(null)
-                    .warnings(List.of("미디어 상세 분석에 실패했습니다."))
+            return InstagramPreviewDto.DraftAnalysis.builder()
+                    .hashTags(hashTags == null ? List.of() : hashTags)
+                    .draftPlaces(List.of())
+                    .warnings(List.of("AI 초안 생성에 실패했습니다."))
                     .build();
         }
     }
 
-    private InstagramPreviewDto.ContentAnalysis defaultSkippedContentAnalysis(String warning) {
-        return InstagramPreviewDto.ContentAnalysis.builder()
-                .status(InstagramPreviewDto.AnalysisStatus.SKIPPED)
-                .captionSummary(null)
-                .visibleText(null)
-                .sceneDescription(null)
-                .audioTranscript(null)
-                .warnings(List.of(warning))
-                .build();
+    private List<InstagramPreviewDto.DraftPlace> buildDraftPlaces(
+            List<InstagramPreviewDto.MediaItem> mediaItems,
+            List<InstagramPreviewDto.DraftPlaceCandidate> candidates,
+            List<Category> categories,
+            List<String> warnings) {
+        Map<Long, Category> categoriesById = new HashMap<>();
+        for (Category category : categories) {
+            if (category.getId() != null) {
+                categoriesById.put(category.getId(), category);
+            }
+        }
+
+        List<InstagramPreviewDto.DraftPlace> draftPlaces = new ArrayList<>();
+        List<InstagramPreviewDto.DraftPlaceCandidate> safeCandidates = candidates == null ? List.of() : candidates;
+        for (InstagramPreviewDto.DraftPlaceCandidate candidate : safeCandidates) {
+            String imageUrl = resolveDraftImageUrl(mediaItems, candidate.getImageIndex());
+            if (imageUrl == null) {
+                warnings.add("장소 대표 사진을 결정하지 못해 일부 초안을 건너뛰었습니다.");
+                continue;
+            }
+            List<Long> validCategoryIds = candidate.getCategoryIds() == null
+                    ? List.of()
+                    : candidate.getCategoryIds().stream()
+                    .filter(categoriesById::containsKey)
+                    .distinct()
+                    .limit(2)
+                    .toList();
+            if (validCategoryIds.isEmpty()) {
+                warnings.add("유효한 카테고리를 결정하지 못해 일부 초안을 건너뛰었습니다.");
+                continue;
+            }
+            draftPlaces.add(InstagramPreviewDto.DraftPlace.builder()
+                    .imageUrl(imageUrl)
+                    .description(normalizeDescription(candidate.getDescription()))
+                    .categoryIds(validCategoryIds)
+                    .build());
+        }
+
+        if (draftPlaces.isEmpty() && !mediaItems.isEmpty()) {
+            warnings.add("AI가 완성된 장소 초안을 만들지 못했습니다.");
+        }
+        return draftPlaces;
+    }
+
+    private String resolveDraftImageUrl(List<InstagramPreviewDto.MediaItem> mediaItems, Integer imageIndex) {
+        if (mediaItems == null || mediaItems.isEmpty()) {
+            return null;
+        }
+        int safeIndex = imageIndex == null || imageIndex < 0 || imageIndex >= mediaItems.size() ? 0 : imageIndex;
+        InstagramPreviewDto.MediaItem mediaItem = mediaItems.get(safeIndex);
+        return mediaItem.getStoredUrl() != null ? mediaItem.getStoredUrl() : mediaItem.getSourceUrl();
+    }
+
+    private List<String> normalizeHashTags(List<String> aiHashTags, List<String> extractedHashTags) {
+        Set<String> merged = new LinkedHashSet<>();
+        mergeHashTags(merged, aiHashTags);
+        mergeHashTags(merged, extractedHashTags);
+        return merged.stream()
+                .limit(3)
+                .toList();
+    }
+
+    private void mergeHashTags(Set<String> merged, List<String> hashTags) {
+        if (hashTags == null) {
+            return;
+        }
+        for (String hashTag : hashTags) {
+            if (hashTag == null || hashTag.isBlank()) {
+                continue;
+            }
+            String normalized = hashTag.trim();
+            merged.add(normalized.startsWith("#") ? normalized : "#" + normalized);
+        }
+    }
+
+    private String normalizeDescription(String description) {
+        if (description == null || description.isBlank()) {
+            return "분위기부터 저장하고 싶은 한 끼 스팟";
+        }
+        String normalized = description.replaceAll("\\s+", " ").trim();
+        if (normalized.length() <= 50) {
+            return normalized;
+        }
+        return normalized.substring(0, 49).trim() + "…";
+    }
+
+    private List<String> deduplicateWarnings(List<String> warnings) {
+        return warnings == null ? List.of() : warnings.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(value -> !value.isBlank())
+                .distinct()
+                .toList();
     }
 }
